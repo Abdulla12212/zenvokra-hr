@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    /* No baseUrl: TypeScript 7 removes it, and paths already resolve relative to
+       this file. Keeping it out means this config survives the TS 7 upgrade. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    /* TypeScript 6 no longer auto-includes every @types package, so global types
+       have to be named. */
+    "types": ["node", "vite/client"],
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+
+    /* Vite transpiles each file on its own and never reads the type system, so
+       anything that needs cross-file type information at runtime is banned. */
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts", "vitest.setup.ts"]
+}

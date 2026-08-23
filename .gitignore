@@ -1,0 +1,42 @@
+# ---------- .NET ----------
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+artifacts/
+TestResults/
+*.coverage
+coverage/
+*.trx
+BenchmarkDotNet.Artifacts/
+
+# ---------- Node / frontend ----------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+.eslintcache
+stats.html
+
+# ---------- Environment ----------
+.env
+.env.*
+!.env.example
+
+# ---------- Editors ----------
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ---------- Docker ----------
+.docker-data/

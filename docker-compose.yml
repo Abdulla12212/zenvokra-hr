@@ -1,0 +1,88 @@
+# Production-like stack: built images, no bind mounts, no hot reload.
+#
+# `docker compose up` also applies docker-compose.override.yml, which switches the api
+# and web services into development mode. To run this file on its own:
+#
+#   docker compose -f docker-compose.yml up --build
+
+name: cloudesh-hr
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cloudesh}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudesh_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-cloudesh_hr}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # Everything else waits on this, so it has to mean "accepting queries", not
+      # merely "process started".
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cloudesh} -d ${POSTGRES_DB:-cloudesh_hr}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: ./backend
+      target: production
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__Default: >-
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-cloudesh_hr};Username=${POSTGRES_USER:-cloudesh};Password=${POSTGRES_PASSWORD:-cloudesh_dev_password}
+      # Deliberately off here: migrations belong in a deploy step, not in an app that
+      # might be starting several replicas at once.
+      Database__MigrateOnStartup: 'false'
+      Database__SeedOnStartup: 'false'
+      # Tenancy__DefaultTenantId is intentionally unset. The API refuses to start with
+      # a default tenant outside Development, because a deployed API that silently
+      # falls back to one customer would serve their data to anyone.
+    ports:
+      - '${API_PORT:-8080}:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        # Empty: the browser talks to nginx, which proxies /api to the api service.
+        VITE_API_BASE_URL: ''
+        VITE_DEV_TENANT_ID: ${VITE_DEV_TENANT_ID:-}
+    restart: unless-stopped
+    ports:
+      - '${WEB_PORT:-5173}:80'
+    depends_on:
+      - api
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@cloudesh.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-cloudesh_dev_password}
+      # Local convenience only: skips the login and master-password prompts.
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - '${PGADMIN_PORT:-5050}:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  pgadmin-data:

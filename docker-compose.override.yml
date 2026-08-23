@@ -1,0 +1,47 @@
+# Development overrides, applied automatically by `docker compose up`.
+#
+# Swaps both application images to their development target, mounts the source so
+# changes reload in place, and turns on migrate-and-seed plus the default tenant.
+
+services:
+  api:
+    build:
+      target: development
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Database__MigrateOnStartup: ${DATABASE__MIGRATEONSTARTUP:-true}
+      Database__SeedOnStartup: ${DATABASE__SEEDONSTARTUP:-true}
+      # Lets the SPA work before there is a login screen. Rejected outside Development.
+      Tenancy__DefaultTenantId: ${TENANCY__DEFAULTTENANTID:-00000000-0000-0000-0000-000000000001}
+      Cors__AllowedOrigins__0: http://localhost:${WEB_PORT:-5173}
+      # Lets the integration tests start their own PostgreSQL container via the host
+      # daemon. TESTCONTAINERS_HOST_OVERRIDE tells Testcontainers how to reach the
+      # sibling container's published port from inside this one.
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - ./backend:/src
+      - nuget-cache:/root/.nuget/packages
+      # Only needed to run the integration tests from inside this container. Remove the
+      # mount if that is not something you do; it grants full control of the daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  web:
+    build:
+      target: development
+    environment:
+      # Where the Vite dev server forwards /api. Service name, not localhost.
+      API_PROXY_TARGET: http://api:8080
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+      VITE_DEV_TENANT_ID: ${VITE_DEV_TENANT_ID:-00000000-0000-0000-0000-000000000001}
+    ports:
+      - '${WEB_PORT:-5173}:5173'
+    volumes:
+      - ./frontend:/app
+      # Shadows the bind mount so the container keeps the node_modules built for its
+      # own platform. Docker seeds this volume from the image on first run.
+      - web-node-modules:/app/node_modules
+
+volumes:
+  nuget-cache:
+  web-node-modules:

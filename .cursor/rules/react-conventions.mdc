@@ -1,0 +1,84 @@
+---
+description: Frontend conventions for the React 19 + Vite + TanStack Query + Tailwind SPA
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend rules
+
+Full detail: [docs/CODING-CONVENTIONS-REACT.md](../../docs/CODING-CONVENTIONS-REACT.md).
+Adding a feature: [docs/ADD-A-FEATURE.md](../../docs/ADD-A-FEATURE.md).
+
+## Server state belongs to TanStack Query
+
+```tsx
+// ✅ Caching, deduplication, and revalidation come for free.
+const { data, isPending, isError, error } = useDepartments();
+
+// ❌ Hand-rolls all three and gets one of them subtly wrong.
+const [data, setData] = useState();
+useEffect(() => { void fetch('/api/departments').then(/* ... */); }, []);
+```
+
+Three layers, and a component may only touch the third:
+
+```
+features/<f>/api/<f>-api.ts      → fetch functions + types. Knows URLs. No React.
+features/<f>/api/<f>-queries.ts  → key factory, useQuery, useMutation.
+components / pages               → call hooks only.
+```
+
+- Never call `fetch` outside `lib/api-client.ts`.
+- Query keys come from the feature's key factory, never inline arrays.
+- Mutations `invalidateQueries` on success; do not patch the cache by hand.
+- Wrap the mutation function: `mutationFn: (input) => createThing(input)`. TanStack Query
+  passes `(variables, context)`, and forwarding that context into an API function binds it
+  to whatever optional parameter is added there next.
+- Pass the abort signal through: `queryFn: ({ signal }) => listThings(params, signal)`.
+
+## Structure
+
+- Features live in `src/features/<feature>/{api,components,pages}` and mirror the backend's
+  `Features/<Feature>/`.
+- **Never import across features.** Shared things move to `lib/` or `components/`.
+- Files are `kebab-case`; components `PascalCase`; one exported component per file.
+
+## Components
+
+- Function declarations, not `const` arrows. No `React.FC`.
+- Pages handle all four states: loading (skeleton), error (`role="alert"`), empty, and
+  populated.
+- `useEffect` is a last resort. Data → `useQuery`. Derived value → compute in render.
+  User action → event handler. Reset on prop change → a `key`.
+- List keys are stable entity ids, never array indexes.
+
+## Styling
+
+- Semantic tokens only: `bg-background`, `text-muted-foreground`, `border-border`. Never
+  `bg-white`, `text-gray-500`, or hex values — they break dark mode.
+- Merge classes with `cn()`, never string concatenation.
+- `src/components/ui/` is vendored shadcn/ui. Prefer `npx shadcn@latest add <name>`.
+
+## Forms and accessibility
+
+- `react-hook-form` + `zod` via `zodResolver`, mirroring the server's data annotations.
+- `onSubmit={(e) => void handler(e)}` — the handler is async, the prop must return void.
+- Server field errors go on the field: `setError('name', { message })`. Server names are
+  PascalCase, form names camelCase — compare case-insensitively.
+- Every input has a `<Label htmlFor>`; invalid inputs get `aria-invalid` and
+  `aria-describedby`; error text gets `role="alert"`.
+
+## Tests
+
+Render via `renderWithProviders` from `src/test/`. Mock the feature's `*-api` module — the
+network boundary — **never the query hooks**. Query by role and label, use `userEvent`, and
+`await` anything that follows an interaction.
+
+## Forbidden
+
+`any` · `!` non-null assertion · `enum` / `namespace` (`erasableSyntaxOnly`) ·
+`useEffect` to fetch · server data in `useState` · `fireEvent` · array-index keys ·
+`console.log` · secrets in `VITE_*` (they are inlined into the public bundle).
+
+TypeScript is pinned to **6.0.3**: TypeScript 7 has no compiler API until 7.1, so
+`typescript-eslint` crashes against it. Do not upgrade.

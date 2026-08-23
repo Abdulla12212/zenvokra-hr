@@ -1,0 +1,65 @@
+---
+description: Backend conventions for the .NET 10 Minimal API with vertical slices and multi-tenant EF Core
+globs: backend/**/*.cs
+alwaysApply: false
+---
+
+# Backend rules
+
+Full detail: [docs/CODING-CONVENTIONS-DOTNET.md](../../docs/CODING-CONVENTIONS-DOTNET.md).
+Adding a feature: [docs/ADD-A-FEATURE.md](../../docs/ADD-A-FEATURE.md).
+
+## Tenant isolation — the rules with the worst failure mode
+
+```csharp
+// ✅ The TenantIsolation query filter adds the tenant predicate to every query.
+var items = await dbContext.Departments.AsNoTracking().ToListAsync(cancellationToken);
+
+// ❌ Redundant, and implies to the next reader that filtering is sometimes optional.
+.Where(d => d.TenantId == tenantContext.TenantId)
+```
+
+```csharp
+// ✅ TenantSaveChangesInterceptor stamps TenantId and refuses cross-tenant writes.
+dbContext.Departments.Add(Department.Create(name));
+
+// ❌ Never assign TenantId, and never assign CreatedAtUtc/UpdatedAtUtc.
+department.TenantId = tenantId;
+```
+
+- New entities implement `ITenantScoped` unless they are genuinely global (the tenant
+  registry, country/currency lookups).
+- Unique indexes lead with `TenantId`.
+- Bare `IgnoreQueryFilters()` removes tenant isolation. Use
+  `IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])` and comment why.
+- Every feature needs a test proving two tenants cannot see each other's rows.
+
+## Slices
+
+- One use case per file: `Features/<Feature>/<UseCase>.cs`, holding a nested `Request`,
+  `Response`, and a `static HandleAsync`.
+- Routes go in `Features/<Feature>/<Feature>Endpoints.cs` implementing `IEndpointGroup`.
+  It is discovered by assembly scan — **never add feature wiring to `Program.cs`**.
+- Return `TypedResults` unions such as `Results<Ok<T>, ProblemHttpResult>`.
+- **Never return an entity from an endpoint.** Use a response `record`.
+- Request records use init-only properties with defaults plus data annotations, not
+  positional parameters — a missing field then fails validation with a field-level message
+  instead of failing deserialization.
+
+## Data access
+
+- Use `AppDbContext` directly. Do not add a repository or generic service layer.
+- `AsNoTracking()` on reads; project with `Select` before materializing; order before
+  `Skip`/`Take`.
+- Every async method takes and passes a `CancellationToken`.
+- Primary keys: `Guid.CreateVersion7()` from a static `Create` factory, with
+  `ValueGeneratedNever()` in the configuration.
+- Timestamps: `DateTimeOffset` in UTC. Inject `TimeProvider`; never call
+  `DateTimeOffset.UtcNow`.
+
+## Forbidden
+
+`.Result` / `.Wait()` · `async void` · empty `catch` · `Guid.NewGuid()` as a key ·
+`DateTime` for stored timestamps · string-concatenated SQL · exceptions for expected
+outcomes (return a 409 instead) · package versions in `.csproj` (they live in
+`Directory.Packages.props`).
