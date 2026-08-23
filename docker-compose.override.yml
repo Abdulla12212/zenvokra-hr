@@ -18,6 +18,9 @@ services:
       # daemon. TESTCONTAINERS_HOST_OVERRIDE tells Testcontainers how to reach the
       # sibling container's published port from inside this one.
       TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+      # Kestrel must listen on all interfaces so Colima/Docker port publishing works.
+      # launchSettings.json would otherwise bind localhost only inside the container.
+      ASPNETCORE_URLS: http://0.0.0.0:8080
       DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
       - ./backend:/src
@@ -34,7 +37,7 @@ services:
       API_PROXY_TARGET: http://api:8080
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
       VITE_DEV_TENANT_ID: ${VITE_DEV_TENANT_ID:-00000000-0000-0000-0000-000000000001}
-    ports:
+    ports: !override
       - '${WEB_PORT:-5173}:5173'
     volumes:
       - ./frontend:/app

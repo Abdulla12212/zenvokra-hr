@@ -18,7 +18,10 @@ services:
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      # Postgres 18+ images store data under a versioned subdirectory of
+      # /var/lib/postgresql. Mounting /var/lib/postgresql/data (the PG 16/17
+      # convention) makes the official entrypoint refuse to start.
+      - postgres-data:/var/lib/postgresql
     healthcheck:
       # Everything else waits on this, so it has to mean "accepting queries", not
       # merely "process started".
@@ -69,7 +72,7 @@ services:
     image: dpage/pgadmin4:latest
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@cloudesh.local}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@example.com}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-cloudesh_dev_password}
       # Local convenience only: skips the login and master-password prompts.
       PGADMIN_CONFIG_SERVER_MODE: 'False'
