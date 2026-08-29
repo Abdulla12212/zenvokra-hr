@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh · Time off</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar">
+          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="row">
+            <div class="btn">Request time off</div>
+            <div class="icon-btn">
+              <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
+              <span class="ping"></span>
+            </div>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Time off</h1>
+            </div>
+          </div>
+
+          <div class="kpis" style="margin-bottom: 16px">
+            <div>
+              <div class="tiny">Annual</div>
+              <div class="n">12</div>
+              <div class="k">of 20 · left</div>
+              <div class="progress" style="margin-top: 8px"><span style="width: 60%"></span></div>
+            </div>
+            <div>
+              <div class="tiny">Casual</div>
+              <div class="n">5</div>
+              <div class="k">of 10 · left</div>
+              <div class="progress" style="margin-top: 8px"><span style="width: 50%"></span></div>
+            </div>
+            <div>
+              <div class="tiny">Sick</div>
+              <div class="n">7</div>
+              <div class="k">of 10 · left</div>
+              <div class="progress" style="margin-top: 8px"><span style="width: 70%"></span></div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Dates</th>
+                  <th>Type</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>25–26 Aug 2026</td>
+                  <td class="muted">Annual</td>
+                  <td>2</td>
+                  <td><span class="badge badge-warn">Pending · Nadia</span></td>
+                </tr>
+                <tr>
+                  <td>7 Aug 2026</td>
+                  <td class="muted">Sick</td>
+                  <td>1</td>
+                  <td><span class="badge badge-ok">Approved</span></td>
+                </tr>
+                <tr>
+                  <td>29 Jul 2026</td>
+                  <td class="muted">Casual</td>
+                  <td>1</td>
+                  <td><span class="badge badge-destructive">Rejected</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top: 16px">
+            <div class="list-row">
+              <span class="badge">Closed</span>
+              <div style="flex: 1">
+                <div style="font-weight: 500">Next closed day · 5 Sep</div>
+                <div class="tiny">Company Day · paid · not leave</div>
+              </div>
+              <div class="btn-link">Show on calendar</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      Cloudesh.mount("leave");
+    </script>
+  </body>
+</html>

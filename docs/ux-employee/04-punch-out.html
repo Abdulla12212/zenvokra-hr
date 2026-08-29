@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh · Punch out</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar">
+          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="icon-btn">
+            <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
+            <span class="ping"></span>
+          </div>
+        </header>
+        <div class="split">
+          <main class="main">
+            <div class="page-head">
+              <div>
+                <h1>Home</h1>
+                <p>In 09:02 · 6h 32m so far</p>
+              </div>
+              <span class="badge badge-ok">In</span>
+            </div>
+            <div class="card card-p-sm">
+              <div class="cal-head">
+                <div class="cal-nav">
+                  <div class="btn btn-outline btn-icon is-quiet">‹</div>
+                  <h2>August 2026</h2>
+                  <div class="btn btn-outline btn-icon">›</div>
+                </div>
+                <div class="btn btn-outline btn-sm is-quiet">Today</div>
+              </div>
+              <div class="cal-grid" id="cal"></div>
+            </div>
+          </main>
+          <aside class="sheet">
+            <div class="row" style="justify-content: space-between">
+              <div style="font-weight: 600">Punch out</div>
+              <span class="tiny">Close</span>
+            </div>
+            <p class="muted">Stamps now. No approval.</p>
+            <dl class="dl" style="grid-template-columns: 100px 1fr">
+              <dt>In</dt>
+              <dd>09:02</dd>
+              <dt>Out</dt>
+              <dd>16:32</dd>
+              <dt>Worked</dt>
+              <dd>6h 32m</dd>
+              <dt>Break</dt>
+              <dd>50m</dd>
+            </dl>
+            <div class="btn btn-lg" style="width: 100%">Punch out</div>
+            <div class="btn btn-ghost" style="width: 100%">Stay in</div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      Cloudesh.mount("home");
+      Cloudesh.month("cal", { selected: 20 });
+    </script>
+  </body>
+</html>

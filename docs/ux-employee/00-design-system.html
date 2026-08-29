@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh · Design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="ds">
+      <div class="row" style="gap: 10px; margin-bottom: 6px">
+        <div class="brand-mark">C</div>
+        <div>
+          <h1>Cloudesh · shadcn / Tailwind</h1>
+          <p class="tiny">Same tokens as frontend/src/index.css. Primary is the only override: electric blue, not near-black.</p>
+        </div>
+      </div>
+
+      <div class="ds-grid">
+        <div class="stack">
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">COLOUR TOKENS</div>
+            <div class="swatches">
+              <div class="swatch"><i style="background: var(--background); border-bottom: 1px solid var(--border)"></i><b>background</b><span>bg-background</span></div>
+              <div class="swatch"><i style="background: var(--foreground)"></i><b>foreground</b><span>text-foreground</span></div>
+              <div class="swatch"><i style="background: var(--primary)"></i><b>primary</b><span>bg-primary</span></div>
+              <div class="swatch"><i style="background: var(--muted)"></i><b>muted</b><span>bg-muted</span></div>
+              <div class="swatch"><i style="background: var(--border)"></i><b>border</b><span>border-border</span></div>
+              <div class="swatch"><i style="background: var(--success)"></i><b>present</b><span>status</span></div>
+              <div class="swatch"><i style="background: var(--warning)"></i><b>late</b><span>status</span></div>
+              <div class="swatch"><i style="background: var(--destructive)"></i><b>destructive</b><span>bg-destructive</span></div>
+            </div>
+          </div>
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">TYPE · Inter</div>
+            <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.03em">Home</div>
+            <div style="font-size: 14px; font-weight: 500; margin-top: 4px">Request time off</div>
+            <p class="tiny" style="margin-top: 6px">text-sm / font-medium / tracking-tight. No display greetings.</p>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">BUTTON</div>
+            <div class="row" style="flex-wrap: wrap">
+              <div class="btn">Punch in</div>
+              <div class="btn btn-outline">Punch out</div>
+              <div class="btn btn-outline">Edit punches</div>
+              <div class="btn btn-ghost">Cancel</div>
+              <div class="btn btn-destructive">Cancel request</div>
+            </div>
+            <p class="tiny" style="margin-top: 10px">h-9 rounded-md. Punch in is the only filled primary on Home when out. Edits save; no approval.</p>
+          </div>
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">BADGE</div>
+            <div class="row" style="flex-wrap: wrap">
+              <span class="badge badge-ok">In</span>
+              <span class="badge badge-warn">Late</span>
+              <span class="badge badge-primary">Pending</span>
+              <span class="badge badge-destructive">Rejected</span>
+              <span class="badge badge-off">Off</span>
+            </div>
+          </div>
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">AVATAR</div>
+            <div class="row" style="gap: 12px">
+              <img class="avatar xl" src="assets/mushroom-avatar.svg" alt="" />
+              <p class="tiny">Mushroom. No photos. size-8 in the shell, size-16 on profile.</p>
+            </div>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">SHELL</div>
+            <p style="font-size: 13px">w-60 sidebar · h-14 header · main p-6. Active nav is bg-accent, not a blue pill. Matches AppShell.</p>
+            <div style="margin-top: 12px; width: 180px; border: 1px solid var(--border); border-radius: var(--radius)">
+              <div class="nav-item is-active">Home</div>
+              <div class="nav-item">Time off</div>
+              <div class="nav-item">Inbox</div>
+            </div>
+          </div>
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">COPY</div>
+            <p style="font-size: 13px; font-weight: 500">In 09:02 · Late 19 Aug · 12 days left</p>
+            <p class="tiny" style="margin-top: 8px">Facts. Empathy is Punch in on Home and Edit next to a late day. Closed days live on the Home calendar. Sheets for punch out and request. No day page, no Holidays page.</p>
+          </div>
+          <div class="card card-p-sm">
+            <div class="tiny" style="margin-bottom: 10px; font-weight: 500">HARDCODED</div>
+            <p style="font-size: 13px; font-weight: 500">Akram Hossain · Acme Consulting · Dhaka HQ</p>
+            <p class="tiny" style="margin-top: 6px">One employee. No People, Reports, or team inbox.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh · Punch in</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar">
+          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="row">
+            <div class="btn btn-outline">Request time off</div>
+            <div class="icon-btn">
+              <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
+              <span class="ping"></span>
+            </div>
+          </div>
+        </header>
+        <main class="main">
+          <div class="page-head">
+            <div>
+              <h1>Home</h1>
+              <p>Not in · shift 09:00–18:00</p>
+            </div>
+            <span class="badge badge-off">Out</span>
+          </div>
+
+          <div class="grid-main">
+            <div class="card card-p-sm">
+              <div class="cal-head">
+                <div class="cal-nav">
+                  <div class="btn btn-outline btn-icon is-quiet">‹</div>
+                  <h2>August 2026</h2>
+                  <div class="btn btn-outline btn-icon">›</div>
+                </div>
+                <div class="btn btn-outline btn-sm is-quiet">Today</div>
+              </div>
+              <div class="cal-grid" id="cal"></div>
+            </div>
+            <div class="card card-p">
+              <div class="tiny">Thu 20 Aug</div>
+              <div style="font-weight: 600; margin: 4px 0 8px">Manual punch</div>
+              <p class="muted" style="margin-bottom: 16px">Acme Consulting allows clocking from here. Stamps 08:47.</p>
+              <div class="dl" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px">
+                <dt>Time</dt>
+                <dd>08:47</dd>
+                <dt>Location</dt>
+                <dd>Dhaka HQ</dd>
+              </div>
+              <div class="btn btn-lg" style="width: 100%">Punch in</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      Cloudesh.mount("home");
+      Cloudesh.month("cal", { selected: 20 });
+    </script>
+  </body>
+</html>
