@@ -11,7 +11,7 @@ export function NotFoundPage() {
         The link may be out of date, or the feature may not be built yet.
       </p>
       <Button asChild variant="outline">
-        <Link to="/">Back to dashboard</Link>
+        <Link to="/">Back to Home</Link>
       </Button>
     </div>
   );

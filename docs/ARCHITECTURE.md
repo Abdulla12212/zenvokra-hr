@@ -200,11 +200,31 @@ replica — see [Deployment](#deployment-and-operations).
 ## Part 2: the roadmap
 
 Ordered so that each phase can ship on its own. Items marked **blocking** are
-prerequisites for most of what follows.
+prerequisites for a multi-user product. The employee app does not wait on them.
 
-### Phase 1 — Identity and tenancy (blocking)
+### Employee app — one tenant, one person
 
-Nothing meaningful can be built for real users first.
+The first shipped surface is the employee app in `docs/ux-employee`. It is **not** a
+People product, an HR admin suite, or a multi-company demo.
+
+- **One tenant:** the seeded demo company, Acme Consulting (`Tenancy:DefaultTenantId` in
+  Development). No tenant picker, no second company in the UI.
+- **One employee:** Akram Hossain, EMP-1024, Engineering, Dhaka HQ. Seed that row. Do not
+  add an employee list, create-employee UI, or a way to switch people.
+- **Employee-only chrome:** Home, Time off, Inbox. No Dashboard, Departments, People,
+  Reports, or team inbox in the nav.
+- **No auth yet:** Continue is a session stub. Do not add passwords, JWT, or a second
+  tenant-resolution path. The `X-Tenant-Id` header stays as it is until Phase 1.
+- **Isolation still applies.** Every new entity is `ITenantScoped` and still needs a
+  two-tenant test. The second tenant exists only in tests.
+
+Persona and frozen demo clock live in `frontend/src/lib/demo-session.ts` until
+`GET /api/employees/me` serves them. Mocks are dated **Thu 20 Aug 2026** so attendance and
+leave stay reproducible. There is no `ListEmployees` / `CreateEmployee` in this featureset.
+
+### Phase 1 — Identity and tenancy (blocking for multi-user)
+
+Required before real customers, not before the employee app above.
 
 - **Authentication.** Start with ASP.NET Core Identity plus short-lived JWTs and rotating
   refresh tokens; it keeps user records in the same database and avoids a vendor bill at
@@ -227,10 +247,12 @@ Nothing meaningful can be built for real users first.
 
 ### Phase 2 — Core HR
 
-- **Employee records.** Personal details, contact information, emergency contacts,
-  identifiers, and the employment relationship. Deciding early whether an employee is the
-  same entity as a user account, or a separate record that may or may not be linked, saves
-  a painful migration: people leave and their records must outlive their login.
+- **Employee records.** For the employee app this is one seeded row (Akram), read as
+  `GET /api/employees/me`, not a directory. Do not add list or create employee endpoints.
+  Personal details, contact information, emergency contacts, identifiers, and the
+  employment relationship live on that row. Deciding early whether an employee is the same
+  entity as a user account, or a separate record that may or may not be linked, saves a
+  painful migration: people leave and their records must outlive their login.
 - **Org structure.** Departments (already scaffolded), teams, positions, and reporting
   lines. Reporting lines form a graph, and a manager's scope is derived from it, so query
   performance here affects every permission check.
@@ -250,11 +272,13 @@ keep.
   events rather than storing a mutable number. A stored balance drifts, and when a
   customer disputes it there is no way to explain how it got there.
 - **Requests and approvals.** A state machine with an audit trail, plus delegation for
-  when an approver is themselves on leave.
+  when an approver is themselves on leave. The employee app only sends and cancels the
+  employee's own requests — no manager inbox.
 - **Holiday calendars,** per country and region. Even a five-person company may be
-  distributed.
-- **Attendance and timesheets:** clock-in/out, corrections with an approval trail,
-  overtime.
+  distributed. The employee app shows closed days on the Home calendar, not a Holidays
+  page.
+- **Attendance and timesheets:** clock-in/out, corrections, overtime. Employee-app punch
+  edits save immediately; no approval trail on punches.
 
 ### Phase 4 — Payroll and compliance
 

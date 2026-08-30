@@ -6,6 +6,10 @@ unknown gets worked around rather than followed.
 The compiler and `.editorconfig` already enforce formatting and naming. This document
 covers the decisions they cannot.
 
+**Employee featureset:** seed one employee for the demo tenant and expose
+`GET /api/employees/me`. Do not add list/create employee endpoints. Isolation tests still
+use a second tenant — that tenant is not a product surface.
+
 ---
 
 ## Where code goes

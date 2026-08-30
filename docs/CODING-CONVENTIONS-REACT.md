@@ -34,6 +34,12 @@ question whether the features are really separate.
 `components/`. Cross-feature imports are how a modular frontend quietly becomes one
 tangled unit.
 
+**Employee app: one persona.** `src/lib/demo-session.ts` is Acme Consulting + Akram
+Hossain. The shell nav is Home, Time off, Inbox. Do not add People, Dashboard, or a
+team inbox. Employee data is `useCurrentEmployee` (`GET /api/employees/me`), not a list
+page. Do not read `new Date()` for the demo clock — the mock is frozen so Home, punches,
+and leave stay reproducible. The mushroom avatar is the only photo; no upload.
+
 ### File and symbol naming
 
 | Thing                    | Convention        | Example                     |
@@ -209,9 +215,10 @@ const schema = z.object({
 
 Tailwind utilities with the semantic tokens defined in `src/index.css`.
 
-- **Semantic colours only:** `bg-background`, `text-muted-foreground`, `border-border`.
-  Never `bg-white`, `text-gray-500`, or a hex value. Hard-coded colours break dark mode and
-  cannot be rethemed.
+- **Semantic colours only:** `bg-background`, `text-muted-foreground`, `border-border`,
+  `bg-primary`, `bg-success`, `bg-warning`. Never `bg-white`, `text-gray-500`, or a hex
+  value. Hard-coded colours break dark mode and cannot be rethemed. Primary is electric
+  blue (see `docs/ux-employee/00-design-system.html`), not the stock shadcn near-black.
 - **Merge classes with `cn()`**, never string concatenation. `"p-2 " + className` leaves
   both `p-2` and an incoming `p-4` in the markup, and which wins depends on stylesheet
   order.

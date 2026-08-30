@@ -1,23 +1,47 @@
 # Adding a feature
 
-One walkthrough, front to back, using a hypothetical `Employees` feature. The shipped
-`Departments` feature is the same shape and is the reference to copy from — every file
-involved is marked `WALKING SKELETON`.
-
 Read [CODING-CONVENTIONS-DOTNET.md](CODING-CONVENTIONS-DOTNET.md) and
 [CODING-CONVENTIONS-REACT.md](CODING-CONVENTIONS-REACT.md) first; this document is the
 sequence, not the rules.
 
-## The files a feature touches
+The shipped `Departments` feature is the file shape to copy for **list and create** slices
+(leave requests, punches). Every file involved is marked `WALKING SKELETON`.
+
+## Employee app: one tenant, one person
+
+This featureset is not a People product.
+
+| Fixed | Value |
+| ----- | ----- |
+| Tenant | Acme Consulting (`Tenancy:DefaultTenantId` in Development) |
+| Employee | Akram Hossain · EMP-1024 · Engineering · Dhaka HQ |
+
+- Seed that pair. Do not add `ListEmployees`, `CreateEmployee`, a People page, an employee
+  switcher, or a team inbox.
+- The employee slice is **get the current row** (and later Profile). Punches and leave
+  hang off that one person.
+- Isolation tests still create a second tenant. That tenant is a security check, not a
+  second company in the UI.
+- Continue is a session stub. Do not add passwords, JWT, or a second tenant-resolution
+  path.
+- Nav stays **Home / Time off / Inbox**. Do not add a sidebar item for Employees.
+
+Persona and the frozen clock (**Thu 20 Aug 2026**) live in
+`frontend/src/lib/demo-session.ts` until the employee slice serves them. Do not use
+`new Date()`.
+
+---
+
+## The employee record (this featureset)
 
 ```
 backend/src/Cloudesh.Application/
 ├── Domain/Employees/Employee.cs
 ├── Infrastructure/Persistence/Configurations/EmployeeConfiguration.cs
 ├── Infrastructure/Persistence/AppDbContext.cs          (+1 DbSet)
+├── Infrastructure/Persistence/DatabaseSeeder.cs        (seed Akram)
 ├── Features/Employees/EmployeeEndpoints.cs
-├── Features/Employees/ListEmployees.cs
-├── Features/Employees/CreateEmployee.cs
+├── Features/Employees/GetCurrentEmployee.cs
 └── Migrations/                                          (generated)
 
 backend/tests/
@@ -25,20 +49,13 @@ backend/tests/
 └── Cloudesh.IntegrationTests/EmployeesEndpointsTests.cs
 
 frontend/src/
+├── lib/demo-session.ts                                  (until the query exists)
 ├── features/employees/api/employees-api.ts
-├── features/employees/api/employees-queries.ts
-├── features/employees/components/employee-table.tsx
-├── features/employees/pages/employees-page.tsx
-├── features/employees/pages/employees-page.test.tsx
-├── app/router.tsx                                       (+1 route)
-└── app/layout/app-shell.tsx                             (+1 nav item)
+└── features/employees/api/employees-queries.ts
 ```
 
-Nine new files, three edited. Nothing in `Program.cs`, and nothing in `Common/`.
-
----
-
-## Backend
+No `employees-page`, no table, no nav item. Continue and Profile consume this row later.
+Nothing in `Program.cs`, and nothing in `Common/`.
 
 ### 1. The entity
 
@@ -53,19 +70,23 @@ public sealed class Employee : ITenantScoped, IAuditable
     public Guid Id { get; set; }
     public Guid TenantId { get; set; }
     public required string FullName { get; set; }
+    public required string EmployeeNumber { get; set; }
     public required string WorkEmail { get; set; }
-    public Guid? DepartmentId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public DateTimeOffset UpdatedAtUtc { get; set; }
 
-    public static Employee Create(string fullName, string workEmail) => new()
+    public static Employee Create(string fullName, string employeeNumber, string workEmail) => new()
     {
         Id = Guid.CreateVersion7(),
         FullName = fullName,
+        EmployeeNumber = employeeNumber,
         WorkEmail = workEmail,
     };
 }
 ```
+
+Profile fields (title, manager, hours, timezone, emergency contact) belong on this same
+row. Do not add a second user/people entity in this featureset.
 
 `ITenantScoped` is the whole of the tenancy work. `AppDbContext` finds the entity by
 reflection and applies the isolation filter; the save interceptor stamps and guards
@@ -83,11 +104,12 @@ internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(employee => employee.Id).ValueGeneratedNever();
 
         builder.Property(employee => employee.FullName).HasMaxLength(200).IsRequired();
+        builder.Property(employee => employee.EmployeeNumber).HasMaxLength(32).IsRequired();
         builder.Property(employee => employee.WorkEmail).HasMaxLength(320).IsRequired();
 
         // Lead with TenantId: it matches how every query filters, and doubles as the
         // index EF would otherwise create for the tenant foreign key.
-        builder.HasIndex(employee => new { employee.TenantId, employee.WorkEmail }).IsUnique();
+        builder.HasIndex(employee => new { employee.TenantId, employee.EmployeeNumber }).IsUnique();
 
         builder.HasOne<Tenant>()
             .WithMany()
@@ -114,92 +136,50 @@ make migrate-add NAME=AddEmployees
 Read the generated SQL before committing. EF occasionally turns a rename into a
 drop-and-add, and loses the column's data doing it.
 
-### 5. The read slice
+### 5. Seed Akram into the demo tenant
+
+Not a `POST /employees`. One row, idempotent, inside the existing seeder scope:
 
 ```csharp
-// Features/Employees/ListEmployees.cs
-public static class ListEmployees
+if (!await dbContext.Employees.AnyAsync(cancellationToken))
 {
-    public sealed record EmployeeSummary(Guid Id, string FullName, string WorkEmail);
-
-    public static async Task<Ok<PagedResult<EmployeeSummary>>> HandleAsync(
-        AppDbContext dbContext,
-        CancellationToken cancellationToken,
-        int page = 1,
-        int pageSize = PagedResult<EmployeeSummary>.DefaultPageSize)
-    {
-        int pageNumber = PagedResult<EmployeeSummary>.NormalizePage(page);
-        int size = PagedResult<EmployeeSummary>.NormalizePageSize(pageSize);
-
-        var query = dbContext.Employees.AsNoTracking();
-
-        int totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
-            .OrderBy(employee => employee.FullName)
-            .Skip((pageNumber - 1) * size)
-            .Take(size)
-            .Select(employee => new EmployeeSummary(employee.Id, employee.FullName, employee.WorkEmail))
-            .ToListAsync(cancellationToken);
-
-        return TypedResults.Ok(new PagedResult<EmployeeSummary>(items, pageNumber, size, totalCount));
-    }
+    dbContext.Employees.Add(Employee.Create(
+        "Akram Hossain",
+        "EMP-1024",
+        "akram.hossain@acmeconsulting.test"));
+    await dbContext.SaveChangesAsync(cancellationToken);
 }
 ```
 
-No tenant filter. That is not an omission — the query filter adds it, and writing it here
-would suggest to the next reader that it is sometimes optional.
+`TenantId` is left unset: the interceptor stamps it because seeding already opened a
+tenant scope. Do not seed a second employee.
 
-### 6. The write slice
+### 6. The read slice
 
 ```csharp
-// Features/Employees/CreateEmployee.cs
-public static class CreateEmployee
+// Features/Employees/GetCurrentEmployee.cs
+public static class GetCurrentEmployee
 {
-    public sealed record Request
-    {
-        [Required(AllowEmptyStrings = false)]
-        [StringLength(200, MinimumLength = 2)]
-        public string FullName { get; init; } = string.Empty;
+    public sealed record Response(Guid Id, string FullName, string EmployeeNumber, string WorkEmail);
 
-        [Required(AllowEmptyStrings = false)]
-        [EmailAddress]
-        [StringLength(320)]
-        public string WorkEmail { get; init; } = string.Empty;
-    }
-
-    public sealed record Response(Guid Id, string FullName, string WorkEmail);
-
-    public static async Task<Results<Created<Response>, ProblemHttpResult>> HandleAsync(
-        Request request,
+    public static async Task<Results<Ok<Response>, NotFound>> HandleAsync(
         AppDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        string email = request.WorkEmail.Trim().ToLowerInvariant();
+        var employee = await dbContext.Employees
+            .AsNoTracking()
+            .Select(row => new Response(row.Id, row.FullName, row.EmployeeNumber, row.WorkEmail))
+            .SingleOrDefaultAsync(cancellationToken);
 
-        bool taken = await dbContext.Employees
-            .AnyAsync(employee => employee.WorkEmail == email, cancellationToken);
-
-        if (taken)
-        {
-            return TypedResults.Problem(
-                title: "Employee already exists",
-                detail: $"An employee with the email '{email}' already exists.",
-                statusCode: StatusCodes.Status409Conflict);
-        }
-
-        var employee = Employee.Create(request.FullName.Trim(), email);
-
-        // TenantId left unset on purpose: the interceptor stamps it.
-        dbContext.Employees.Add(employee);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return TypedResults.Created(
-            $"{EndpointRegistration.ApiPrefix}/employees/{employee.Id}",
-            new Response(employee.Id, employee.FullName, employee.WorkEmail));
+        return employee is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(employee);
     }
 }
 ```
+
+No tenant filter. That is not an omission — the query filter adds it. This featureset
+expects one row per tenant; `SingleOrDefault` is the point.
 
 ### 7. The routes
 
@@ -211,24 +191,19 @@ public sealed class EmployeeEndpoints : IEndpointGroup
     {
         var employees = routes.MapGroup("/employees").WithTags("Employees");
 
-        employees.MapGet("", ListEmployees.HandleAsync)
-            .WithName(nameof(ListEmployees))
-            .WithSummary("Lists the current tenant's employees.");
-
-        employees.MapPost("", CreateEmployee.HandleAsync)
-            .WithName(nameof(CreateEmployee))
-            .WithSummary("Creates an employee.");
+        employees.MapGet("/me", GetCurrentEmployee.HandleAsync)
+            .WithName(nameof(GetCurrentEmployee))
+            .WithSummary("Returns the current tenant's one employee.");
     }
 }
 ```
 
-Discovered by assembly scan. `Program.cs` is not touched, which also means two features
-added in parallel never conflict over it.
+Discovered by assembly scan. `Program.cs` is not touched. Do not map list or create.
 
 ### 8. Backend tests
 
 An isolation test is not optional — it is the one test whose absence can turn into a data
-breach:
+breach. The second tenant exists only here:
 
 ```csharp
 [Fact]
@@ -241,7 +216,8 @@ public async Task Employees_are_invisible_to_other_tenants()
 
     using (fixture.TenantContext.BeginScope(globex))
     {
-        fixture.DbContext.Employees.Add(Employee.Create("Not Yours", "nope@globex.test"));
+        fixture.DbContext.Employees.Add(
+            Employee.Create("Not Yours", "EMP-9999", "nope@globex.test"));
         await fixture.DbContext.SaveChangesAsync();
     }
 
@@ -261,107 +237,59 @@ make test-unit
 make test-integration
 ```
 
----
-
-## Frontend
-
-### 9. The request functions
+### 9. Frontend: current employee, not a directory
 
 ```typescript
 // features/employees/api/employees-api.ts
 import { api } from '@/lib/api-client';
-import type { PagedResult } from '@/lib/paged-result';
 
 export interface Employee {
   id: string;
   fullName: string;
+  employeeNumber: string;
   workEmail: string;
 }
 
-export interface CreateEmployeeInput {
-  fullName: string;
-  workEmail: string;
-}
-
-const basePath = '/api/employees';
-
-export function listEmployees(
-  params: { page?: number; pageSize?: number } = {},
-  signal?: AbortSignal,
-): Promise<PagedResult<Employee>> {
-  return api.get<PagedResult<Employee>>(basePath, { query: params, signal });
-}
-
-export function createEmployee(input: CreateEmployeeInput): Promise<Employee> {
-  return api.post<Employee>(basePath, input);
+export function getCurrentEmployee(signal?: AbortSignal): Promise<Employee> {
+  return api.get<Employee>('/api/employees/me', { signal });
 }
 ```
-
-The only file that knows the URL. Types are hand-written to match the server's response
-records for now — generating them from the OpenAPI document is on the roadmap.
-
-### 10. The query hooks
 
 ```typescript
 // features/employees/api/employees-queries.ts
 export const employeeKeys = {
   all: ['employees'] as const,
-  list: (params: ListEmployeesParams) => [...employeeKeys.all, 'list', params] as const,
+  current: () => [...employeeKeys.all, 'current'] as const,
 };
 
-export function useEmployees(params: ListEmployeesParams = {}) {
-  return useQuery<PagedResult<Employee>, ApiError>({
-    queryKey: employeeKeys.list(params),
-    queryFn: ({ signal }) => listEmployees(params, signal),
-  });
-}
-
-export function useCreateEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation<Employee, ApiError, CreateEmployeeInput>({
-    mutationFn: (input) => createEmployee(input),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-    },
+export function useCurrentEmployee() {
+  return useQuery<Employee, ApiError>({
+    queryKey: employeeKeys.current(),
+    queryFn: ({ signal }) => getCurrentEmployee(signal),
   });
 }
 ```
 
-### 11. The page
+The shell, Continue, and Profile read this (or `demo-session` until the query exists).
+There is no employees table and no People route.
 
-Own all four states. See `departments-page.tsx`:
-
-```tsx
-const { data, isPending, isError, error } = useEmployees();
-
-if (isPending) return <LoadingState />;
-if (isError) return <p role="alert">{error.message}</p>;
-if (data.items.length === 0) return <EmptyState />;
-return <EmployeeTable employees={data.items} />;
-```
-
-### 12. The route and navigation
-
-```tsx
-// app/router.tsx
-{ path: 'employees', Component: EmployeesPage },
-```
-
-```tsx
-// app/layout/app-shell.tsx
-{ to: '/employees', label: 'People', icon: Users },
-```
-
-### 13. Frontend tests
-
-Mock `../api/employees-api` — the network boundary — not the query hooks. That way the
-test exercises the real hooks, the real cache invalidation, and the real component tree.
-`departments-page.test.tsx` is the template.
+Mock `../api/employees-api` in tests — the network boundary — never the query hooks.
 
 ```bash
 npm run test:run
 ```
+
+---
+
+## List and create slices (leave, punches, …)
+
+Copy `Departments` in the repo. Same layers: entity, EF config, `DbSet`, migration, one
+file per use case, `AsNoTracking()` + `Select` on reads, interceptor stamps `TenantId` on
+writes, isolation test with two tenants, feature `*-api.ts` + key factory, page owns
+loading / error / empty / populated.
+
+Do not add a nav item unless the mock already has one. The employee shell is Home, Time
+off, Inbox.
 
 ---
 
@@ -386,3 +314,5 @@ Then check:
 - [ ] Query keys come from the feature's key factory.
 - [ ] Inputs have labels; errors have `role="alert"`.
 - [ ] Nothing was added to `Program.cs`.
+- [ ] The employee app still has one tenant and one employee — no People directory, no
+      list/create-employee UI, no extra sidebar item.

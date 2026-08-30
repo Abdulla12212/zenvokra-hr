@@ -1,7 +1,7 @@
 # Cloudesh HR
 
-Multi-tenant HR SaaS for small companies. This repository is **boilerplate**: the
-infrastructure is in place, no HR features are built yet.
+Multi-tenant HR SaaS for small companies. The platform is multi-tenant; the **employee
+app** being built now is a single-persona product: one demo tenant and one employee.
 
 .NET 10 Minimal API (vertical slices) + EF Core 10 + PostgreSQL 18, with a React 19 + Vite
 + Tailwind SPA. Everything runs in Docker Compose.
@@ -24,6 +24,11 @@ infrastructure is in place, no HR features are built yet.
 - Never set `TenantId` on insert — the interceptor stamps it.
 - Never call bare `IgnoreQueryFilters()` — name the filter you mean to disable.
 - Every feature needs a test proving two tenants cannot see each other's rows.
+
+**Employee app is one tenant and one employee.** Acme Consulting + Akram Hossain
+(EMP-1024). Seed that pair. Do not add People, an employee directory, a switcher, roles
+UI, or a team inbox. Isolation tests still create a second tenant — that is a security
+check, not a product surface. Do not invent login; Continue is a session stub.
 
 **Vertical slices.** One use case per file under `Features/<Feature>/`. Endpoint groups are
 discovered by assembly scan, so **never add feature wiring to `Program.cs`**.
@@ -51,8 +56,9 @@ Do not build on the header. Do not add a second way to determine the tenant.
 ## The walking skeleton
 
 The `Departments` feature exists only to prove the plumbing works end to end, and every
-file involved is marked `WALKING SKELETON`. Copy its shape; delete it once real features
-exist (`grep -rl "WALKING SKELETON" backend frontend`).
+file involved is marked `WALKING SKELETON`. Copy its shape for list/create slices (leave,
+punches); delete it once real features exist (`grep -rl "WALKING SKELETON" backend frontend`).
+The employee record itself is one seeded row plus `GET /me`, not a directory.
 
 ## Commands
 
