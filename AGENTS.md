@@ -63,7 +63,7 @@ The employee record itself is one seeded row plus `GET /me`, not a directory.
 ## Commands
 
 ```bash
-make up                              # start postgres, pgadmin, api, web
+make up                              # start postgres, api, web
 make lint                            # eslint, tsc, dotnet format
 make test                            # backend unit + frontend
 make test-integration                # real PostgreSQL via Testcontainers

@@ -255,6 +255,9 @@ export function getCurrentEmployee(signal?: AbortSignal): Promise<Employee> {
 }
 ```
 
+The only file that knows the URL. Types are hand-written to match the server's response
+records.
+
 ```typescript
 // features/employees/api/employees-queries.ts
 export const employeeKeys = {

@@ -177,14 +177,11 @@ flowchart LR
         web["web :5173<br/>vite dev"]
         api["api :8080<br/>dotnet watch"]
         pg[("postgres :5432")]
-        pga["pgadmin :5050"]
     end
 
     Dev["Developer"] --> web
-    Dev --> pga
     web -->|"proxy /api"| api
     api --> pg
-    pga --> pg
 ```
 
 `docker-compose.yml` describes a production-like stack; `docker-compose.override.yml`
@@ -337,10 +334,6 @@ readiness once there is an orchestrator that treats them differently.
 
 #### API surface
 
-- **Typed client generation.** The API already publishes an OpenAPI document in
-  development. Generating TypeScript types from it removes the hand-written interfaces in
-  `frontend/src/features/*/api/*-api.ts`, which are today the one place a backend change
-  can silently break the frontend.
 - **Versioning.** Introduce `/api/v1` before there is an external consumer, not after.
 - **Rate limiting.** `AddRateLimiter`, per tenant rather than per IP.
 - **Idempotency keys** on mutating endpoints, which is also the prerequisite for enabling

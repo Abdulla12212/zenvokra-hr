@@ -11,7 +11,7 @@ way through the data layer.
 | Frontend | React 19, Vite 8, TypeScript 6, Tailwind CSS v4, shadcn/ui, TanStack Query |
 | Backend  | .NET 10 Minimal API, vertical slice architecture, EF Core 10              |
 | Database | PostgreSQL 18                                                             |
-| Local    | Docker Compose (api, web, postgres, pgadmin)                              |
+| Local    | Docker Compose (api, web, postgres)                                       |
 
 ## Prerequisites
 
@@ -38,8 +38,6 @@ volumes.
 | Web app       | http://localhost:5173                  |
 | API           | http://localhost:8080                  |
 | Health check  | http://localhost:8080/health           |
-| OpenAPI doc   | http://localhost:8080/openapi/v1.json  |
-| pgAdmin       | http://localhost:5050                  |
 
 Both containers hot-reload on file changes. Run `make help` to see every available target.
 
@@ -178,8 +176,8 @@ npm run dev
 
 ## Troubleshooting
 
-**Port already in use.** Override the port in `.env` (`API_PORT`, `WEB_PORT`, `POSTGRES_PORT`,
-`PGADMIN_PORT`) and run `make up` again.
+**Port already in use.** Override the port in `.env` (`API_PORT`, `WEB_PORT`, `POSTGRES_PORT`)
+and run `make up` again.
 
 **API exits with a connection failure.** Postgres was not ready. Compose gates the API on the
 Postgres health check, so this usually means the volume is in a bad state: `make clean && make up`.

@@ -29,21 +29,9 @@ if (allowedOrigins.Length > 0)
         .AllowAnyMethod()));
 }
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddOpenApi();
-}
-
 var app = builder.Build();
 
 app.UseExceptionHandler();
-
-if (app.Environment.IsDevelopment())
-{
-    // Serves the OpenAPI document at /openapi/v1.json. Development only: the schema
-    // of an unauthenticated API is not something to publish.
-    app.MapOpenApi();
-}
 
 if (allowedOrigins.Length > 0)
 {

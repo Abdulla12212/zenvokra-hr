@@ -14,13 +14,11 @@ help: ## Show available targets
 env: ## Create .env from .env.example if missing
 	@test -f .env || (cp .env.example .env && echo "Created .env from .env.example")
 
-up: env ## Start the full stack (postgres, pgadmin, api, web)
+up: env ## Start the full stack (postgres, api, web)
 	$(COMPOSE) up -d
 	@echo ""
 	@echo "  web      http://localhost:$${WEB_PORT:-5173}"
 	@echo "  api      http://localhost:$${API_PORT:-8080}"
-	@echo "  openapi  http://localhost:$${API_PORT:-8080}/openapi/v1.json"
-	@echo "  pgadmin  http://localhost:$${PGADMIN_PORT:-5050}"
 
 up-build: env ## Rebuild images and start the stack
 	$(COMPOSE) up -d --build
