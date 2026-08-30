@@ -57,7 +57,7 @@ exist (`grep -rl "WALKING SKELETON" backend frontend`).
 ## Commands
 
 ```bash
-make up                              # start postgres, pgadmin, api, web
+make up                              # start postgres, api, web
 make lint                            # eslint, tsc, dotnet format
 make test                            # backend unit + frontend
 make test-integration                # real PostgreSQL via Testcontainers

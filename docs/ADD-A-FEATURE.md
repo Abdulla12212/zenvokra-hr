@@ -298,7 +298,7 @@ export function createEmployee(input: CreateEmployeeInput): Promise<Employee> {
 ```
 
 The only file that knows the URL. Types are hand-written to match the server's response
-records for now — generating them from the OpenAPI document is on the roadmap.
+records.
 
 ### 10. The query hooks
 

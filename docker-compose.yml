@@ -68,24 +68,5 @@ services:
     depends_on:
       - api
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-dev@example.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-cloudesh_dev_password}
-      # Local convenience only: skips the login and master-password prompts.
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
-    ports:
-      - '${PGADMIN_PORT:-5050}:80'
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-
 volumes:
   postgres-data:
-  pgadmin-data:

@@ -5,8 +5,7 @@ import type { PagedResult } from '@/lib/paged-result';
  * WALKING SKELETON: delete alongside the Departments feature.
  *
  * This file is the only place that knows the shape of the departments endpoints. Types
- * are declared by hand to match the server's response records — see
- * docs/ARCHITECTURE.md for the plan to generate them from the OpenAPI document instead.
+ * are declared by hand to match the server's response records.
  */
 
 export interface Department {

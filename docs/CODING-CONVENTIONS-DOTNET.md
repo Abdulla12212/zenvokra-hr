@@ -74,7 +74,7 @@ public static class CreateDepartment
   them, so there is no constructor, no field, and nothing to mock that is not visible in
   the signature.
 - **Return a `TypedResults` union**, such as `Results<Ok<T>, NotFound>`. The return type
-  documents every possible outcome and feeds OpenAPI without a single `[ProducesResponseType]`.
+  documents every possible outcome without a single `[ProducesResponseType]`.
 
 ### Validation
 
