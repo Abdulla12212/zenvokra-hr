@@ -1,9 +1,11 @@
 import { createBrowserRouter } from 'react-router';
 
+import { AdminShell } from '@/admin/layout/admin-shell';
+import { AdminApprovalsPage } from '@/admin/pages/admin-approvals-page';
+import { AdminDashboardPage } from '@/admin/pages/admin-dashboard-page';
+import { AdminEmployeesPage } from '@/admin/pages/admin-employees-page';
 import { DepartmentsPage } from '@/features/departments/pages/departments-page';
 
-import { AppShell } from './layout/app-shell';
-import { DashboardPage } from './pages/dashboard-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { RouteErrorPage } from './pages/route-error-page';
 
@@ -22,11 +24,12 @@ import { RouteErrorPage } from './pages/route-error-page';
 export const router = createBrowserRouter([
   {
     path: '/',
-    Component: AppShell,
+    Component: AdminShell,
     ErrorBoundary: RouteErrorPage,
     children: [
-      { index: true, Component: DashboardPage },
-      // One route per feature; the page itself lives with its feature.
+      { index: true, Component: AdminDashboardPage },
+      { path: 'employees', Component: AdminEmployeesPage },
+      { path: 'approvals', Component: AdminApprovalsPage },
       { path: 'departments', Component: DepartmentsPage },
       { path: '*', Component: NotFoundPage },
     ],
