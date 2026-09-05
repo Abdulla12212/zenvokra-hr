@@ -37,8 +37,9 @@ describe('AppShell', () => {
     expect(screen.getByText('Cloudesh')).toBeInTheDocument();
     expect(screen.getByText(demoSession.employee.fullName)).toBeInTheDocument();
     expect(screen.getByText(demoSession.employee.employeeNumber)).toBeInTheDocument();
+    expect(screen.getByText(demoSession.location)).toBeInTheDocument();
     expect(
-      screen.getByText(`${demoSession.clockLabel} · ${demoSession.location}`),
+      screen.getByText(`${demoSession.clockLabel} · ${demoSession.employee.timeZone}`),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Request time off' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /2 unread/ })).toBeInTheDocument();

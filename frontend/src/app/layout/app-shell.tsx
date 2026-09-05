@@ -1,4 +1,4 @@
-import { Bell, Calendar, Sun } from 'lucide-react';
+import { Bell, Calendar, Plus, Sun } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router';
 
 import mushroomAvatar from '@/assets/mushroom-avatar.svg';
@@ -55,6 +55,7 @@ export function AppShell() {
           <div className="min-w-0">
             <p className="truncate text-[13px] font-medium">{demoSession.employee.fullName}</p>
             <p className="text-muted-foreground text-xs">{demoSession.employee.employeeNumber}</p>
+            <p className="text-muted-foreground text-[11px]">{demoSession.location}</p>
           </div>
         </div>
       </aside>
@@ -62,10 +63,9 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="bg-background/80 sticky top-0 z-10 flex h-14 items-center justify-between border-b px-6">
           <p className="text-muted-foreground text-[13px] font-medium">
-            {demoSession.clockLabel} · {demoSession.location}
+            {demoSession.clockLabel} · {demoSession.employee.timeZone}
           </p>
           <div className="flex items-center gap-2">
-            <Button type="button">Request time off</Button>
             <Button variant="outline" size="icon" className="relative" asChild>
               <Link to="/inbox" aria-label={inboxLabel}>
                 <Bell aria-hidden="true" />
@@ -76,6 +76,10 @@ export function AppShell() {
                   />
                 ) : null}
               </Link>
+            </Button>
+            <Button type="button">
+              <Plus aria-hidden="true" />
+              Request time off
             </Button>
           </div>
         </header>
