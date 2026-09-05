@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ReactNode } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -12,12 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { SheetPanel } from '@/components/sheet-panel';
 import { homeHref, type CalendarMonth } from '@/lib/home-search';
 
-import { useCreateLeaveRequest } from '../api/leave-queries';
+import { useClosedDays, useCreateLeaveRequest, useLeaveBalances } from '../api/leave-queries';
 
 const schema = z.object({
   type: z.enum(['Annual', 'Casual', 'Sick']),
-  fromLabel: z.string().trim().min(1, 'Choose a start date.'),
-  toLabel: z.string().trim().min(1, 'Choose an end date.'),
+  from: z.string().trim().min(1, 'Choose a start date.'),
+  to: z.string().trim().min(1, 'Choose an end date.'),
   note: z.string().trim().max(400, 'Use at most 400 characters.'),
 });
 
@@ -25,22 +25,33 @@ type FormValues = z.infer<typeof schema>;
 
 export function RequestTimeOffSheet({ month, day }: { month: CalendarMonth; day: number }) {
   const create = useCreateLeaveRequest();
+  const balances = useLeaveBalances();
+  const holidays = useClosedDays();
   const navigate = useNavigate();
   const closeTo = homeHref({ month, day });
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       type: 'Annual',
-      fromLabel: 'Tue 25 Aug 2026',
-      toLabel: 'Wed 26 Aug 2026',
+      from: '2026-08-25',
+      to: '2026-08-26',
       note: 'Family visit.',
     },
   });
+
+  const type = useWatch({ control, name: 'type' });
+  const from = useWatch({ control, name: 'from' });
+  const to = useWatch({ control, name: 'to' });
+  const closed = new Set((holidays.data ?? []).map((item) => item.date));
+  const workingDays = countWorkingDays(from, to, closed);
+  const remaining = balances.data?.find((balance) => balance.type === type)?.remaining ?? 0;
+  const leftAfter = Math.max(0, remaining - workingDays);
 
   const onSubmit = handleSubmit((values) => {
     create.mutate(values, {
@@ -78,15 +89,30 @@ export function RequestTimeOffSheet({ month, day }: { month: CalendarMonth; day:
             <option value="Sick">Sick</option>
           </select>
         </Field>
-        <Field id="leave-from" label="From" error={errors.fromLabel?.message}>
-          <Input id="leave-from" aria-invalid={errors.fromLabel ? true : undefined} {...register('fromLabel')} />
+        <Field id="leave-from" label="From" error={errors.from?.message}>
+          <Input
+            id="leave-from"
+            type="date"
+            aria-invalid={errors.from ? true : undefined}
+            {...register('from')}
+          />
         </Field>
-        <Field id="leave-to" label="To" error={errors.toLabel?.message}>
-          <Input id="leave-to" aria-invalid={errors.toLabel ? true : undefined} {...register('toLabel')} />
+        <Field id="leave-to" label="To" error={errors.to?.message}>
+          <Input
+            id="leave-to"
+            type="date"
+            aria-invalid={errors.to ? true : undefined}
+            {...register('to')}
+          />
         </Field>
         <div className="space-y-1.5">
           <Label htmlFor="leave-days">Working days</Label>
-          <Input id="leave-days" value="2 · 10 left after" readOnly className="bg-muted" />
+          <Input
+            id="leave-days"
+            value={`${String(workingDays)} · ${String(leftAfter)} left after`}
+            readOnly
+            className="bg-muted"
+          />
         </div>
         <Field id="leave-note" label="Note" error={errors.note?.message}>
           <Textarea
@@ -105,6 +131,40 @@ export function RequestTimeOffSheet({ month, day }: { month: CalendarMonth; day:
       </form>
     </SheetPanel>
   );
+}
+
+function countWorkingDays(from: string, to: string, holidays: Set<string>): number {
+  const start = parseIsoDate(from);
+  const end = parseIsoDate(to);
+
+  if (!start || !end || end < start) {
+    return 0;
+  }
+
+  let days = 0;
+
+  for (let cursor = start; cursor <= end; cursor += 86_400_000) {
+    const date = new Date(cursor);
+    const iso = date.toISOString().slice(0, 10);
+    const weekday = date.getUTCDay();
+
+    if (weekday === 0 || weekday === 6 || holidays.has(iso)) {
+      continue;
+    }
+
+    days += 1;
+  }
+
+  return days;
+}
+
+function parseIsoDate(value: string): number | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null;
+  }
+
+  const parsed = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 function Field({

@@ -110,11 +110,8 @@ export function ShiftCard({
 function StampList({ attendance }: { attendance: AttendanceSnapshot }) {
   return (
     <dl className="mt-3.5 flex flex-col gap-2 text-[13px]">
-      <StampRow label="Clock-in" value="09:02 · On-time" ok />
-      <StampRow
-        label="Lunch break"
-        value={attendance.onBreak ? 'On break now' : '12:15–13:05 · 50m'}
-      />
+      <StampRow label="Clock-in" value={attendance.clockInDetail} ok />
+      <StampRow label="Lunch break" value={attendance.breakDetail} />
       <StampRow label="Current" value={attendance.currentTime} />
       <StampRow
         label="Estimated out"

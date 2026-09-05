@@ -22,6 +22,75 @@ namespace Cloudesh.Application.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Cloudesh.Application.Domain.Attendance.AttendanceDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<TimeOnly?>("BreakEnd")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("break_end");
+
+                    b.Property<TimeOnly?>("BreakStart")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("break_start");
+
+                    b.Property<TimeOnly?>("ClockIn")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("clock_in");
+
+                    b.Property<TimeOnly?>("ClockOut")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("clock_out");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("LateNoticeDismissed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("late_notice_dismissed");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("note");
+
+                    b.Property<bool>("OnBreak")
+                        .HasColumnType("boolean")
+                        .HasColumnName("on_break");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_days");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_attendance_days_employee_id");
+
+                    b.HasIndex("TenantId", "EmployeeId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_attendance_days_tenant_id_employee_id_date");
+
+                    b.ToTable("attendance_days", (string)null);
+                });
+
             modelBuilder.Entity("Cloudesh.Application.Domain.Departments.Department", b =>
                 {
                     b.Property<Guid>("Id")
@@ -160,6 +229,177 @@ namespace Cloudesh.Application.Migrations
                     b.ToTable("employees", (string)null);
                 });
 
+            modelBuilder.Entity("Cloudesh.Application.Domain.Holidays.CompanyHoliday", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("detail");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_company_holidays");
+
+                    b.HasIndex("TenantId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_company_holidays_tenant_id_date");
+
+                    b.ToTable("company_holidays", (string)null);
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Leave.LeaveAllowance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<int>("OpeningUsedDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("opening_used_days");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<int>("TotalDays")
+                        .HasColumnType("integer")
+                        .HasColumnName("total_days");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_leave_allowances");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_leave_allowances_employee_id");
+
+                    b.HasIndex("TenantId", "EmployeeId", "Type")
+                        .IsUnique()
+                        .HasDatabaseName("ix_leave_allowances_tenant_id_employee_id_type");
+
+                    b.ToTable("leave_allowances", (string)null);
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Leave.LeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ApproverName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("approver_name");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<int>("Days")
+                        .HasColumnType("integer")
+                        .HasColumnName("days");
+
+                    b.Property<DateTimeOffset?>("DecidedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at_utc");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("note");
+
+                    b.Property<DateTimeOffset>("SentAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at_utc");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_leave_requests");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_leave_requests_employee_id");
+
+                    b.HasIndex("TenantId", "EmployeeId", "StartDate")
+                        .HasDatabaseName("ix_leave_requests_tenant_id_employee_id_start_date");
+
+                    b.ToTable("leave_requests", (string)null);
+                });
+
             modelBuilder.Entity("Cloudesh.Application.Domain.Tenants.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -200,6 +440,23 @@ namespace Cloudesh.Application.Migrations
                     b.ToTable("tenants", (string)null);
                 });
 
+            modelBuilder.Entity("Cloudesh.Application.Domain.Attendance.AttendanceDay", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Employees.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_days_employees_employee_id");
+
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_days_tenants_tenant_id");
+                });
+
             modelBuilder.Entity("Cloudesh.Application.Domain.Departments.Department", b =>
                 {
                     b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
@@ -218,6 +475,50 @@ namespace Cloudesh.Application.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_employees_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Holidays.CompanyHoliday", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_company_holidays_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Leave.LeaveAllowance", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Employees.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_leave_allowances_employees_employee_id");
+
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_leave_allowances_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Leave.LeaveRequest", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Employees.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_leave_requests_employees_employee_id");
+
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_leave_requests_tenants_tenant_id");
                 });
 #pragma warning restore 612, 618
         }

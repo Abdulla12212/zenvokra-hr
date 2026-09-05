@@ -1,112 +1,28 @@
 import type { CalendarMonth } from './home-search';
+import type {
+  AttendanceSnapshot,
+  CalendarCell,
+  ClosedDay,
+  InboxItem,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveType,
+  PunchLogGroup,
+  StampDraft,
+  WeekBar,
+} from './employee-app-types';
 
-export type LeaveType = 'Annual' | 'Casual' | 'Sick';
-
-export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
-
-export type WeekTone = 'ok' | 'warn' | 'now' | 'empty';
-
-export type InboxKind = 'leave' | 'punch' | 'in' | 'holiday';
-
-export interface LeaveRequest {
-  id: string;
-  type: LeaveType;
-  datesLabel: string;
-  fromLabel: string;
-  toLabel: string;
-  rangeShort: string;
-  heading: string;
-  days: number;
-  status: LeaveStatus;
-  statusLabel: string;
-  approverName: string;
-  note: string;
-  sentLabel: string;
-  waitingLabel: string;
-  remainingAfterLabel: string;
-  inboxTitle: string;
-  inboxDetail: string;
-}
-
-export interface LeaveBalance {
-  type: LeaveType;
-  remaining: number;
-  total: number;
-}
-
-export interface WeekBar {
-  id: string;
-  day: string;
-  hoursLabel: string;
-  fillPercent: number;
-  tone: WeekTone;
-}
-
-export interface AttendanceSnapshot {
-  clockedIn: boolean;
-  onBreak: boolean;
-  clockInTime: string;
-  recordedTimer: string;
-  recordedShort: string;
-  percentOfShift: number;
-  currentTime: string;
-  estimatedOut: string;
-  timeUntilOut: string;
-  locationLabel: string;
-  locationReadyLabel: string;
-  lateBannerVisible: boolean;
-  lateDayFixed: boolean;
-  weekTotalLabel: string;
-  weekShiftsLabel: string;
-  weekShiftsOk: boolean;
-  overtimeLabel: string;
-  weekDays: WeekBar[];
-}
-
-export interface PunchLogEntry {
-  id: string;
-  title: string;
-  detail: string;
-  tone: 'primary' | 'mute' | 'warn' | 'ok';
-  action?: 'edit' | 'fix';
-}
-
-export interface PunchLogGroup {
-  id: string;
-  heading: string;
-  entries: PunchLogEntry[];
-}
-
-export interface InboxItem {
-  id: string;
-  kind: InboxKind;
-  title: string;
-  detail: string;
-  badgeLabel: string;
-  badgeVariant: 'late' | 'present' | 'default';
-  actionLabel?: string;
-  actionTo?: string;
-}
-
-export interface StampDraft {
-  inTime: string;
-  outTime: string;
-  breakStart: string;
-  breakEnd: string;
-  note: string;
-}
-
-export interface CalendarCell {
-  day: number | null;
-  weekend: boolean;
-  today: boolean;
-  selected: boolean;
-  inRange: boolean;
-  kind: 'empty' | 'weekend' | 'present' | 'late' | 'leave' | 'closed' | 'today' | 'scheduled';
-  metaPrimary?: string;
-  metaSecondary?: string;
-  showPlane?: boolean;
-}
+export type {
+  AttendanceSnapshot,
+  CalendarCell,
+  InboxItem,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveType,
+  PunchLogGroup,
+  StampDraft,
+  WeekBar,
+} from './employee-app-types';
 
 interface StoreState {
   clockedIn: boolean;
@@ -234,6 +150,9 @@ export function getAttendanceSnapshot(): AttendanceSnapshot {
     weekShiftsOk: clockedIn,
     overtimeLabel: 'Overtime accrued · 0h 35m',
     weekDays: clockedIn ? clockedInWeek() : clockedOutWeek(),
+    clockInDetail: '09:02 · On-time',
+    breakDetail: clockedIn && state.onBreak ? 'On break now' : '12:15–13:05 · 50m',
+    punchLogSummaryLabel: '17–20 Aug · 32h 32m so far',
   };
 }
 
@@ -274,6 +193,13 @@ export function getLeaveBalances(): LeaveBalance[] {
   return LEAVE_BALANCES;
 }
 
+export function getClosedDays(): ClosedDay[] {
+  return [
+    { date: '2026-08-15', name: 'National Day', detail: 'Paid · not leave' },
+    { date: '2026-09-05', name: 'Company Day', detail: 'Company Day · paid · not leave' },
+  ];
+}
+
 export function getLeaveRequests(): LeaveRequest[] {
   return state.requests.filter((request) => request.status !== 'cancelled');
 }
@@ -284,17 +210,15 @@ export function getLeaveRequest(id: string): LeaveRequest | undefined {
 
 export function sendLeaveRequest(input: {
   type: LeaveType;
-  fromLabel: string;
-  toLabel: string;
+  from: string;
+  to: string;
   note: string;
 }): LeaveRequest {
   const existing = state.requests.find((request) => request.id === 'aug-25');
 
-  if (existing?.status === 'pending') {
+  if (existing?.status === 'pending' && input.from === '2026-08-25' && input.to === '2026-08-26') {
     existing.type = input.type;
     existing.note = input.note;
-    existing.fromLabel = input.fromLabel;
-    existing.toLabel = input.toLabel;
     return existing;
   }
 
@@ -302,8 +226,8 @@ export function sendLeaveRequest(input: {
     id: 'aug-25',
     type: input.type,
     datesLabel: '25–26 Aug 2026',
-    fromLabel: input.fromLabel,
-    toLabel: input.toLabel,
+    fromLabel: 'Tue 25 Aug 2026',
+    toLabel: 'Wed 26 Aug 2026',
     rangeShort: 'Tue 25 – Wed 26 Aug 2026',
     heading: '25–26 Aug',
     days: 2,
@@ -349,6 +273,7 @@ export function getInboxItems(): InboxItem[] {
       badgeVariant: 'late',
       actionLabel: 'Open',
       actionTo: `/time-off/${pending.id}`,
+      unread: true,
     });
   }
 
@@ -362,6 +287,7 @@ export function getInboxItems(): InboxItem[] {
       badgeVariant: 'late',
       actionLabel: 'Edit',
       actionTo: '/?sheet=fix-punch&day=19',
+      unread: true,
     });
   }
 
@@ -373,6 +299,7 @@ export function getInboxItems(): InboxItem[] {
       detail: 'Dhaka HQ',
       badgeLabel: 'In',
       badgeVariant: 'present',
+      unread: false,
     });
   }
 
@@ -385,6 +312,7 @@ export function getInboxItems(): InboxItem[] {
     badgeVariant: 'default',
     actionLabel: 'Show on calendar',
     actionTo: '/?month=september&day=5',
+    unread: false,
   });
 
   return items;
@@ -490,6 +418,10 @@ export function getStampDraft(day: number): StampDraft {
     breakEnd: '13:05',
     note: '',
   };
+}
+
+export function getCalendarDays(month: CalendarMonth, selected: number): CalendarCell[] {
+  return buildCalendarDays(month, selected, state.clockedIn, state.lateDayFixed);
 }
 
 export function buildCalendarDays(

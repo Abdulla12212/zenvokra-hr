@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace Cloudesh.IntegrationTests;
 
 /// <summary>
@@ -23,8 +25,7 @@ public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyn
 {
     public const string TenantHeader = "X-Tenant-Id";
 
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:18-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine")
         .WithDatabase("cloudesh_hr_tests")
         .WithUsername("cloudesh")
         .WithPassword("cloudesh")
@@ -32,7 +33,18 @@ public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyn
 
     public async ValueTask InitializeAsync()
     {
+        // Compose injects these into the API container. Linux env names are
+        // case-sensitive, and CreateBuilder reads them before in-memory config
+        // can win — so they have to be replaced on this process before the host
+        // builds, or tests refuse to start and write into the demo database.
+        Environment.SetEnvironmentVariable("Tenancy__DefaultTenantId", null);
+        Environment.SetEnvironmentVariable("TENANCY__DEFAULTTENANTID", null);
+
         await _postgres.StartAsync();
+
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", _postgres.GetConnectionString());
+        Environment.SetEnvironmentVariable("Database__MigrateOnStartup", "true");
+        Environment.SetEnvironmentVariable("Database__SeedOnStartup", "false");
 
         // Touching Services forces the host to build, which applies migrations.
         _ = Services;
@@ -81,6 +93,9 @@ public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyn
                 ["ConnectionStrings:Default"] = _postgres.GetConnectionString(),
                 ["Database:MigrateOnStartup"] = "true",
                 ["Database:SeedOnStartup"] = "false",
+                // The compose API container exports a Development fallback. This
+                // host is not Development, so that value must not leak in.
+                ["Tenancy:DefaultTenantId"] = string.Empty,
             }));
     }
 

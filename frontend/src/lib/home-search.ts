@@ -16,6 +16,11 @@ export function defaultDayFor(month: CalendarMonth): number {
   return month === 'september' ? 5 : 20;
 }
 
+export function demoDate(month: CalendarMonth, day: number): string {
+  const monthNumber = month === 'september' ? '09' : '08';
+  return `2026-${monthNumber}-${String(day).padStart(2, '0')}`;
+}
+
 export function parseHomeSearch(params: URLSearchParams): HomeSearch {
   const month = params.get('month') === 'september' ? 'september' : 'august';
   const rawDay = Number(params.get('day'));

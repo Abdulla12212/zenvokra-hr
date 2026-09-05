@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SheetPanel } from '@/components/sheet-panel';
 import { Skeleton } from '@/components/ui/skeleton';
-import { homeHref, type CalendarMonth } from '@/lib/home-search';
+import { demoDate, homeHref, type CalendarMonth } from '@/lib/home-search';
 
 import { useSaveStamp, useStampDraft } from '../api/attendance-queries';
 
@@ -28,7 +28,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function FixPunchSheet({ month, day }: { month: CalendarMonth; day: number }) {
-  const draft = useStampDraft(day);
+  const draft = useStampDraft(demoDate(month, day));
 
   if (draft.isPending) {
     return (
@@ -77,7 +77,7 @@ function FixPunchForm({
 
   const onSubmit = handleSubmit((values) => {
     save.mutate(
-      { day, draft: values },
+      { date: demoDate(month, day), draft: values },
       {
         onSuccess: () => {
           toast.success('Stamp saved.');

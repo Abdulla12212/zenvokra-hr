@@ -6,11 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatusDot } from '@/components/status-dot';
 import { homeHref, type CalendarMonth } from '@/lib/home-search';
 
-import { usePunchLog } from '../api/attendance-queries';
+import { useAttendance, usePunchLog } from '../api/attendance-queries';
 
 export function PunchLogSheet({ month, day }: { month: CalendarMonth; day: number }) {
   const log = usePunchLog();
+  const attendance = useAttendance();
   const closeTo = homeHref({ month, day });
+  const summary = attendance.data?.punchLogSummaryLabel ?? 'This week';
 
   return (
     <SheetPanel wide>
@@ -25,7 +27,7 @@ export function PunchLogSheet({ month, day }: { month: CalendarMonth; day: numbe
           <Link to={closeTo}>Close</Link>
         </Button>
       </div>
-      <p className="text-muted-foreground text-sm">17–20 Aug · 32h 32m so far</p>
+      <p className="text-muted-foreground text-sm">{summary}</p>
 
       {log.isPending ? (
         <div className="space-y-2">

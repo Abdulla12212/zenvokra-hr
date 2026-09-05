@@ -15,7 +15,7 @@ describe('HomePage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument();
     expect(screen.getByText('Clocked in at 09:02')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'August 2026' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'August 2026' })).toBeInTheDocument();
     expect(screen.getByText('19 Aug marked late')).toBeInTheDocument();
     expect(screen.getByText('6h 32m 43s')).toBeInTheDocument();
     expect(screen.getByText('32h 32m / 40h')).toBeInTheDocument();

@@ -111,7 +111,8 @@ public static class InfrastructureServiceCollectionExtensions
 
         var tenancy = configuration.GetSection(TenancyOptions.SectionName).Get<TenancyOptions>();
 
-        if (tenancy?.DefaultTenantId is not null)
+        // An empty config value binds as Guid.Empty, which is not a tenant fallback.
+        if (tenancy?.DefaultTenantId is Guid tenantId && tenantId != Guid.Empty)
         {
             throw new InvalidOperationException(
                 $"Tenancy:DefaultTenantId is set in the '{environment.EnvironmentName}' environment. " +

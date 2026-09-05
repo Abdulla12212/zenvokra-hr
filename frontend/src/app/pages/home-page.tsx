@@ -77,10 +77,10 @@ export function HomePage() {
         {sheetOpen ? null : attendance.lateBannerVisible ? <LateBanner /> : null}
 
         {sheetOpen ? (
-          <MonthCalendar month={month} day={day} attendance={attendance} compact />
+          <MonthCalendar month={month} day={day} compact />
         ) : (
           <div className="grid items-start gap-4 xl:grid-cols-[1fr_360px]">
-            <MonthCalendar month={month} day={day} attendance={attendance} />
+            <MonthCalendar month={month} day={day} />
             <div className="flex flex-col gap-4">
               {showClosedDay ? (
                 <>

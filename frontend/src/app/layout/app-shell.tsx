@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router';
 
 import mushroomAvatar from '@/assets/mushroom-avatar.svg';
 import { Button } from '@/components/ui/button';
+import { useInbox } from '@/features/inbox/api/inbox-queries';
 import { demoSession } from '@/lib/demo-session';
 import { cn } from '@/lib/utils';
 
@@ -13,15 +14,10 @@ interface NavigationItem {
   badge?: number;
 }
 
-const navigation: NavigationItem[] = [
+const navigationBase: NavigationItem[] = [
   { to: '/', label: 'Home', icon: Calendar },
   { to: '/time-off', label: 'Time off', icon: Sun },
-  {
-    to: '/inbox',
-    label: 'Inbox',
-    icon: Bell,
-    badge: demoSession.inboxUnreadCount,
-  },
+  { to: '/inbox', label: 'Inbox', icon: Bell },
 ];
 
 /**
@@ -31,8 +27,14 @@ const navigation: NavigationItem[] = [
  * `demoSession` — do not add People or a switcher here.
  */
 export function AppShell() {
-  const unread = demoSession.inboxUnreadCount;
+  const inbox = useInbox();
+  const unread = inbox.data
+    ? inbox.data.filter((item) => item.unread).length
+    : demoSession.inboxUnreadCount;
   const inboxLabel = unread > 0 ? `Inbox, ${String(unread)} unread` : 'Inbox';
+  const navigation = navigationBase.map((item) =>
+    item.to === '/inbox' ? { ...item, badge: unread || undefined } : item,
+  );
 
   return (
     <div className="bg-background flex min-h-full">

@@ -42,9 +42,9 @@ export function PunchOutSheet({
       </div>
       <ProgressBar value={attendance.percentOfShift} />
       <dl className="flex flex-col gap-2 text-[13px]">
-        <StampRow label="Clock-in" value="09:02 · On-time" ok />
+        <StampRow label="Clock-in" value={attendance.clockInDetail} ok />
         <StampRow label="Out" value={attendance.currentTime} />
-        <StampRow label="Lunch" value="12:15–13:05 · 50m" />
+        <StampRow label="Lunch" value={attendance.breakDetail} />
         <StampRow label="Worked" value={attendance.recordedShort} />
         <StampRow label="Location" value={attendance.locationLabel} ok />
       </dl>

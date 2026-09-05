@@ -3,16 +3,20 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiError } from '@/lib/api-client';
 import { employeeAppKeys } from '@/lib/employee-query-keys';
 
+import type { CalendarMonth } from '@/lib/home-search';
+
 import {
   clockIn,
   clockOut,
   getAttendance,
+  getAttendanceCalendar,
   getStamp,
   getTimesheet,
   hideLateBanner,
   startOrEndBreak,
   updateStamp,
   type AttendanceSnapshot,
+  type CalendarCell,
   type PunchLogGroup,
   type StampDraft,
 } from './attendance-api';
@@ -21,7 +25,9 @@ export const attendanceKeys = {
   all: [...employeeAppKeys.all, 'attendance'] as const,
   current: () => [...attendanceKeys.all, 'current'] as const,
   log: () => [...attendanceKeys.all, 'log'] as const,
-  stamp: (day: number) => [...attendanceKeys.all, 'stamp', day] as const,
+  stamp: (date: string) => [...attendanceKeys.all, 'stamp', date] as const,
+  calendar: (month: CalendarMonth, day: number) =>
+    [...attendanceKeys.all, 'calendar', month, day] as const,
 };
 
 async function invalidateEmployeeApp(queryClient: ReturnType<typeof useQueryClient>) {
@@ -42,10 +48,17 @@ export function usePunchLog() {
   });
 }
 
-export function useStampDraft(day: number) {
+export function useAttendanceCalendar(month: CalendarMonth, day: number) {
+  return useQuery<CalendarCell[], ApiError>({
+    queryKey: attendanceKeys.calendar(month, day),
+    queryFn: ({ signal }) => getAttendanceCalendar(month, day, signal),
+  });
+}
+
+export function useStampDraft(date: string) {
   return useQuery<StampDraft, ApiError>({
-    queryKey: attendanceKeys.stamp(day),
-    queryFn: ({ signal }) => getStamp(day, signal),
+    queryKey: attendanceKeys.stamp(date),
+    queryFn: ({ signal }) => getStamp(date, signal),
   });
 }
 
@@ -96,7 +109,7 @@ export function useDismissLateBanner() {
 export function useSaveStamp() {
   const queryClient = useQueryClient();
 
-  return useMutation<AttendanceSnapshot, ApiError, { day: number; draft: StampDraft }>({
+  return useMutation<AttendanceSnapshot, ApiError, { date: string; draft: StampDraft }>({
     mutationFn: (input) => updateStamp(input),
     onSuccess: async () => {
       await invalidateEmployeeApp(queryClient);

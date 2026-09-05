@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { StatusDot } from '@/components/status-dot';
-import { buildCalendarDays, type AttendanceSnapshot } from '@/lib/employee-app-store';
+import { Skeleton } from '@/components/ui/skeleton';
 import { homeHref, type CalendarMonth } from '@/lib/home-search';
 import { cn } from '@/lib/utils';
 
+import { useAttendanceCalendar } from '../api/attendance-queries';
 import { CalendarDayCell } from './calendar-day-cell';
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -14,15 +15,33 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 interface MonthCalendarProps {
   month: CalendarMonth;
   day: number;
-  attendance: AttendanceSnapshot;
   compact?: boolean;
 }
 
-export function MonthCalendar({ month, day, attendance, compact = false }: MonthCalendarProps) {
+export function MonthCalendar({ month, day, compact = false }: MonthCalendarProps) {
   const navigate = useNavigate();
-  const cells = buildCalendarDays(month, day, attendance.clockedIn, attendance.lateDayFixed);
+  const calendar = useAttendanceCalendar(month, day);
   const title = month === 'september' ? 'September 2026' : 'August 2026';
-  const rangeSelected = month === 'august' && (day === 25 || day === 26);
+  const rangeSelected = calendar.data?.some((cell) => cell.inRange) ?? false;
+
+  if (calendar.isPending) {
+    return (
+      <div className="bg-card rounded-xl border p-4 shadow-sm">
+        <Skeleton className="mb-3 h-8 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (calendar.isError) {
+    return (
+      <p role="alert" className="text-destructive text-sm">
+        {calendar.error.message}
+      </p>
+    );
+  }
+
+  const cells = calendar.data ?? [];
 
   return (
     <div className="bg-card rounded-xl border p-4 shadow-sm">

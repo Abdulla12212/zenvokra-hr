@@ -40,7 +40,9 @@ public sealed class DepartmentsEndpointsTests : IClassFixture<ApiFactory>
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
         ProblemResponse? problem = await response.Content.ReadFromJsonAsync<ProblemResponse>();
-        problem!.Detail.ShouldContain(ApiFactory.TenantHeader);
+        problem.ShouldNotBeNull();
+        problem.Detail.ShouldNotBeNull();
+        problem.Detail.ShouldContain(ApiFactory.TenantHeader);
     }
 
     [Fact]

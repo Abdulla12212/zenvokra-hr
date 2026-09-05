@@ -1,7 +1,8 @@
-import { getInboxItems, type InboxItem } from '@/lib/employee-app-store';
+import { api } from '@/lib/api-client';
+import type { InboxItem } from '@/lib/employee-app-types';
 
 export type { InboxItem };
 
-export function listInbox(_signal?: AbortSignal): Promise<InboxItem[]> {
-  return Promise.resolve(getInboxItems());
+export function listInbox(signal?: AbortSignal): Promise<InboxItem[]> {
+  return api.get<InboxItem[]>('/api/inbox', { signal });
 }
