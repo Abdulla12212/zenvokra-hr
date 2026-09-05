@@ -29,6 +29,9 @@
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests'))">
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- xUnit1051 is an analyzer warning; existing tests omit the token on
+         SaveChangesAsync/ToListAsync. Keep it from failing TreatWarningsAsErrors. -->
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
 </Project>

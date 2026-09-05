@@ -1,37 +1,21 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
+import { resetEmployeeAppStore } from '@/lib/employee-app-store';
 import { demoSession } from '@/lib/demo-session';
-import { renderWithProviders } from '@/test/render-with-providers';
-
-import { HomePage } from '../pages/home-page';
-import { InboxPage } from '../pages/inbox-page';
-import { TimeOffPage } from '../pages/time-off-page';
-import { AppShell } from './app-shell';
+import { renderEmployeeApp } from '@/test/render-employee-app';
 
 function renderShell(path = '/') {
-  const router = createMemoryRouter(
-    [
-      {
-        path: '/',
-        Component: AppShell,
-        children: [
-          { index: true, Component: HomePage },
-          { path: 'time-off', Component: TimeOffPage },
-          { path: 'inbox', Component: InboxPage },
-        ],
-      },
-    ],
-    { initialEntries: [path] },
-  );
-
-  return renderWithProviders(<RouterProvider router={router} />);
+  return renderEmployeeApp(path);
 }
 
 describe('AppShell', () => {
-  it('renders the employee chrome: brand, persona, date, and request action', () => {
+  beforeEach(() => {
+    resetEmployeeAppStore();
+  });
+
+  it('renders the employee chrome: brand, persona, date, and request action', async () => {
     renderShell();
 
     expect(screen.getByText('Cloudesh')).toBeInTheDocument();
@@ -41,8 +25,9 @@ describe('AppShell', () => {
     expect(
       screen.getByText(`${demoSession.clockLabel} · ${demoSession.employee.timeZone}`),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Request time off' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Request time off' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /2 unread/ })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument();
   });
 
   it('lists only Home, Time off, and Inbox — no People, Dashboard, or Departments', () => {
@@ -70,10 +55,10 @@ describe('AppShell', () => {
     renderShell();
 
     await userEvent.click(screen.getByRole('link', { name: 'Time off' }));
-    expect(screen.getByRole('heading', { name: 'Time off' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Time off' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Time off' })).toHaveAttribute('aria-current', 'page');
 
     await userEvent.click(screen.getByRole('link', { name: /^Inbox$/ }));
-    expect(screen.getByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
   });
 });

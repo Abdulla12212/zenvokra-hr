@@ -12,7 +12,7 @@ export function RouteErrorPage() {
   const error = useRouteError();
 
   return (
-    <div className="space-y-4 py-16 text-center">
+    <div className="space-y-4 overflow-auto p-6 py-16 text-center">
       <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
       <p className="text-muted-foreground mx-auto max-w-md text-sm">{describe(error)}</p>
 

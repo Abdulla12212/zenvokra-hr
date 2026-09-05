@@ -1,4 +1,5 @@
 using Cloudesh.Application.Domain.Departments;
+using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ public sealed class DatabaseSeeder
         // interceptor to work.
         using (_tenantScopes.BeginScope(tenantId))
         {
+            await SeedEmployeeAsync(cancellationToken);
             await SeedDepartmentsAsync(cancellationToken);
         }
     }
@@ -77,6 +79,22 @@ public sealed class DatabaseSeeder
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Seeded demo tenant {TenantId}.", tenantId);
+    }
+
+    private async Task SeedEmployeeAsync(CancellationToken cancellationToken)
+    {
+        if (await _dbContext.Employees.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        _dbContext.Employees.Add(Employee.Create(
+            "Akram Hossain",
+            "EMP-1024",
+            "akram.hossain@acmeconsulting.test"));
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Seeded demo employee EMP-1024.");
     }
 
     // WALKING SKELETON: delete alongside the Departments feature.

@@ -1,8 +1,9 @@
 /**
  * The employee app is a single-persona product. This is that person and company.
  *
- * Ticket 01 seeds the same row for the demo tenant. Until then the shell reads from
- * here. Do not add a second employee, a People list, or a tenant picker.
+ * Ticket 01 seeds the same row for the demo tenant. The shell and Profile extras
+ * still read from here; `GET /api/employees/me` is the name / number / email.
+ * Do not add a second employee, a People list, or a tenant picker.
  *
  * The clock is frozen so Home, punches, and leave match `docs/ux-employee`. Do not
  * substitute `new Date()`.
@@ -10,6 +11,7 @@
 export const demoSession = {
   tenantName: 'Acme Consulting',
   location: 'Dhaka HQ',
+  campusLabel: 'Dhaka HQ Campus · Floor 4',
   employee: {
     fullName: 'Akram Hossain',
     employeeNumber: 'EMP-1024',

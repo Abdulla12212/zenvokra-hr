@@ -1,6 +1,7 @@
 using System.Reflection;
 using Cloudesh.Application.Domain.Common;
 using Cloudesh.Application.Domain.Departments;
+using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +42,8 @@ public sealed class AppDbContext : DbContext
     }
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
+
+    public DbSet<Employee> Employees => Set<Employee>();
 
     // WALKING SKELETON: delete alongside the Departments feature.
     public DbSet<Department> Departments => Set<Department>();

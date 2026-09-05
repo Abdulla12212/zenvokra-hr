@@ -3,11 +3,16 @@ import { createBrowserRouter } from 'react-router';
 import { DepartmentsPage } from '@/features/departments/pages/departments-page';
 
 import { AppShell } from './layout/app-shell';
+import { ContinuePage } from './pages/continue-page';
+import { HelpPage } from './pages/help-page';
 import { HomePage } from './pages/home-page';
 import { InboxPage } from './pages/inbox-page';
 import { NotFoundPage } from './pages/not-found-page';
+import { ProfilePage } from './pages/profile-page';
+import { RequestDetailPage } from './pages/request-detail-page';
 import { RouteErrorPage } from './pages/route-error-page';
 import { TimeOffPage } from './pages/time-off-page';
+import { SessionGate } from './session-gate';
 
 /**
  * Route table for the whole app.
@@ -22,20 +27,30 @@ import { TimeOffPage } from './pages/time-off-page';
  * another.
  *
  * Employee nav is Home / Time off / Inbox. Departments stays routed so the walking
- * skeleton can still be opened by URL; it is not in the sidebar.
+ * skeleton can still be opened by URL; it is not in the sidebar. Continue is a session
+ * stub, not authentication.
  */
 export const router = createBrowserRouter([
   {
     path: '/',
-    Component: AppShell,
+    Component: SessionGate,
     ErrorBoundary: RouteErrorPage,
     children: [
-      { index: true, Component: HomePage },
-      { path: 'time-off', Component: TimeOffPage },
-      { path: 'inbox', Component: InboxPage },
-      // WALKING SKELETON: not in the employee nav.
-      { path: 'departments', Component: DepartmentsPage },
-      { path: '*', Component: NotFoundPage },
+      { path: 'continue', Component: ContinuePage },
+      {
+        Component: AppShell,
+        children: [
+          { index: true, Component: HomePage },
+          { path: 'time-off', Component: TimeOffPage },
+          { path: 'time-off/:requestId', Component: RequestDetailPage },
+          { path: 'inbox', Component: InboxPage },
+          { path: 'profile', Component: ProfilePage },
+          { path: 'help', Component: HelpPage },
+          // WALKING SKELETON: not in the employee nav.
+          { path: 'departments', Component: DepartmentsPage },
+          { path: '*', Component: NotFoundPage },
+        ],
+      },
     ],
   },
 ]);

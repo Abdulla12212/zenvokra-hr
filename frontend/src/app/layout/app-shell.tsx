@@ -50,14 +50,18 @@ export function AppShell() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5 border-t px-4 py-3">
+        <Link
+          to="/profile"
+          aria-label="Profile"
+          className="hover:bg-accent/60 flex items-center gap-2.5 border-t px-4 py-3"
+        >
           <img src={mushroomAvatar} alt="" className="bg-muted size-8 rounded-full object-cover" />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-medium">{demoSession.employee.fullName}</p>
             <p className="text-muted-foreground text-xs">{demoSession.employee.employeeNumber}</p>
             <p className="text-muted-foreground text-[11px]">{demoSession.location}</p>
           </div>
-        </div>
+        </Link>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -77,14 +81,16 @@ export function AppShell() {
                 ) : null}
               </Link>
             </Button>
-            <Button type="button">
-              <Plus aria-hidden="true" />
-              Request time off
+            <Button asChild>
+              <Link to="/?sheet=request">
+                <Plus aria-hidden="true" />
+                Request time off
+              </Link>
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />
         </main>
       </div>
