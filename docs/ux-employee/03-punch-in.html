@@ -13,22 +13,33 @@
       <aside class="sidebar" id="sidebar"></aside>
       <div class="stage">
         <header class="topbar">
-          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
           <div class="row">
-            <div class="btn btn-outline">Request time off</div>
             <div class="icon-btn">
               <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
               <span class="ping"></span>
             </div>
+            <div class="btn btn-outline">+ Request time off</div>
           </div>
         </header>
         <main class="main">
           <div class="page-head">
             <div>
-              <h1>Home</h1>
-              <p>Not in · shift 09:00–18:00</p>
+              <div class="page-title">
+                <h1>Home</h1>
+                <span class="badge badge-off">Not clocked in</span>
+              </div>
+              <div class="shift-meta">
+                <span>Regular shift · <b>09:00–18:00</b> · Standard 8h</span>
+                <span>Dhaka HQ Campus · Floor 4</span>
+              </div>
             </div>
-            <span class="badge badge-off">Out</span>
+            <div class="row">
+              <div class="btn btn-outline">
+                <svg class="icon-inline" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg>
+                Punch log
+              </div>
+            </div>
           </div>
 
           <div class="grid-main">
@@ -39,21 +50,102 @@
                   <h2>August 2026</h2>
                   <div class="btn btn-outline btn-icon">›</div>
                 </div>
-                <div class="btn btn-outline btn-sm is-quiet">Today</div>
+                <div class="row">
+                  <div class="legend">
+                    <span><i class="dot dot-ok"></i> Present</span>
+                    <span><i class="dot dot-warn"></i> Late</span>
+                    <span><i class="dot dot-off"></i> Leave</span>
+                    <span><i class="dot dot-holiday"></i> Closed</span>
+                  </div>
+                  <div class="btn btn-outline btn-sm is-quiet">Today</div>
+                </div>
               </div>
               <div class="cal-grid" id="cal"></div>
-            </div>
-            <div class="card card-p">
-              <div class="tiny">Thu 20 Aug</div>
-              <div style="font-weight: 600; margin: 4px 0 8px">Manual punch</div>
-              <p class="muted" style="margin-bottom: 16px">Acme Consulting allows clocking from here. Stamps 08:47.</p>
-              <div class="dl" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px">
-                <dt>Time</dt>
-                <dd>08:47</dd>
-                <dt>Location</dt>
-                <dd>Dhaka HQ</dd>
+              <div class="cal-foot">
+                <span>Next public holiday · <b style="color: var(--foreground)">5 Sep 2026</b> · Company Day</span>
+                <div class="btn-link">View calendar</div>
               </div>
-              <div class="btn btn-lg" style="width: 100%">Punch in</div>
+            </div>
+
+            <div class="stack">
+              <div class="card card-p-sm">
+                <div class="shift-card-head">
+                  <div>
+                    <div class="kicker">Today’s shift</div>
+                    <div class="tiny">Thu 20 Aug</div>
+                  </div>
+                  <span class="badge badge-off">Out</span>
+                </div>
+                <div class="timer-row">
+                  <div>
+                    <div class="timer">0h 00m 00s</div>
+                    <div class="timer-note">Not started · stamps 08:47</div>
+                  </div>
+                  <div class="pct">0% of 8h</div>
+                </div>
+                <div class="progress" style="margin-bottom: 14px"><span style="width: 0"></span></div>
+                <p class="tiny" style="margin-bottom: 12px">Acme Consulting allows clocking from here. Location will stamp Dhaka HQ.</p>
+                <div class="btn btn-lg" style="width: 100%; margin-bottom: 8px">Punch in</div>
+                <dl class="stamp-list">
+                  <div class="stamp-row">
+                    <dt>Scheduled in</dt>
+                    <dd>09:00</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Expected out</dt>
+                    <dd>18:00</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Time now</dt>
+                    <dd>08:47</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Location</dt>
+                    <dd>Dhaka HQ · ready</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="card card-p-sm">
+                <div class="week-head">
+                  <div>
+                    <div class="kicker">Weekly quota</div>
+                    <div class="n">24h 00m / 40h</div>
+                  </div>
+                  <span class="tiny">3 of 5 shifts</span>
+                </div>
+                <div class="week-bars">
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-ok" style="height: 100%"></div></div>
+                    <div class="h">8h</div>
+                    <div class="d">Mon</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-ok" style="height: 100%"></div></div>
+                    <div class="h">8h</div>
+                    <div class="d">Tue</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-warn" style="height: 100%"></div></div>
+                    <div class="h">8h*</div>
+                    <div class="d">Wed</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"></div>
+                    <div class="h">0h</div>
+                    <div class="d">Thu</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"></div>
+                    <div class="h">0h</div>
+                    <div class="d">Fri</div>
+                  </div>
+                </div>
+                <div class="week-foot">
+                  <span>Overtime accrued · 0h 35m</span>
+                  <div class="btn-link">Timesheet logs</div>
+                </div>
+              </div>
             </div>
           </div>
         </main>
@@ -62,7 +154,7 @@
     <script src="shell.js"></script>
     <script>
       Cloudesh.mount("home");
-      Cloudesh.month("cal", { selected: 20 });
+      Cloudesh.month("cal", { selected: 20, clockedIn: false });
     </script>
   </body>
 </html>

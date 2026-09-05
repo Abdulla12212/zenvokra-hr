@@ -13,7 +13,7 @@
       <aside class="sidebar" id="sidebar"></aside>
       <div class="stage">
         <header class="topbar">
-          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
           <div class="icon-btn">
             <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
             <span class="ping"></span>
@@ -22,7 +22,15 @@
         <div class="split">
           <main class="main">
             <div class="page-head">
-              <h1>Home</h1>
+              <div>
+                <div class="page-title">
+                  <h1>Home</h1>
+                  <span class="badge badge-ok">Clocked in at 09:02</span>
+                </div>
+                <div class="shift-meta">
+                  <span>Selecting 25–26 Aug · Annual Leave</span>
+                </div>
+              </div>
             </div>
             <div class="card card-p-sm">
               <div class="cal-head">
@@ -31,9 +39,18 @@
                   <h2>August 2026</h2>
                   <div class="btn btn-outline btn-icon">›</div>
                 </div>
-                <div class="btn btn-outline btn-sm is-quiet">Today</div>
+                <div class="legend">
+                  <span><i class="dot dot-ok"></i> Present</span>
+                  <span><i class="dot dot-warn"></i> Late</span>
+                  <span><i class="dot dot-off"></i> Leave</span>
+                  <span><i class="dot dot-holiday"></i> Closed</span>
+                </div>
               </div>
               <div class="cal-grid" id="cal"></div>
+              <div class="cal-foot">
+                <span>Range · <b style="color: var(--foreground)">Tue 25 – Wed 26 Aug</b> · 2 working days</span>
+                <div class="btn-link">Clear</div>
+              </div>
             </div>
           </main>
           <aside class="sheet">
@@ -70,7 +87,7 @@
     <script src="shell.js"></script>
     <script>
       Cloudesh.mount("home");
-      Cloudesh.month("cal", { selected: 25, range: [25, 26] });
+      Cloudesh.month("cal", { selected: 25, range: [25, 26], clockedIn: true });
     </script>
   </body>
 </html>

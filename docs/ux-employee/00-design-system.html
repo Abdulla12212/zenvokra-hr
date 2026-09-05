@@ -45,21 +45,23 @@
             <div class="tiny" style="margin-bottom: 10px; font-weight: 500">BUTTON</div>
             <div class="row" style="flex-wrap: wrap">
               <div class="btn">Punch in</div>
-              <div class="btn btn-outline">Punch out</div>
-              <div class="btn btn-outline">Edit punches</div>
+              <div class="btn">Punch out</div>
+              <div class="btn btn-outline">Take break</div>
+              <div class="btn btn-outline">Edit stamp</div>
+              <div class="btn btn-outline">Fix punch</div>
               <div class="btn btn-ghost">Cancel</div>
-              <div class="btn btn-destructive">Cancel request</div>
             </div>
-            <p class="tiny" style="margin-top: 10px">h-9 rounded-md. Punch in is the only filled primary on Home when out. Edits save; no approval.</p>
+            <p class="tiny" style="margin-top: 10px">h-9 rounded-md. Punch in is the filled primary when out; Punch out when in. Stamps save; no approval.</p>
           </div>
           <div class="card card-p-sm">
             <div class="tiny" style="margin-bottom: 10px; font-weight: 500">BADGE</div>
             <div class="row" style="flex-wrap: wrap">
-              <span class="badge badge-ok">In</span>
+              <span class="badge badge-ok">Clocked in at 09:02</span>
+              <span class="badge badge-ok">Active</span>
               <span class="badge badge-warn">Late</span>
+              <span class="badge badge-off">Not clocked in</span>
               <span class="badge badge-primary">Pending</span>
-              <span class="badge badge-destructive">Rejected</span>
-              <span class="badge badge-off">Off</span>
+              <span class="badge badge-destructive">Closed</span>
             </div>
           </div>
           <div class="card card-p-sm">
@@ -82,8 +84,14 @@
           </div>
           <div class="card card-p-sm">
             <div class="tiny" style="margin-bottom: 10px; font-weight: 500">COPY</div>
-            <p style="font-size: 13px; font-weight: 500">In 09:02 · Late 19 Aug · 12 days left</p>
-            <p class="tiny" style="margin-top: 8px">Facts. Empathy is Punch in on Home and Edit next to a late day. Closed days live on the Home calendar. Sheets for punch out and request. No day page, no Holidays page.</p>
+            <p style="font-size: 13px; font-weight: 500">Clocked in 09:02 · Late 19 Aug · 6h 32m Active</p>
+            <p class="tiny" style="margin-top: 8px">Facts. Empathy is Punch in on Home and Fix punch next to a late day. Calendar cells show hours, Late time, Annual Leave, Scheduled. Closed days stay on Home. Sheets for punch out, edit stamp, punch log, and request. No day page, no Holidays page.</p>
+            <div class="legend" style="margin-top: 10px">
+              <span><i class="dot dot-ok"></i> Present</span>
+              <span><i class="dot dot-warn"></i> Late</span>
+              <span><i class="dot dot-off"></i> Leave</span>
+              <span><i class="dot dot-holiday"></i> Closed</span>
+            </div>
           </div>
           <div class="card card-p-sm">
             <div class="tiny" style="margin-bottom: 10px; font-weight: 500">HARDCODED</div>

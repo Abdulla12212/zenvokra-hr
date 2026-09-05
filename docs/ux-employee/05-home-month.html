@@ -13,23 +13,35 @@
       <aside class="sidebar" id="sidebar"></aside>
       <div class="stage">
         <header class="topbar">
-          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
           <div class="row">
-            <div class="btn">Request time off</div>
             <div class="icon-btn">
               <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
               <span class="ping"></span>
             </div>
+            <div class="btn">+ Request time off</div>
           </div>
         </header>
         <main class="main">
           <div class="page-head">
             <div>
-              <h1>Home</h1>
-              <p>In 09:02 · out by 18:00</p>
+              <div class="page-title">
+                <h1>Home</h1>
+                <span class="badge badge-ok">Clocked in at 09:02</span>
+              </div>
+              <div class="shift-meta">
+                <span>Regular shift · <b>09:00–18:00</b> · Standard 8h</span>
+                <span>Dhaka HQ Campus · Floor 4</span>
+              </div>
             </div>
-            <span class="badge badge-ok">In</span>
+            <div class="row">
+              <div class="btn btn-outline">
+                <svg class="icon-inline" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg>
+                Punch log
+              </div>
+            </div>
           </div>
+
           <div class="grid-main">
             <div class="card card-p-sm">
               <div class="cal-head">
@@ -42,26 +54,55 @@
                   <div class="legend">
                     <span><i class="dot dot-ok"></i> Present</span>
                     <span><i class="dot dot-warn"></i> Late</span>
-                    <span><i class="dot dot-off"></i> Off</span>
+                    <span><i class="dot dot-off"></i> Leave</span>
                     <span><i class="dot dot-holiday"></i> Closed</span>
                   </div>
                   <div class="btn btn-sm">Today</div>
                 </div>
               </div>
               <div class="cal-grid" id="cal"></div>
+              <div class="cal-foot">
+                <span>Selected · <b style="color: var(--foreground)">5 Sep 2026</b> · Company Day · paid</span>
+                <div class="btn-link">Back to August</div>
+              </div>
             </div>
-            <div class="card card-p">
-              <div class="tiny">Sat 5 Sep</div>
-              <div style="font-weight: 600; margin: 4px 0 8px">Company Day</div>
-              <span class="badge">Closed</span>
-              <dl class="dl" style="grid-template-columns: 1fr 1fr; margin-top: 16px">
-                <dt>Type</dt>
-                <dd>Acme Consulting</dd>
-                <dt>Pay</dt>
-                <dd>Paid</dd>
-                <dt>Leave</dt>
-                <dd>Not deducted</dd>
-              </dl>
+
+            <div class="stack">
+              <div class="card card-p">
+                <div class="kicker">Closed day</div>
+                <div class="tiny" style="margin-top: 4px">Sat 5 Sep</div>
+                <div style="font-weight: 600; margin: 4px 0 10px; font-size: 16px">Company Day</div>
+                <span class="badge badge-destructive">Closed</span>
+                <dl class="stamp-list">
+                  <div class="stamp-row">
+                    <dt>Type</dt>
+                    <dd>Acme Consulting</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Pay</dt>
+                    <dd>Paid</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Leave</dt>
+                    <dd>Not deducted</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Shift</dt>
+                    <dd>None · office shut</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="card card-p-sm">
+                <div class="week-head">
+                  <div>
+                    <div class="kicker">This week</div>
+                    <div class="n">32h 32m / 40h</div>
+                  </div>
+                  <span class="tiny" style="color: var(--success); font-weight: 600">4 of 5 shifts</span>
+                </div>
+                <p class="tiny">Quota is still this week in August. September is preview only.</p>
+              </div>
             </div>
           </div>
         </main>

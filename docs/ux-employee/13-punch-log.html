@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh · Punch log</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar">
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
+          <div class="icon-btn">
+            <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
+            <span class="ping"></span>
+          </div>
+        </header>
+        <div class="split">
+          <main class="main">
+            <div class="page-head">
+              <div>
+                <div class="page-title">
+                  <h1>Home</h1>
+                  <span class="badge badge-ok">Clocked in at 09:02</span>
+                </div>
+                <div class="shift-meta">
+                  <span>This week’s stamps · edit saves immediately</span>
+                </div>
+              </div>
+            </div>
+            <div class="card card-p-sm">
+              <div class="cal-head">
+                <div class="cal-nav">
+                  <div class="btn btn-outline btn-icon is-quiet">‹</div>
+                  <h2>August 2026</h2>
+                  <div class="btn btn-outline btn-icon">›</div>
+                </div>
+                <div class="legend">
+                  <span><i class="dot dot-ok"></i> Present</span>
+                  <span><i class="dot dot-warn"></i> Late</span>
+                  <span><i class="dot dot-off"></i> Leave</span>
+                  <span><i class="dot dot-holiday"></i> Closed</span>
+                </div>
+              </div>
+              <div class="cal-grid" id="cal"></div>
+            </div>
+          </main>
+          <aside class="sheet" style="width: 400px">
+            <div class="row" style="justify-content: space-between">
+              <div>
+                <div class="kicker">Timesheet</div>
+                <div style="font-weight: 600">Punch log</div>
+              </div>
+              <span class="tiny">Close</span>
+            </div>
+            <p class="muted">17–20 Aug · 32h 32m so far</p>
+
+            <div style="font-size: 12px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 6px">Thu 20 Aug · Active</div>
+            <div class="card" style="margin-bottom: 12px">
+              <div class="list-row">
+                <i class="dot" style="background: var(--primary)"></i>
+                <div style="flex: 1">
+                  <div style="font-weight: 500">In 09:02</div>
+                  <div class="tiny">On-time · Dhaka HQ · IP verified</div>
+                </div>
+                <div class="btn-link">Edit</div>
+              </div>
+              <div class="list-row">
+                <i class="dot dot-mute"></i>
+                <div style="flex: 1">
+                  <div style="font-weight: 500">Break 12:15–13:05</div>
+                  <div class="tiny">50m lunch</div>
+                </div>
+              </div>
+              <div class="list-row">
+                <i class="dot" style="background: var(--primary)"></i>
+                <div style="flex: 1">
+                  <div style="font-weight: 500">Now 16:32</div>
+                  <div class="tiny">6h 32m recorded</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 6px">Wed 19 Aug · Late</div>
+            <div class="card" style="margin-bottom: 12px">
+              <div class="list-row">
+                <i class="dot dot-warn"></i>
+                <div style="flex: 1">
+                  <div style="font-weight: 500">In 09:42 · Out 18:08</div>
+                  <div class="tiny">8h 26m · 42m tardiness</div>
+                </div>
+                <div class="btn-link">Fix</div>
+              </div>
+            </div>
+
+            <div style="font-size: 12px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 6px">Tue 18 Aug · Present</div>
+            <div class="card">
+              <div class="list-row">
+                <i class="dot dot-ok"></i>
+                <div style="flex: 1">
+                  <div style="font-weight: 500">In 08:58 · Out 18:09</div>
+                  <div class="tiny">8h 11m · on-time</div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      Cloudesh.mount("home");
+      Cloudesh.month("cal", { selected: 20, clockedIn: true });
+    </script>
+  </body>
+</html>

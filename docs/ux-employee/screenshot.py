@@ -19,6 +19,7 @@ PAGES = [
     ("04-punch-out.html", "04-punch-out.png"),
     ("05-home-month.html", "05-home-month.png"),
     ("06-edit-punches.html", "06-edit-punches.png"),
+    ("13-punch-log.html", "13-punch-log.png"),
     ("07-time-off.html", "07-time-off.png"),
     ("08-request-sheet.html", "08-request-sheet.png"),
     ("09-request-detail.html", "09-request-detail.png"),

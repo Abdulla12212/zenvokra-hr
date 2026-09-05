@@ -13,7 +13,7 @@
       <aside class="sidebar" id="sidebar"></aside>
       <div class="stage">
         <header class="topbar">
-          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
           <div class="icon-btn">
             <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
             <span class="ping"></span>
@@ -23,10 +23,14 @@
           <main class="main">
             <div class="page-head">
               <div>
-                <h1>Home</h1>
-                <p>In 09:02 · 6h 32m so far</p>
+                <div class="page-title">
+                  <h1>Home</h1>
+                  <span class="badge badge-ok">Clocked in at 09:02</span>
+                </div>
+                <div class="shift-meta">
+                  <span>6h 32m recorded · out will stamp 16:32</span>
+                </div>
               </div>
-              <span class="badge badge-ok">In</span>
             </div>
             <div class="card card-p-sm">
               <div class="cal-head">
@@ -35,26 +39,51 @@
                   <h2>August 2026</h2>
                   <div class="btn btn-outline btn-icon">›</div>
                 </div>
-                <div class="btn btn-outline btn-sm is-quiet">Today</div>
+                <div class="legend">
+                  <span><i class="dot dot-ok"></i> Present</span>
+                  <span><i class="dot dot-warn"></i> Late</span>
+                  <span><i class="dot dot-off"></i> Leave</span>
+                  <span><i class="dot dot-holiday"></i> Closed</span>
+                </div>
               </div>
               <div class="cal-grid" id="cal"></div>
             </div>
           </main>
           <aside class="sheet">
             <div class="row" style="justify-content: space-between">
-              <div style="font-weight: 600">Punch out</div>
+              <div>
+                <div class="kicker">Today’s shift</div>
+                <div style="font-weight: 600">Punch out</div>
+              </div>
               <span class="tiny">Close</span>
             </div>
             <p class="muted">Stamps now. No approval.</p>
-            <dl class="dl" style="grid-template-columns: 100px 1fr">
-              <dt>In</dt>
-              <dd>09:02</dd>
-              <dt>Out</dt>
-              <dd>16:32</dd>
-              <dt>Worked</dt>
-              <dd>6h 32m</dd>
-              <dt>Break</dt>
-              <dd>50m</dd>
+            <div>
+              <div class="timer">6h 32m 43s</div>
+              <div class="timer-note">Recorded working time today</div>
+            </div>
+            <div class="progress"><span style="width: 81%"></span></div>
+            <dl class="stamp-list">
+              <div class="stamp-row">
+                <dt>Clock-in</dt>
+                <dd class="ok">09:02 · On-time</dd>
+              </div>
+              <div class="stamp-row">
+                <dt>Out</dt>
+                <dd>16:32</dd>
+              </div>
+              <div class="stamp-row">
+                <dt>Lunch</dt>
+                <dd>12:15–13:05 · 50m</dd>
+              </div>
+              <div class="stamp-row">
+                <dt>Worked</dt>
+                <dd>6h 32m</dd>
+              </div>
+              <div class="stamp-row">
+                <dt>Location</dt>
+                <dd class="ok">Dhaka HQ · IP verified</dd>
+              </div>
             </dl>
             <div class="btn btn-lg" style="width: 100%">Punch out</div>
             <div class="btn btn-ghost" style="width: 100%">Stay in</div>
@@ -65,7 +94,7 @@
     <script src="shell.js"></script>
     <script>
       Cloudesh.mount("home");
-      Cloudesh.month("cal", { selected: 20 });
+      Cloudesh.month("cal", { selected: 20, clockedIn: true });
     </script>
   </body>
 </html>

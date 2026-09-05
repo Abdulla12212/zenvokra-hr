@@ -13,27 +13,44 @@
       <aside class="sidebar" id="sidebar"></aside>
       <div class="stage">
         <header class="topbar">
-          <div class="topbar-meta">Thu 20 Aug 2026 · Dhaka HQ</div>
+          <div class="topbar-meta">Thu 20 Aug 2026 · Asia/Dhaka</div>
           <div class="row">
-            <div class="btn">Request time off</div>
             <div class="icon-btn">
               <svg viewBox="0 0 24 24"><path d="M6 16h12l-1.2-2V10a4.8 4.8 0 0 0-9.6 0v4z"/><path d="M10 16a2 2 0 0 0 4 0"/></svg>
               <span class="ping"></span>
             </div>
+            <div class="btn">+ Request time off</div>
           </div>
         </header>
         <main class="main">
           <div class="page-head">
             <div>
-              <h1>Home</h1>
-              <p>In 09:02 · out by 18:00</p>
+              <div class="page-title">
+                <h1>Home</h1>
+                <span class="badge badge-ok">Clocked in at 09:02</span>
+              </div>
+              <div class="shift-meta">
+                <span>Regular shift · <b>09:00–18:00</b> · Standard 8h</span>
+                <span>Dhaka HQ Campus · Floor 4</span>
+              </div>
             </div>
-            <span class="badge badge-ok">In</span>
+            <div class="row">
+              <div class="btn btn-outline">
+                <svg class="icon-inline" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg>
+                Punch log
+              </div>
+            </div>
           </div>
 
-          <div class="alert" style="margin-bottom: 16px">
-            <span><span class="dot dot-warn"></span> &nbsp;19 Aug marked late</span>
-            <div class="btn btn-outline btn-sm">Edit</div>
+          <div class="alert alert-warn" style="margin-bottom: 16px">
+            <div>
+              <strong>19 Aug marked late</strong>
+              <span class="tiny">Clocked in 09:42 — missed 15m grace. System recorded 42m tardiness.</span>
+            </div>
+            <div class="row">
+              <div class="btn btn-outline btn-sm">Fix punch</div>
+              <span class="x">×</span>
+            </div>
           </div>
 
           <div class="grid-main">
@@ -48,38 +65,106 @@
                   <div class="legend">
                     <span><i class="dot dot-ok"></i> Present</span>
                     <span><i class="dot dot-warn"></i> Late</span>
-                    <span><i class="dot dot-off"></i> Off</span>
+                    <span><i class="dot dot-off"></i> Leave</span>
                     <span><i class="dot dot-holiday"></i> Closed</span>
                   </div>
                   <div class="btn btn-outline btn-sm is-quiet">Today</div>
                 </div>
               </div>
               <div class="cal-grid" id="cal"></div>
+              <div class="cal-foot">
+                <span>Next public holiday · <b style="color: var(--foreground)">5 Sep 2026</b> · Company Day</span>
+                <div class="btn-link">View calendar</div>
+              </div>
             </div>
+
             <div class="stack">
               <div class="card card-p-sm">
-                <div class="tiny">Thu 20 Aug</div>
-                <div style="font-weight: 600; margin: 4px 0 12px">This shift</div>
-                <div class="dl" style="grid-template-columns: 1fr 1fr">
-                  <dt>In</dt>
-                  <dd style="color: var(--success)">09:02</dd>
-                  <dt>Break</dt>
-                  <dd>12:15–13:05</dd>
-                  <dt>Now</dt>
-                  <dd>16:32</dd>
-                  <dt>Expected out</dt>
-                  <dd>18:00</dd>
+                <div class="shift-card-head">
+                  <div>
+                    <div class="kicker">Today’s shift</div>
+                    <div class="tiny">Thu 20 Aug</div>
+                  </div>
+                  <span class="badge badge-ok">Active</span>
                 </div>
-                <div class="btn" style="width: 100%; margin-top: 16px">Punch out</div>
+                <div class="timer-row">
+                  <div>
+                    <div class="timer">6h 32m 43s</div>
+                    <div class="timer-note">Recorded working time today</div>
+                  </div>
+                  <div class="pct">81% of 8h</div>
+                </div>
+                <div class="progress" style="margin-bottom: 14px"><span style="width: 81%"></span></div>
+                <div class="btn" style="width: 100%; margin-bottom: 8px">
+                  Punch out
+                  <svg class="icon-inline" viewBox="0 0 24 24"><path d="M9 6H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/><path d="M10 12h9"/><path d="m16 8 4 4-4 4"/></svg>
+                </div>
+                <div class="actions-2">
+                  <div class="btn btn-outline">Take break</div>
+                  <div class="btn btn-outline">Edit stamp</div>
+                </div>
+                <dl class="stamp-list">
+                  <div class="stamp-row">
+                    <dt>Clock-in</dt>
+                    <dd class="ok">09:02 · On-time</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Lunch break</dt>
+                    <dd>12:15–13:05 · 50m</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Current</dt>
+                    <dd>16:32</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Estimated out</dt>
+                    <dd>18:00 · 1h 28m left</dd>
+                  </div>
+                  <div class="stamp-row">
+                    <dt>Location</dt>
+                    <dd class="ok">Dhaka HQ · IP verified</dd>
+                  </div>
+                </dl>
               </div>
-              <div class="kpis" style="flex-direction: column">
-                <div>
-                  <div class="n" style="color: var(--success)">6h 32m</div>
-                  <div class="k">Worked</div>
+
+              <div class="card card-p-sm">
+                <div class="week-head">
+                  <div>
+                    <div class="kicker">Weekly quota</div>
+                    <div class="n">32h 32m / 40h</div>
+                  </div>
+                  <span class="tiny" style="color: var(--success); font-weight: 600">4 of 5 shifts</span>
                 </div>
-                <div>
-                  <div class="n">50m</div>
-                  <div class="k">Break</div>
+                <div class="week-bars">
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-ok" style="height: 100%"></div></div>
+                    <div class="h">8h</div>
+                    <div class="d">Mon</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-ok" style="height: 100%"></div></div>
+                    <div class="h">8h</div>
+                    <div class="d">Tue</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-warn" style="height: 100%"></div></div>
+                    <div class="h">8h*</div>
+                    <div class="d">Wed</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"><div class="week-fill is-now" style="height: 81%"></div></div>
+                    <div class="h">6.5h</div>
+                    <div class="d">Thu</div>
+                  </div>
+                  <div class="week-col">
+                    <div class="week-track"></div>
+                    <div class="h">0h</div>
+                    <div class="d">Fri</div>
+                  </div>
+                </div>
+                <div class="week-foot">
+                  <span>Overtime accrued · 0h 35m</span>
+                  <div class="btn-link">Timesheet logs</div>
                 </div>
               </div>
             </div>
@@ -90,7 +175,7 @@
     <script src="shell.js"></script>
     <script>
       Cloudesh.mount("home");
-      Cloudesh.month("cal", { selected: 20 });
+      Cloudesh.month("cal", { selected: 20, clockedIn: true });
     </script>
   </body>
 </html>
