@@ -17,6 +17,7 @@ internal sealed class LeaveRequestConfiguration : IEntityTypeConfiguration<Leave
         builder.Property(request => request.Status).HasMaxLength(32).IsRequired();
         builder.Property(request => request.ApproverName).HasMaxLength(200).IsRequired();
         builder.Property(request => request.Note).HasMaxLength(400).IsRequired();
+        builder.Property(request => request.DecisionNote).HasMaxLength(400).IsRequired();
 
         builder.HasIndex(request => new { request.TenantId, request.EmployeeId, request.StartDate });
 

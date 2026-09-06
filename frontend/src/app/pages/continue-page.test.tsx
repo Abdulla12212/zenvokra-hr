@@ -17,13 +17,22 @@ describe('ContinuePage', () => {
     renderGatedApp('/continue');
 
     expect(screen.getByRole('heading', { name: 'Continue' })).toBeInTheDocument();
-    expect(screen.getByText(demoSession.employee.fullName)).toBeInTheDocument();
+    expect(screen.getAllByText(demoSession.employee.fullName).length).toBeGreaterThan(0);
     expect(screen.getByText(/EMP-1024/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeInTheDocument();
     expect(await screen.findByText('Clocked in at 09:02')).toBeInTheDocument();
+  });
+
+  it('opens admin into the dashboard', async () => {
+    renderGatedApp('/continue');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open admin' }));
+
+    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByText('Cloudesh Admin')).toBeInTheDocument();
   });
 
   it('sends an uncontinued visitor to Continue', () => {

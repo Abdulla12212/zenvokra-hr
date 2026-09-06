@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Employee calendar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Employees / <b>Akram Hossain</b> / EMP-1024</div>
+          <div class="page-head">
+            <div class="page-title"><h1>Akram Hossain</h1></div>
+            <div class="row">
+              <div class="btn btn-outline">Edit profile</div>
+              <div class="btn btn-outline">Export PDF</div>
+              <div class="btn">Manage access</div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 8px">
+            <div class="row" style="align-items: flex-start; justify-content: space-between">
+              <div class="row" style="align-items: flex-start; gap: 14px">
+                <div class="avatar-initials xl">AH</div>
+                <div>
+                  <div class="row">
+                    <strong style="font-size: 18px">Akram Hossain</strong>
+                    <span class="badge badge-primary">Admin</span>
+                    <span class="badge badge-ok">Active · On duty</span>
+                  </div>
+                  <div class="tiny">Senior Software Engineer · Engineering · Platform Team</div>
+                  <dl class="profile-meta">
+                    <div><dt>Email</dt><dd>akram.hossain@acmeconsulting.test</dd></div>
+                    <div><dt>Phone</dt><dd>+880 1711-102400</dd></div>
+                    <div><dt>Desk</dt><dd>Floor 4, Desk 4B-12</dd></div>
+                    <div><dt>Joined</dt><dd>12 Jan 2024 · 2.6 yrs</dd></div>
+                    <div><dt>Type</dt><dd>Full-time Regular</dd></div>
+                    <div><dt>Manager</dt><dd>Nadia Chowdhury</dd></div>
+                  </dl>
+                </div>
+              </div>
+              <div class="card card-p-sm" style="width: 200px">
+                <div class="tiny">Today’s clock in</div>
+                <strong>08:52 AM</strong>
+                <div class="tiny" style="margin-top: 8px">Expected out</div>
+                <strong>06:00 PM</strong>
+                <div class="tiny" style="margin-top: 8px">Current shift</div>
+                <strong>Standard day</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="underline-tabs">
+            <div class="underline-tab is-on">Attendance calendar</div>
+            <div class="underline-tab">Attendance &amp; timesheets</div>
+            <div class="underline-tab">Leave &amp; balances</div>
+            <div class="underline-tab">Work schedule</div>
+            <div class="underline-tab">Activity history</div>
+          </div>
+
+          <div class="card card-p-sm">
+            <div class="cal-head">
+              <div class="cal-nav">
+                <div class="btn btn-outline btn-icon">‹</div>
+                <h2>August 2026</h2>
+                <div class="btn btn-outline btn-icon">›</div>
+              </div>
+              <div class="legend">
+                <span><i class="dot dot-ok"></i> On-time</span>
+                <span><i class="dot dot-warn"></i> Late / short</span>
+                <span><i class="dot dot-off"></i> Leave / WFH</span>
+                <span><i class="dot dot-mute"></i> Weekend</span>
+              </div>
+            </div>
+            <div class="cal-grid" id="cal"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("employees");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+      const dow = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const days = [null, null, null, null, null, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, null, null, null, null, null, null];
+      const weekend = new Set([1, 2, 8, 9, 15, 16, 22, 23, 29, 30]);
+      const late = new Set([12, 14, 19]);
+      const leave = { 25: "Annual · approved", 26: "Casual · pending", 27: "Sick · approved" };
+      const el = document.getElementById("cal");
+      el.innerHTML = dow.map((d) => `<div class="cal-dow">${d}</div>`).join("");
+      days.forEach((n) => {
+        if (n === null) {
+          el.innerHTML += `<div class="cal-cell is-empty"></div>`;
+          return;
+        }
+        const isToday = n === 20;
+        const isLate = late.has(n);
+        const leaveLabel = leave[n];
+        const cls = ["cal-cell", weekend.has(n) ? "is-muted" : "", isToday ? "is-today" : "", isLate ? "is-late" : "", leaveLabel ? "is-leave" : ""].filter(Boolean).join(" ");
+        let meta = weekend.has(n) ? "Weekend" : "9h 10m · On time";
+        if (isLate) meta = n === 14 ? "Rectification req" : "Late · 24m";
+        if (leaveLabel) meta = leaveLabel;
+        if (isToday) meta = "Today · On duty";
+        el.innerHTML += `<div class="${cls}"><div class="cal-cell-top"><div class="num">${n}</div></div><div class="cal-cell-meta"><strong>${meta}</strong></div></div>`;
+      });
+    </script>
+  </body>
+</html>

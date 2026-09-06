@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Home / <b>Dashboard</b></div>
+          <div class="page-head">
+            <div>
+              <div class="page-title"><h1>Dashboard</h1></div>
+              <p>Presence, exceptions, and requests that need a decision today.</p>
+            </div>
+            <div class="btn">+ Add employee</div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="card card-p-sm stat">
+              <div class="row" style="justify-content: space-between">
+                <div class="k">On duty presence</div>
+                <span class="badge badge-ok">87.5% Optimal</span>
+              </div>
+              <div class="n">42 / 48</div>
+              <div class="hint">38 Dhaka HQ · 4 Remote</div>
+            </div>
+            <div class="card card-p-sm stat">
+              <div class="row" style="justify-content: space-between">
+                <div class="k">Pending approvals</div>
+                <span class="badge badge-destructive">Action needed</span>
+              </div>
+              <div class="n">4</div>
+              <div class="hint">2 Punches · 2 Leaves</div>
+            </div>
+            <div class="card card-p-sm stat">
+              <div class="row" style="justify-content: space-between">
+                <div class="k">Late today</div>
+                <span class="badge badge-warn">Attention</span>
+              </div>
+              <div class="n">3</div>
+              <div class="hint">&gt;15m grace · avg +38m</div>
+            </div>
+            <div class="card card-p-sm stat">
+              <div class="row" style="justify-content: space-between">
+                <div class="k">On leave / off</div>
+                <span class="badge badge-primary">Scheduled</span>
+              </div>
+              <div class="n">5</div>
+              <div class="hint">3 Annual · 2 Medical</div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 16px">
+            <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+              <div>
+                <strong>Pending approvals</strong>
+                <span class="badge badge-destructive" style="margin-left: 8px">4 due</span>
+                <p class="tiny" style="margin-top: 4px">4 requests requiring review · 2 late punches · 2 leaves</p>
+              </div>
+              <div class="btn-link">View all 4 →</div>
+            </div>
+            <div class="row" style="justify-content: flex-end; gap: 16px">
+              <div class="row" style="gap: 10px">
+                <div class="avatar-initials">NC</div>
+                <div>
+                  <div style="font-weight: 500">Nadia Chowdhury</div>
+                  <div class="tiny">Annual leave · 2 days</div>
+                </div>
+                <div class="btn btn-outline btn-sm">Decline</div>
+                <div class="btn btn-sm">Grant</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-p-sm" style="padding-bottom: 8px">
+              <div class="row" style="justify-content: space-between">
+                <div>
+                  <strong>Live punch activity</strong>
+                  <p class="tiny">Today’s stamps for Acme Consulting</p>
+                </div>
+                <div class="tabs">
+                  <div class="tab is-on">All activity</div>
+                  <div class="tab">Exceptions only (2)</div>
+                </div>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr><th>Employee</th><th>Time</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">AH</div>
+                      <div>
+                        <div style="font-weight: 500">Akram Hossain</div>
+                        <div class="tiny">EMP-1024 · Lead Backend Dev</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>09:42 AM · <span style="color: color-mix(in oklch, var(--destructive) 70%, black)">+42m late</span></td>
+                  <td><span class="badge badge-ok">In</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">NC</div>
+                      <div>
+                        <div style="font-weight: 500">Nadia Chowdhury</div>
+                        <div class="tiny">EMP-1001 · VP of Engineering</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>08:58 AM · <span style="color: color-mix(in oklch, var(--success) 70%, black)">On-time</span></td>
+                  <td><span class="badge badge-ok">In</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">SK</div>
+                      <div>
+                        <div style="font-weight: 500">Samira Khan</div>
+                        <div class="tiny">EMP-1031 · Workplace Ops</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>01:15 PM · Break punch</td>
+                  <td><span class="badge badge-off">Out</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">TA</div>
+                      <div>
+                        <div style="font-weight: 500">Tanvir Ahmed</div>
+                        <div class="tiny">EMP-1038 · DevOps Specialist</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>05:30 PM · End of shift</td>
+                  <td><span class="badge badge-off">Out</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="card-p-sm tiny" style="border-top: 1px solid var(--border)">Showing 4 of 48 punch records · Full audit punch log →</div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("dashboard");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>

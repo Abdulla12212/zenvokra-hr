@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Organization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Home / Organization / <b>Organization profile</b></div>
+          <div class="page-head">
+            <div>
+              <div class="page-title"><h1>Organization profile</h1></div>
+              <p>General organization details, provisioned subscription, and workplace settings.</p>
+            </div>
+            <div class="row">
+              <div class="btn btn-ghost">Discard changes</div>
+              <div class="btn">Save changes</div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 16px">
+            <div class="row" style="align-items: flex-start; justify-content: space-between">
+              <div class="row" style="gap: 14px">
+                <div class="avatar-initials xl">AC</div>
+                <div>
+                  <strong style="font-size: 18px">Acme Consulting</strong>
+                  <div class="row" style="margin-top: 6px">
+                    <span class="badge">Client tenant</span>
+                    <span class="badge badge-ok">Active subscription</span>
+                  </div>
+                  <p class="tiny" style="margin-top: 6px">Enterprise yearly · 15 Jan 2024 – 14 Jan 2027 · Dhaka, Bangladesh</p>
+                </div>
+              </div>
+              <div style="width: 260px">
+                <div class="row" style="justify-content: space-between"><span class="tiny">Total seat limit</span><b>48 / 100</b></div>
+                <div class="seat-bar" style="margin-top: 8px"><span style="width: 48%"></span></div>
+                <div class="tiny" style="margin-top: 6px">48 active · 52 available</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 16px">
+            <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+              <strong>SaaS plan &amp; provisioned subscription</strong>
+              <span class="lock">Locked · entered by the platform owner</span>
+            </div>
+            <div class="form-grid">
+              <div class="field"><div class="label">Organization legal name</div><div class="control readonly">Acme Consulting Ltd.</div></div>
+              <div class="field"><div class="label">Tenant ID / client code</div><div class="control readonly">ACME-BD-2024</div></div>
+              <div class="field"><div class="label">Subscription tier</div><div class="control readonly">Enterprise Dedicated</div></div>
+              <div class="field"><div class="label">Contract period</div><div class="control readonly">15 Jan 2024 – 14 Jan 2027</div></div>
+              <div class="field"><div class="label">Employee seat limit</div><div class="control readonly">100</div></div>
+              <div class="field"><div class="label">Region &amp; timezone</div><div class="control readonly">Asia/Dhaka</div></div>
+              <div class="field"><div class="label">Platform support / SLA</div><div class="control readonly">Business hours · 8h response</div></div>
+              <div class="field"><div class="label">Registered office</div><div class="control readonly">Dhaka HQ, Floors 4 &amp; 5</div></div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 16px">
+            <strong>Organization contact &amp; details</strong>
+            <div class="form-grid" style="margin-top: 12px">
+              <div class="field"><div class="label">Company display name <span class="req">*</span></div><div class="control is-focus">Acme Consulting</div></div>
+              <div class="field"><div class="label">Official work email <span class="req">*</span></div><div class="control">hr@acmeconsulting.test</div></div>
+              <div class="field"><div class="label">Support / helpdesk hotline</div><div class="control">+880 2-55000000</div></div>
+              <div class="field"><div class="label">Office landline</div><div class="control">+880 2-55000001</div></div>
+              <div class="field"><div class="label">Website</div><div class="control">https://acmeconsulting.test</div></div>
+              <div class="field"><div class="label">Industry</div><div class="control">Professional services</div></div>
+              <div class="field"><div class="label">Fiscal year</div><div class="control">July – June</div></div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm">
+            <strong>Workplace &amp; operating hours</strong>
+            <div class="row" style="margin: 12px 0; gap: 6px">
+              <div class="day-toggle is-on">Mon</div>
+              <div class="day-toggle is-on">Tue</div>
+              <div class="day-toggle is-on">Wed</div>
+              <div class="day-toggle is-on">Thu</div>
+              <div class="day-toggle is-on">Fri</div>
+              <div class="day-toggle">Sat</div>
+              <div class="day-toggle">Sun</div>
+            </div>
+            <div class="form-grid">
+              <div class="field"><div class="label">Standard shift timing</div><div class="control">09:00 AM – 06:00 PM (1h lunch)</div></div>
+              <div class="field"><div class="label">Office floors &amp; desks</div><div class="control">Level 4, Level 5, Ground reception</div></div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content: space-between; margin-top: 16px">
+            <p class="tiny">Last saved today at 08:30 AM by Akram Hossain (Admin)</p>
+            <div class="row">
+              <div class="btn btn-ghost">Discard changes</div>
+              <div class="btn">Save changes</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("organization");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>

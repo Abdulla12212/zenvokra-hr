@@ -100,6 +100,78 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
         globexEmployee.EmployeeNumber.ShouldBe("EMP-9999");
     }
 
+    [Fact]
+    public async Task Me_prefers_akram_when_the_tenant_has_a_roster()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        Guid tenantId = await _factory.CreateTenantAsync("roster-me");
+        await AddEmployeeAsync(tenantId, "Nadia Chowdhury", "EMP-1001", "nadia@roster.test");
+        await AddEmployeeAsync(tenantId, "Akram Hossain", "EMP-1024", "akram@roster.test");
+
+        HttpClient client = _factory.CreateClientFor(tenantId);
+        EmployeeResponse? employee = await client.GetFromJsonAsync<EmployeeResponse>(
+            new Uri("/api/employees/me", UriKind.Relative),
+            cancellationToken);
+
+        employee.ShouldNotBeNull();
+        employee.EmployeeNumber.ShouldBe("EMP-1024");
+        employee.FullName.ShouldBe("Akram Hossain");
+    }
+
+    [Fact]
+    public async Task List_returns_the_tenant_roster_and_not_another_tenants()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        Guid acmeId = await _factory.CreateTenantAsync("acme-list");
+        Guid globexId = await _factory.CreateTenantAsync("globex-list");
+
+        await AddEmployeeAsync(acmeId, "Akram Hossain", "EMP-1024", "akram@acme-list.test");
+        await AddEmployeeAsync(globexId, "Not Yours", "EMP-9999", "nope@globex-list.test");
+
+        HttpClient acme = _factory.CreateClientFor(acmeId);
+        EmployeePage? page = await acme.GetFromJsonAsync<EmployeePage>(
+            new Uri("/api/employees", UriKind.Relative),
+            cancellationToken);
+
+        page.ShouldNotBeNull();
+        page.TotalCount.ShouldBe(1);
+        page.Items.ShouldHaveSingleItem().EmployeeNumber.ShouldBe("EMP-1024");
+    }
+
+    [Fact]
+    public async Task Create_adds_an_employee_to_the_current_tenant()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        Guid tenantId = await _factory.CreateTenantAsync("create-employee");
+        HttpClient client = _factory.CreateClientFor(tenantId);
+
+        HttpResponseMessage created = await client.PostAsJsonAsync(
+            new Uri("/api/employees", UriKind.Relative),
+            new
+            {
+                fullName = "Farhana Ahmed",
+                workEmail = "farhana.a@create.test",
+                employeeNumber = "EMP-1049",
+                departmentName = "Engineering",
+                title = "Software Engineer",
+                location = "Dhaka HQ",
+                phone = "+880 1700-000000",
+                hoursLabel = "09:00–18:00",
+                managerName = "Nadia Chowdhury",
+            },
+            cancellationToken);
+
+        created.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        EmployeePage? page = await client.GetFromJsonAsync<EmployeePage>(
+            new Uri("/api/employees", UriKind.Relative),
+            cancellationToken);
+
+        page!.TotalCount.ShouldBe(1);
+        page.Items[0].FullName.ShouldBe("Farhana Ahmed");
+        page.Items[0].EmployeeNumber.ShouldBe("EMP-1049");
+    }
+
     private async Task AddEmployeeAsync(Guid tenantId, string fullName, string employeeNumber, string workEmail)
     {
         using IServiceScope scope = _factory.Services.CreateScope();
@@ -128,6 +200,12 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
         string TimeZone,
         string EmergencyContact,
         string EmploymentType);
+
+    private sealed record EmployeePage(
+        IReadOnlyList<EmployeeResponse> Items,
+        int Page,
+        int PageSize,
+        int TotalCount);
 
     private sealed record ProblemResponse(string? Title, string? Detail, int? Status);
 }

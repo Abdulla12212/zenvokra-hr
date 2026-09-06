@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Leave &amp; balances</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Employees / <b>Akram Hossain</b> / EMP-1024</div>
+          <div class="page-head">
+            <div class="page-title"><h1>Akram Hossain</h1></div>
+            <div class="row">
+              <div class="btn btn-outline">Edit profile</div>
+              <div class="btn">Manage access</div>
+            </div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 8px">
+            <div class="row" style="gap: 14px">
+              <div class="avatar-initials xl">AH</div>
+              <div>
+                <div class="row">
+                  <strong style="font-size: 18px">Akram Hossain</strong>
+                  <span class="badge badge-primary">Admin</span>
+                  <span class="badge badge-ok">Active · On duty</span>
+                </div>
+                <div class="tiny">Senior Software Engineer · Engineering · Platform Team</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="underline-tabs">
+            <div class="underline-tab">Attendance calendar</div>
+            <div class="underline-tab">Attendance &amp; timesheets</div>
+            <div class="underline-tab is-on">Leave &amp; balances</div>
+            <div class="underline-tab">Work schedule</div>
+            <div class="underline-tab">Activity history</div>
+          </div>
+
+          <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+            <div>
+              <strong>Leave status &amp; allowance (2026)</strong>
+              <p class="tiny">Standard engineering entitlement · Resets 31 Dec</p>
+            </div>
+            <div class="btn">+ Apply leave on behalf</div>
+          </div>
+
+          <div class="stat-grid" style="grid-template-columns: repeat(5, 1fr)">
+            <div class="card card-p-sm"><div class="kicker">Annual</div><div class="n" style="font-size: 18px">10 / 20</div><div class="progress" style="margin: 8px 0"><span style="width: 50%"></span></div><div class="tiny">Used 8 · Pending 2 · Left 10</div></div>
+            <div class="card card-p-sm"><div class="kicker">Casual</div><div class="n" style="font-size: 18px">5 / 10</div><div class="progress" style="margin: 8px 0"><span style="width: 50%"></span></div><div class="tiny">Used 4 · Pending 1 · Left 5</div></div>
+            <div class="card card-p-sm"><div class="kicker">Sick</div><div class="n" style="font-size: 18px">7 / 10</div><div class="progress" style="margin: 8px 0"><span style="width: 30%"></span></div><div class="tiny">Used 3 · Pending 0 · Left 7</div></div>
+            <div class="card card-p-sm"><div class="kicker">Comp off</div><div class="n" style="font-size: 18px">2 / 3</div><div class="progress" style="margin: 8px 0"><span style="width: 33%"></span></div><div class="tiny">Used 1 · Left 2</div></div>
+            <div class="card card-p-sm"><div class="kicker">Unpaid</div><div class="n" style="font-size: 18px">0</div><div class="tiny" style="margin-top: 8px">Requires HR approval</div></div>
+          </div>
+
+          <div class="grid-main" style="grid-template-columns: 1fr 280px">
+            <div class="card">
+              <div class="card-p-sm">
+                <div class="tabs">
+                  <div class="tab is-on">All (6)</div>
+                  <div class="tab">Pending (2)</div>
+                  <div class="tab">Approved (3)</div>
+                  <div class="tab">Rejected (1)</div>
+                </div>
+              </div>
+              <div class="list-row">
+                <div style="flex: 1">
+                  <strong>25–26 Aug 2026</strong>
+                  <div class="tiny">Annual leave · 2 days · Family visit</div>
+                  <div class="tiny">Submitted 20 Aug · Waiting for Nadia Chowdhury</div>
+                </div>
+                <span class="badge badge-warn">Pending</span>
+              </div>
+              <div class="list-row">
+                <div style="flex: 1">
+                  <strong>7 Aug 2026</strong>
+                  <div class="tiny">Sick · 1 day</div>
+                  <div class="tiny">Approved by Nadia Chowdhury on 6 Aug</div>
+                </div>
+                <span class="badge badge-ok">Approved</span>
+              </div>
+              <div class="list-row">
+                <div style="flex: 1">
+                  <strong>29 Jul 2026</strong>
+                  <div class="tiny">Casual · 1 day</div>
+                  <div class="tiny">Rejected · High sprint release load</div>
+                </div>
+                <span class="badge badge-destructive">Rejected</span>
+              </div>
+            </div>
+            <div class="stack">
+              <div class="card card-p-sm">
+                <div class="kicker">Policy</div>
+                <p class="tiny" style="margin-top: 8px">Accrues 1.67 days / month. Carry-forward max 5 days. 3 days notice for annual.</p>
+              </div>
+              <div class="card card-p-sm">
+                <div class="kicker">Upcoming holidays</div>
+                <p style="margin-top: 8px; font-weight: 500">Company Day 2026</p>
+                <p class="tiny">5 Sep · Paid · not leave</p>
+              </div>
+              <div class="card card-p-sm">
+                <div class="kicker">Reporting approver</div>
+                <p style="margin-top: 8px; font-weight: 500">Nadia Chowdhury</p>
+                <p class="tiny">VP of Engineering</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("employees");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>

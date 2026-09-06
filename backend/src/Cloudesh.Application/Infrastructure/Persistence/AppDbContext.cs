@@ -1,10 +1,12 @@
 using System.Reflection;
+using Cloudesh.Application.Domain.Approvals;
 using Cloudesh.Application.Domain.Attendance;
 using Cloudesh.Application.Domain.Common;
 using Cloudesh.Application.Domain.Departments;
 using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Holidays;
 using Cloudesh.Application.Domain.Leave;
+using Cloudesh.Application.Domain.Organization;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +57,10 @@ public sealed class AppDbContext : DbContext
     public DbSet<AttendanceDay> AttendanceDays => Set<AttendanceDay>();
 
     public DbSet<CompanyHoliday> CompanyHolidays => Set<CompanyHoliday>();
+
+    public DbSet<OrganizationProfile> OrganizationProfiles => Set<OrganizationProfile>();
+
+    public DbSet<PunchCorrection> PunchCorrections => Set<PunchCorrection>();
 
     // WALKING SKELETON: delete alongside the Departments feature.
     public DbSet<Department> Departments => Set<Department>();

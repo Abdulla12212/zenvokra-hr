@@ -27,6 +27,9 @@ describe('HomePage', () => {
     expect(await screen.findByRole('heading', { name: 'Punch out' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Punch out' }));
 
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Punch out' })).not.toBeInTheDocument();
+    });
     expect(await screen.findByText('Not clocked in')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Punch in' })).toBeInTheDocument();
 

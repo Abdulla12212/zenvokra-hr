@@ -1,5 +1,6 @@
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
+import { AdminShell } from '@/app/layout/admin-shell';
 import { AppShell } from '@/app/layout/app-shell';
 import { ContinuePage } from '@/app/pages/continue-page';
 import { HelpPage } from '@/app/pages/help-page';
@@ -10,6 +11,7 @@ import { RequestDetailPage } from '@/app/pages/request-detail-page';
 import { TimeOffPage } from '@/app/pages/time-off-page';
 import { SessionGate } from '@/app/session-gate';
 
+import { adminChildren } from './render-admin-app';
 import { renderWithProviders } from './render-with-providers';
 
 const employeeChildren = [
@@ -44,6 +46,7 @@ export function renderGatedApp(path = '/continue') {
         Component: SessionGate,
         children: [
           { path: 'continue', Component: ContinuePage },
+          { path: 'admin', Component: AdminShell, children: adminChildren },
           { Component: AppShell, children: employeeChildren },
         ],
       },

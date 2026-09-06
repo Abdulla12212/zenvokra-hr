@@ -1,7 +1,11 @@
 # Cloudesh HR
 
-Multi-tenant HR SaaS for small companies. The platform is multi-tenant; the **employee
-app** being built now is a single-persona product: one demo tenant and one employee.
+Multi-tenant HR SaaS for small companies. The platform is multi-tenant. The demo uses
+**one hardcoded tenant** (Acme Consulting) and two personas for the same person:
+
+- **Employee app** (`docs/ux-employee`) — Akram Hossain, EMP-1024. Home / Time off / Inbox.
+- **Admin app** (`docs/ux-admin`) — the same Akram as tenant admin. Dashboard, Employees,
+  Approvals, Organization.
 
 .NET 10 Minimal API (vertical slices) + EF Core 10 + PostgreSQL 18, with a React 19 + Vite
 + Tailwind SPA. Everything runs in Docker Compose.
@@ -25,10 +29,18 @@ app** being built now is a single-persona product: one demo tenant and one emplo
 - Never call bare `IgnoreQueryFilters()` — name the filter you mean to disable.
 - Every feature needs a test proving two tenants cannot see each other's rows.
 
-**Employee app is one tenant and one employee.** Acme Consulting + Akram Hossain
-(EMP-1024). Seed that pair. Do not add People, an employee directory, a switcher, roles
-UI, or a team inbox. Isolation tests still create a second tenant — that is a security
-check, not a product surface. Do not invent login; Continue is a session stub.
+**One hardcoded tenant.** Acme Consulting (`Tenancy:DefaultTenantId` in Development).
+No tenant picker. Platform-owner provisioning has no screen yet — Organization Profile
+edits contact and workplace for that one tenant; plan fields stay read-only.
+
+**Two personas, not two companies.** Continue picks Employee or Admin. The employee
+shell stays Home / Time off / Inbox. Admin chrome is Dashboard / Employees / Approvals /
+Organization. Do not mix those navs. Isolation tests still create a second tenant — that
+is a security check, not a product surface. Do not invent login.
+
+**Employee list and create live in admin only.** `GET /api/employees/me` is still the
+employee-app persona (prefer EMP-1024 when the tenant has a roster). Do not put a People
+directory in the employee sidebar.
 
 **Vertical slices.** One use case per file under `Features/<Feature>/`. Endpoint groups are
 discovered by assembly scan, so **never add feature wiring to `Program.cs`**.
@@ -58,7 +70,7 @@ Do not build on the header. Do not add a second way to determine the tenant.
 The `Departments` feature exists only to prove the plumbing works end to end, and every
 file involved is marked `WALKING SKELETON`. Copy its shape for list/create slices (leave,
 punches); delete it once real features exist (`grep -rl "WALKING SKELETON" backend frontend`).
-The employee record itself is one seeded row plus `GET /me`, not a directory.
+The employee-app persona is still `GET /me` (Akram). Admin owns the directory.
 
 ## Commands
 

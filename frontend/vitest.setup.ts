@@ -18,6 +18,26 @@ vi.mock('@/features/inbox/api/inbox-api', async () => {
   return inboxApiMock;
 });
 
+vi.mock('@/features/employees/api/employees-api', async () => {
+  const { employeesApiMock } = await import('@/test/admin-app-api-mocks');
+  return employeesApiMock;
+});
+
+vi.mock('@/features/dashboard/api/dashboard-api', async () => {
+  const { dashboardApiMock } = await import('@/test/admin-app-api-mocks');
+  return dashboardApiMock;
+});
+
+vi.mock('@/features/approvals/api/approvals-api', async () => {
+  const { approvalsApiMock } = await import('@/test/admin-app-api-mocks');
+  return approvalsApiMock;
+});
+
+vi.mock('@/features/organization/api/organization-api', async () => {
+  const { organizationApiMock } = await import('@/test/admin-app-api-mocks');
+  return organizationApiMock;
+});
+
 // Vitest runs with `globals: false`, so `expect`/`describe`/`it` are imported per file.
 // Only cross-cutting setup belongs here.
 afterEach(() => {

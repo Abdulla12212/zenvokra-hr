@@ -3,13 +3,9 @@ using Cloudesh.Application.Domain.Common;
 namespace Cloudesh.Application.Domain.Employees;
 
 /// <summary>
-/// The one person the employee app is about. Seed Akram for the demo tenant;
-/// isolation tests may create a second row under a second tenant.
+/// A person in a tenant. The employee app reads Akram via <c>GET /employees/me</c>;
+/// admin lists and edits the roster.
 /// </summary>
-/// <remarks>
-/// Employment fields sit on this row so Profile can reuse <c>GET /employees/me</c>.
-/// Do not add a second people/user entity for that screen.
-/// </remarks>
 public sealed class Employee : ITenantScoped, IAuditable
 {
     public Guid Id { get; set; }
@@ -44,6 +40,16 @@ public sealed class Employee : ITenantScoped, IAuditable
 
     public required string EmploymentType { get; set; }
 
+    public required string Phone { get; set; }
+
+    public required string TeamName { get; set; }
+
+    public required string DeskLabel { get; set; }
+
+    public required string Status { get; set; }
+
+    public bool IsAdmin { get; set; }
+
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public DateTimeOffset UpdatedAtUtc { get; set; }
@@ -68,5 +74,10 @@ public sealed class Employee : ITenantScoped, IAuditable
         TimeZone = "Asia/Dhaka",
         EmergencyContact = "Farah Hossain",
         EmploymentType = "Full-time",
+        Phone = string.Empty,
+        TeamName = "Platform Team",
+        DeskLabel = string.Empty,
+        Status = "Active",
+        IsAdmin = false,
     };
 }

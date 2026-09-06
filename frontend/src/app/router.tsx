@@ -2,7 +2,13 @@ import { createBrowserRouter } from 'react-router';
 
 import { DepartmentsPage } from '@/features/departments/pages/departments-page';
 
+import { AdminShell } from './layout/admin-shell';
 import { AppShell } from './layout/app-shell';
+import { AdminApprovalsPage } from './pages/admin-approvals-page';
+import { AdminDashboardPage } from './pages/admin-dashboard-page';
+import { AdminEmployeePage } from './pages/admin-employee-page';
+import { AdminEmployeesPage } from './pages/admin-employees-page';
+import { AdminOrganizationPage } from './pages/admin-organization-page';
 import { ContinuePage } from './pages/continue-page';
 import { HelpPage } from './pages/help-page';
 import { HomePage } from './pages/home-page';
@@ -18,17 +24,12 @@ import { SessionGate } from './session-gate';
  * Route table for the whole app.
  *
  * Data-mode React Router (`createBrowserRouter`) rather than framework mode: this is a
- * static SPA served next to a separate API, so there is no server to render on. Server
- * rendering, if it is ever wanted, is a migration to framework mode — see
- * docs/ARCHITECTURE.md.
+ * static SPA served next to a separate API, so there is no server to render on.
  *
- * Loaders are deliberately unused. TanStack Query owns server state, and splitting that
- * responsibility across two caches is how data gets stale in one place and fresh in
- * another.
+ * Loaders are deliberately unused. TanStack Query owns server state.
  *
- * Employee nav is Home / Time off / Inbox. Departments stays routed so the walking
- * skeleton can still be opened by URL; it is not in the sidebar. Continue is a session
- * stub, not authentication.
+ * Employee nav is Home / Time off / Inbox. Admin nav is Dashboard / Employees /
+ * Approvals / Organization. Continue is a session stub, not authentication.
  */
 export const router = createBrowserRouter([
   {
@@ -37,6 +38,18 @@ export const router = createBrowserRouter([
     ErrorBoundary: RouteErrorPage,
     children: [
       { path: 'continue', Component: ContinuePage },
+      {
+        path: 'admin',
+        Component: AdminShell,
+        children: [
+          { index: true, Component: AdminDashboardPage },
+          { path: 'employees', Component: AdminEmployeesPage },
+          { path: 'employees/:employeeId', Component: AdminEmployeePage },
+          { path: 'approvals', Component: AdminApprovalsPage },
+          { path: 'organization', Component: AdminOrganizationPage },
+          { path: '*', Component: NotFoundPage },
+        ],
+      },
       {
         Component: AppShell,
         children: [

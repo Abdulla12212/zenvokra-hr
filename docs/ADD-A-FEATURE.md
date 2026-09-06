@@ -7,28 +7,31 @@ sequence, not the rules.
 The shipped `Departments` feature is the file shape to copy for **list and create** slices
 (leave requests, punches). Every file involved is marked `WALKING SKELETON`.
 
-## Employee app: one tenant, one person
-
-This featureset is not a People product.
+## One tenant, two personas
 
 | Fixed | Value |
 | ----- | ----- |
 | Tenant | Acme Consulting (`Tenancy:DefaultTenantId` in Development) |
-| Employee | Akram Hossain · EMP-1024 · Engineering · Dhaka HQ |
+| Employee persona | Akram Hossain · EMP-1024 · Home / Time off / Inbox |
+| Admin persona | Same Akram · Dashboard / Employees / Approvals / Organization |
 
-- Seed that pair. Do not add `ListEmployees`, `CreateEmployee`, a People page, an employee
-  switcher, or a team inbox.
-- The employee slice is **get the current row** (and later Profile). Punches and leave
-  hang off that one person.
+- Seed Acme. There is no platform-owner tenant screen yet. Organization Profile edits
+  that one tenant's contact and workplace; plan fields stay read-only.
 - Isolation tests still create a second tenant. That tenant is a security check, not a
   second company in the UI.
-- Continue is a session stub. Do not add passwords, JWT, or a second tenant-resolution
-  path.
-- Nav stays **Home / Time off / Inbox**. Do not add a sidebar item for Employees.
+- Continue is a session stub that picks Employee or Admin. Do not add passwords, JWT, or
+  a second tenant-resolution path.
+- **Do not mix chrome.** Employee nav stays Home / Time off / Inbox. Admin nav is
+  Dashboard / Employees / Approvals / Organization. Specs: `docs/ux-employee` and
+  `docs/ux-admin`.
+- `GET /api/employees/me` is the employee-app persona. Prefer EMP-1024 when the tenant
+  has a roster — `SingleOrDefault` over every employee breaks as soon as admin creates a
+  second row.
+- List / create / update employee and grant / decline requests are **admin slices**. Do
+  not add a People table to the employee shell.
 
-Persona and the frozen clock (**Thu 20 Aug 2026**) live in
-`frontend/src/lib/demo-session.ts` until the employee slice serves them. Do not use
-`new Date()`.
+Persona extras and the frozen clock (**Thu 20 Aug 2026**) live in
+`frontend/src/lib/demo-session.ts` until `/me` serves them. Do not use `new Date()`.
 
 ---
 
@@ -37,11 +40,15 @@ Persona and the frozen clock (**Thu 20 Aug 2026**) live in
 ```
 backend/src/Cloudesh.Application/
 ├── Domain/Employees/Employee.cs
+├── Domain/Organization/OrganizationProfile.cs
+├── Domain/Approvals/PunchCorrection.cs
 ├── Infrastructure/Persistence/Configurations/EmployeeConfiguration.cs
-├── Infrastructure/Persistence/AppDbContext.cs          (+1 DbSet)
-├── Infrastructure/Persistence/DatabaseSeeder.cs        (seed Akram)
-├── Features/Employees/EmployeeEndpoints.cs
-├── Features/Employees/GetCurrentEmployee.cs
+├── Infrastructure/Persistence/AppDbContext.cs          (Employees, Organization, PunchCorrections)
+├── Infrastructure/Persistence/DatabaseSeeder.cs        (Akram + roster + org)
+├── Features/Employees/                                 (/me plus admin list/create/update)
+├── Features/Organization/
+├── Features/Approvals/
+├── Features/Dashboard/
 └── Migrations/                                          (generated)
 
 backend/tests/
@@ -49,13 +56,17 @@ backend/tests/
 └── Cloudesh.IntegrationTests/EmployeesEndpointsTests.cs
 
 frontend/src/
-├── lib/demo-session.ts                                  (until the query exists)
-├── features/employees/api/employees-api.ts
-└── features/employees/api/employees-queries.ts
+├── lib/demo-session.ts + session-stub.ts                (persona + frozen clock)
+├── app/layout/admin-shell.tsx
+├── app/pages/admin-*-page.tsx                           (dashboard, employees, approvals, org)
+├── features/employees/api/                              (/me plus admin list/create/update)
+├── features/organization/api/
+├── features/approvals/api/
+└── features/dashboard/api/
 ```
 
-No `employees-page`, no table, no nav item. Continue and Profile consume this row later.
-Nothing in `Program.cs`, and nothing in `Common/`.
+Employee chrome stays Home / Time off / Inbox — no People item there. Admin chrome is
+Dashboard / Employees / Approvals / Organization. Nothing in `Program.cs`.
 
 ### 1. The entity
 
@@ -152,7 +163,7 @@ if (!await dbContext.Employees.AnyAsync(cancellationToken))
 ```
 
 `TenantId` is left unset: the interceptor stamps it because seeding already opened a
-tenant scope. Do not seed a second employee.
+tenant scope. Seed Akram first. Admin roster rows are extra seeds for the same tenant.
 
 ### 6. The read slice
 
@@ -166,20 +177,18 @@ public static class GetCurrentEmployee
         AppDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var employee = await dbContext.Employees
-            .AsNoTracking()
-            .Select(row => new Response(row.Id, row.FullName, row.EmployeeNumber, row.WorkEmail))
-            .SingleOrDefaultAsync(cancellationToken);
+        var employee = await CurrentEmployee.GetAsync(dbContext, cancellationToken);
+        // Prefer EMP-1024 when the tenant has a roster.
 
         return employee is null
             ? TypedResults.NotFound()
-            : TypedResults.Ok(employee);
+            : TypedResults.Ok(/* map Info / row to Response */);
     }
 }
 ```
 
-No tenant filter. That is not an omission — the query filter adds it. This featureset
-expects one row per tenant; `SingleOrDefault` is the point.
+No tenant filter. That is not an omission — the query filter adds it. Do not
+`SingleOrDefault` the whole table once admin has created more people.
 
 ### 7. The routes
 
@@ -193,12 +202,13 @@ public sealed class EmployeeEndpoints : IEndpointGroup
 
         employees.MapGet("/me", GetCurrentEmployee.HandleAsync)
             .WithName(nameof(GetCurrentEmployee))
-            .WithSummary("Returns the current tenant's one employee.");
+            .WithSummary("Returns the employee-app persona (prefer EMP-1024).");
     }
 }
 ```
 
-Discovered by assembly scan. `Program.cs` is not touched. Do not map list or create.
+Discovered by assembly scan. `Program.cs` is not touched. List and create belong on the
+same group as admin slices (`GET /employees`, `POST /employees`), not on `/me`.
 
 ### 8. Backend tests
 
@@ -237,7 +247,7 @@ make test-unit
 make test-integration
 ```
 
-### 9. Frontend: current employee, not a directory
+### 9. Frontend: `/me` for the employee shell, list/create for admin
 
 ```typescript
 // features/employees/api/employees-api.ts
@@ -273,8 +283,9 @@ export function useCurrentEmployee() {
 }
 ```
 
-The shell, Continue, and Profile read this (or `demo-session` until the query exists).
-There is no employees table and no People route.
+The employee shell, Continue (employee card), and Profile read this. The admin directory
+uses `listEmployees` / `createEmployee` in the same feature folder — still no People item
+on the employee nav.
 
 Mock `../api/employees-api` in tests — the network boundary — never the query hooks.
 
@@ -291,8 +302,8 @@ file per use case, `AsNoTracking()` + `Select` on reads, interceptor stamps `Ten
 writes, isolation test with two tenants, feature `*-api.ts` + key factory, page owns
 loading / error / empty / populated.
 
-Do not add a nav item unless the mock already has one. The employee shell is Home, Time
-off, Inbox.
+Do not add a nav item unless the mock already has one. Employee shell: Home, Time off,
+Inbox. Admin shell: Dashboard, Employees, Approvals, Organization.
 
 ---
 
@@ -317,5 +328,6 @@ Then check:
 - [ ] Query keys come from the feature's key factory.
 - [ ] Inputs have labels; errors have `role="alert"`.
 - [ ] Nothing was added to `Program.cs`.
-- [ ] The employee app still has one tenant and one employee — no People directory, no
-      list/create-employee UI, no extra sidebar item.
+- [ ] The employee shell is still Home / Time off / Inbox — no People item there.
+- [ ] Admin list/create/update and approvals do not leak into the employee chrome.
+- [ ] `GET /me` still resolves Akram when the tenant has more than one employee.

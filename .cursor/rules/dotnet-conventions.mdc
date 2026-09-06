@@ -33,9 +33,9 @@ department.TenantId = tenantId;
 - Bare `IgnoreQueryFilters()` removes tenant isolation. Use
   `IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])` and comment why.
 - Every feature needs a test proving two tenants cannot see each other's rows.
-- **Employee featureset is one seeded employee** for the demo tenant, read as
-  `GET /api/employees/me`. Do not add a People directory or list/create-employee endpoints.
-  The second tenant in isolation tests is not a product surface.
+- **`GET /api/employees/me` is the employee persona** (prefer EMP-1024). List/create/update
+  employees and grant/decline requests are admin slices. The second tenant in isolation
+  tests is not a product surface.
 
 ## Slices
 

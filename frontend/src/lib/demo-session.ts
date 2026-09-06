@@ -1,17 +1,16 @@
 /**
- * The employee app is a single-persona product. This is that person and company.
+ * The demo is one hardcoded tenant (Acme Consulting) and two personas for Akram.
  *
- * Ticket 01 seeds the same row for the demo tenant. The shell and Profile extras
- * still read from here; `GET /api/employees/me` is the name / number / email.
- * Do not add a second employee, a People list, or a tenant picker.
+ * `GET /api/employees/me` is the employee-app persona. Admin lists the roster for
+ * the same tenant. Do not add a tenant picker or invent login.
  *
- * The clock is frozen so Home, punches, and leave match `docs/ux-employee`. Do not
- * substitute `new Date()`.
+ * The clock is frozen so both shells match the UX kits. Do not substitute `new Date()`.
  */
 export const demoSession = {
   tenantName: 'Acme Consulting',
   location: 'Dhaka HQ',
   campusLabel: 'Dhaka HQ Campus · Floor 4',
+  adminClockLabel: 'Thu 20 Aug 2026 · 09:42 AM · Asia/Dhaka HQ',
   employee: {
     fullName: 'Akram Hossain',
     employeeNumber: 'EMP-1024',

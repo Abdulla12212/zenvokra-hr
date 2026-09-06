@@ -42,9 +42,9 @@ components / pages               → call hooks only.
   `Features/<Feature>/`.
 - **Never import across features.** Shared things move to `lib/` or `components/`.
 - Files are `kebab-case`; components `PascalCase`; one exported component per file.
-- **One tenant, one employee.** The employee app is Acme Consulting + Akram Hossain
-  (`src/lib/demo-session.ts`). Nav is Home / Time off / Inbox. No People, Dashboard, or
-  team inbox. Employee data is `useCurrentEmployee` / `GET /me`, not a list page.
+- **One tenant, two personas.** Acme Consulting + Akram (`src/lib/demo-session.ts`).
+  Employee nav is Home / Time off / Inbox (`useCurrentEmployee`). Admin nav is Dashboard /
+  Employees / Approvals / Organization. Do not mix those shells.
 
 ## Components
 

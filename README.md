@@ -1,10 +1,10 @@
 # Cloudesh HR
 
 Foundation for a multi-tenant HR SaaS aimed at small companies. The data layer is
-multi-tenant; the **employee app** (`docs/ux-employee`) is a single-persona product: one
-demo tenant (Acme Consulting) and one employee (Akram Hossain). A containerized .NET 10
-Minimal API, a React 19 SPA, PostgreSQL with EF Core, and tenant isolation wired all the
-way through the data layer.
+multi-tenant; the demo keeps **one hardcoded tenant** (Acme Consulting) and two personas
+for Akram Hossain: the **employee app** (`docs/ux-employee`) and **admin**
+(`docs/ux-admin`). A containerized .NET 10 Minimal API, a React 19 SPA, PostgreSQL with
+EF Core, and tenant isolation wired all the way through the data layer.
 
 | Layer    | Stack                                                                     |
 | -------- | ------------------------------------------------------------------------- |
@@ -107,13 +107,23 @@ Read these before writing code — they are also what AI agents load automatical
 | [docs/ADD-A-FEATURE.md](docs/ADD-A-FEATURE.md)                       | Step-by-step recipe for one feature, back to front             |
 | [docs/CODING-CONVENTIONS-DOTNET.md](docs/CODING-CONVENTIONS-DOTNET.md) | Backend standards                                            |
 | [docs/CODING-CONVENTIONS-REACT.md](docs/CODING-CONVENTIONS-REACT.md) | Frontend standards                                             |
+| [docs/ux-employee](docs/ux-employee)                                 | Employee-app HTML spec                                         |
+| [docs/ux-admin](docs/ux-admin)                                       | Admin HTML spec                                                |
 
-## Employee app
+## Employee app and admin
 
-One demo tenant (**Acme Consulting**) and one employee (**Akram Hossain**, EMP-1024). Seed
-that pair. Do not add People, an employee list, a switcher, or a team inbox. Isolation
-tests still use a second tenant; that is not a product surface. Chrome is Home / Time off
-/ Inbox (`docs/ux-employee`). Continue is a session stub — no login.
+One hardcoded tenant (**Acme Consulting**). Continue is a session stub that picks a
+persona — no login, no tenant picker.
+
+| Surface | Chrome | Spec |
+| ------- | ------ | ---- |
+| Employee | Home / Time off / Inbox | [`docs/ux-employee`](docs/ux-employee) |
+| Admin | Dashboard / Employees / Approvals / Organization | [`docs/ux-admin`](docs/ux-admin) |
+
+Admin owns employee CRUD and request decisions for that tenant. The employee app still
+reads `GET /api/employees/me` (Akram, EMP-1024) and does not list colleagues. Isolation
+tests still use a second tenant; that is not a product surface. Platform-owner tenant
+provisioning has no screen yet — seed Acme and treat plan fields as read-only.
 
 ## Multi-tenancy in one paragraph
 

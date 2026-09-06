@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Cloudesh.Application.Features.Employees;
 
 /// <summary>
-/// <c>GET /api/employees/me</c> — the current tenant's one employee.
+/// <c>GET /api/employees/me</c> — the employee-app persona (prefer EMP-1024).
 /// </summary>
 public static class GetCurrentEmployee
 {
@@ -30,8 +30,16 @@ public static class GetCurrentEmployee
         AppDbContext dbContext,
         CancellationToken cancellationToken)
     {
-        var employee = await dbContext.Employees
+        CurrentEmployee.Info? persona = await CurrentEmployee.GetAsync(dbContext, cancellationToken);
+
+        if (persona is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        Response? employee = await dbContext.Employees
             .AsNoTracking()
+            .Where(row => row.Id == persona.Id)
             .Select(row => new Response(
                 row.Id,
                 row.FullName,

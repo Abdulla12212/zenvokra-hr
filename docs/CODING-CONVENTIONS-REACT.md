@@ -34,11 +34,11 @@ question whether the features are really separate.
 `components/`. Cross-feature imports are how a modular frontend quietly becomes one
 tangled unit.
 
-**Employee app: one persona.** `src/lib/demo-session.ts` is Acme Consulting + Akram
-Hossain. The shell nav is Home, Time off, Inbox. Do not add People, Dashboard, or a
-team inbox. Employee data is `useCurrentEmployee` (`GET /api/employees/me`), not a list
-page. Do not read `new Date()` for the demo clock — the mock is frozen so Home, punches,
-and leave stay reproducible. The mushroom avatar is the only photo; no upload.
+**Two personas, one tenant.** `src/lib/demo-session.ts` is Acme Consulting + Akram
+Hossain. Continue picks Employee or Admin. Employee nav is Home / Time off / Inbox —
+`useCurrentEmployee` (`GET /api/employees/me`), not a list page. Admin nav is Dashboard /
+Employees / Approvals / Organization (`docs/ux-admin`). Do not mix those shells. Do not
+read `new Date()` for the demo clock. The mushroom avatar is the only photo; no upload.
 
 ### File and symbol naming
 

@@ -40,6 +40,7 @@ describe('AppShell', () => {
     expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
     expect(screen.queryByText('Departments')).not.toBeInTheDocument();
     expect(screen.queryByText('People')).not.toBeInTheDocument();
+    expect(screen.queryByText('Organization')).not.toBeInTheDocument();
   });
 
   it('marks the active nav item with the accent background, not a blue pill', () => {

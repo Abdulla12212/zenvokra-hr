@@ -16,9 +16,14 @@ internal static class AttendanceComposer
         IReadOnlyList<CompanyHoliday> Holidays,
         IReadOnlyList<LeaveRequest> PendingLeave);
 
-    public static async Task<Context?> LoadAsync(AppDbContext dbContext, CancellationToken cancellationToken)
+    public static async Task<Context?> LoadAsync(
+        AppDbContext dbContext,
+        CancellationToken cancellationToken,
+        Guid? employeeId = null)
     {
-        CurrentEmployee.Info? employee = await CurrentEmployee.GetAsync(dbContext, cancellationToken);
+        CurrentEmployee.Info? employee = employeeId is Guid id
+            ? await CurrentEmployee.GetByIdAsync(dbContext, id, cancellationToken)
+            : await CurrentEmployee.GetAsync(dbContext, cancellationToken);
 
         if (employee is null)
         {

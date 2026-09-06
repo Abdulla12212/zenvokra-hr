@@ -24,6 +24,8 @@ public sealed class LeaveRequest : ITenantScoped, IAuditable
 
     public required string Note { get; set; }
 
+    public required string DecisionNote { get; set; }
+
     public DateTimeOffset SentAtUtc { get; set; }
 
     public DateTimeOffset? DecidedAtUtc { get; set; }
@@ -53,6 +55,7 @@ public sealed class LeaveRequest : ITenantScoped, IAuditable
             Status = status,
             ApproverName = approverName,
             Note = note,
+            DecisionNote = string.Empty,
             SentAtUtc = sentAtUtc.ToUniversalTime(),
             DecidedAtUtc = decidedAtUtc?.ToUniversalTime(),
         };

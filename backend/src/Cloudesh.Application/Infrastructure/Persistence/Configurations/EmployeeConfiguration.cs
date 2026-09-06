@@ -24,10 +24,15 @@ internal sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(employee => employee.TimeZone).HasMaxLength(64).IsRequired();
         builder.Property(employee => employee.EmergencyContact).HasMaxLength(200).IsRequired();
         builder.Property(employee => employee.EmploymentType).HasMaxLength(32).IsRequired();
+        builder.Property(employee => employee.Phone).HasMaxLength(40).IsRequired();
+        builder.Property(employee => employee.TeamName).HasMaxLength(80).IsRequired();
+        builder.Property(employee => employee.DeskLabel).HasMaxLength(120).IsRequired();
+        builder.Property(employee => employee.Status).HasMaxLength(32).IsRequired();
 
         // Lead with TenantId: it matches how every query filters, and doubles as the
         // index EF would otherwise create for the tenant foreign key.
         builder.HasIndex(employee => new { employee.TenantId, employee.EmployeeNumber }).IsUnique();
+        builder.HasIndex(employee => new { employee.TenantId, employee.WorkEmail }).IsUnique();
 
         builder.HasOne<Tenant>()
             .WithMany()

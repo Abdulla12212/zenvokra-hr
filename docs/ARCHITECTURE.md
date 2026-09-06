@@ -54,13 +54,25 @@ backend/src/Cloudesh.Application/
 │   └── Pagination/          # PagedResult<T>
 ├── Domain/                  # entities; no EF or HTTP types
 │   ├── Common/              # ITenantScoped, IAuditable
+│   ├── Approvals/           # punch corrections
+│   ├── Attendance/
 │   ├── Departments/         # WALKING SKELETON
+│   ├── Employees/
+│   ├── Holidays/
+│   ├── Leave/
+│   ├── Organization/        # one row per tenant
 │   └── Tenants/
 ├── Features/                # one folder per feature — where new code goes
-│   └── Departments/         # WALKING SKELETON
-│       ├── DepartmentEndpoints.cs
-│       ├── ListDepartments.cs
-│       └── CreateDepartment.cs
+│   ├── Approvals/
+│   ├── Attendance/
+│   ├── Dashboard/
+│   ├── Departments/         # WALKING SKELETON
+│   ├── Employees/           # /me plus admin list/create/update
+│   ├── Holidays/
+│   ├── Inbox/
+│   ├── Leave/
+│   └── Organization/
+
 ├── Infrastructure/
 │   ├── Persistence/         # AppDbContext, configurations, interceptors, seeding
 │   └── Tenancy/             # ITenantContext and how the tenant is resolved
@@ -199,25 +211,42 @@ replica — see [Deployment](#deployment-and-operations).
 Ordered so that each phase can ship on its own. Items marked **blocking** are
 prerequisites for a multi-user product. The employee app does not wait on them.
 
-### Employee app — one tenant, one person
+### Two personas, one hardcoded tenant
 
-The first shipped surface is the employee app in `docs/ux-employee`. It is **not** a
-People product, an HR admin suite, or a multi-company demo.
+The demo is still **one company**: Acme Consulting (`Tenancy:DefaultTenantId` in
+Development). No tenant picker. Platform-owner onboarding has no screen — seed that
+tenant. Organization Profile is the tenant-admin view of it.
 
-- **One tenant:** the seeded demo company, Acme Consulting (`Tenancy:DefaultTenantId` in
-  Development). No tenant picker, no second company in the UI.
-- **One employee:** Akram Hossain, EMP-1024, Engineering, Dhaka HQ. Seed that row. Do not
-  add an employee list, create-employee UI, or a way to switch people.
-- **Employee-only chrome:** Home, Time off, Inbox. No Dashboard, Departments, People,
-  Reports, or team inbox in the nav.
-- **No auth yet:** Continue is a session stub. Do not add passwords, JWT, or a second
-  tenant-resolution path. The `X-Tenant-Id` header stays as it is until Phase 1.
-- **Isolation still applies.** Every new entity is `ITenantScoped` and still needs a
-  two-tenant test. The second tenant exists only in tests.
+Continue is a session stub that picks a persona. Do not add passwords, JWT, or a second
+tenant-resolution path. The `X-Tenant-Id` header stays as it is until Phase 1.
 
-Persona and frozen demo clock live in `frontend/src/lib/demo-session.ts` until
-`GET /api/employees/me` serves them. Mocks are dated **Thu 20 Aug 2026** so attendance and
-leave stay reproducible. There is no `ListEmployees` / `CreateEmployee` in this featureset.
+Isolation still applies. Every new entity is `ITenantScoped` and still needs a two-tenant
+test. The second tenant exists only in tests.
+
+#### Employee app — `docs/ux-employee`
+
+Akram Hossain, EMP-1024, Engineering, Dhaka HQ. Chrome is Home / Time off / Inbox. No
+Dashboard, People, or team inbox in this nav. `GET /api/employees/me` is this persona —
+prefer EMP-1024 when the tenant has a roster. The employee app sends and cancels the
+person's own leave; it does not approve anyone else's.
+
+Persona extras and the frozen clock (**Thu 20 Aug 2026**) live in
+`frontend/src/lib/demo-session.ts` until `/me` serves them. Do not use `new Date()`.
+
+#### Admin app — `docs/ux-admin`
+
+The same Akram, as tenant admin. Chrome is Dashboard / Employees / Approvals /
+Organization.
+
+- **Dashboard.** Headcount, presence, late, on leave, and a short pending-approvals strip.
+- **Employees.** List, create, update, and open a person (calendar + leave). Admin-only.
+- **Approvals.** Grant or decline leave and punch rectifications for anyone in the tenant.
+- **Organization.** View the hardcoded tenant. Contact and workplace are editable; SaaS
+  plan / seat / contract fields are provisioned and read-only until a platform-owner
+  screen exists.
+
+Do not put admin nav items on the employee shell, or employee nav items on the admin
+shell.
 
 ### Phase 1 — Identity and tenancy (blocking for multi-user)
 
@@ -244,9 +273,9 @@ Required before real customers, not before the employee app above.
 
 ### Phase 2 — Core HR
 
-- **Employee records.** For the employee app this is one seeded row (Akram), read as
-  `GET /api/employees/me`, not a directory. Do not add list or create employee endpoints.
-  Personal details, contact information, emergency contacts, identifiers, and the
+- **Employee records.** One `Employee` row per person. The employee app reads
+  `GET /api/employees/me` (Akram). Admin lists, creates, and updates rows for the current
+  tenant. Personal details, contact information, emergency contacts, identifiers, and the
   employment relationship live on that row. Deciding early whether an employee is the same
   entity as a user account, or a separate record that may or may not be linked, saves a
   painful migration: people leave and their records must outlive their login.
@@ -270,7 +299,7 @@ keep.
   customer disputes it there is no way to explain how it got there.
 - **Requests and approvals.** A state machine with an audit trail, plus delegation for
   when an approver is themselves on leave. The employee app only sends and cancels the
-  employee's own requests — no manager inbox.
+  employee's own requests. Admin reviews the tenant inbox and grants or declines.
 - **Holiday calendars,** per country and region. Even a five-person company may be
   distributed. The employee app shows closed days on the Home calendar, not a Holidays
   page.

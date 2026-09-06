@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Approvals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Home / <b>Approvals</b></div>
+          <div class="page-head">
+            <div>
+              <div class="page-title"><h1>Approvals</h1><span class="live"><i></i> Live syncing</span></div>
+              <p>Review, grant, or decline employee requests for this tenant.</p>
+            </div>
+            <div class="row">
+              <div class="btn btn-outline">Approve all selected</div>
+              <div class="btn btn-outline">Audit log</div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+            <div class="tabs">
+              <div class="tab is-on">All pending (4)</div>
+              <div class="tab">Punches &amp; edits (2)</div>
+              <div class="tab">Time off &amp; leaves (2)</div>
+              <div class="tab">Resolved (38)</div>
+            </div>
+            <div class="tiny">Sort: newest first</div>
+          </div>
+
+          <div class="card card-p-sm" style="margin-bottom: 16px">
+            <div class="row" style="justify-content: space-between; align-items: flex-start">
+              <div class="row" style="align-items: flex-start; gap: 12px">
+                <div class="avatar-initials lg">AH</div>
+                <div>
+                  <strong>Akram Hossain</strong>
+                  <div class="tiny">EMP-1024 · Senior Software Engineer · Dhaka HQ Floor 4 &amp; 5</div>
+                </div>
+              </div>
+              <span class="badge badge-primary">Punch rectification</span>
+            </div>
+            <p class="tiny" style="margin: 10px 0">Submitted today at 09:44</p>
+            <div class="grid-2">
+              <div class="card card-p-sm">
+                <div class="kicker">Recorded time</div>
+                <div class="n" style="font-size: 20px">09:42 AM</div>
+                <div class="tiny" style="color: color-mix(in oklch, var(--destructive) 70%, black)">Late stamp recorded</div>
+              </div>
+              <div class="card card-p-sm">
+                <div class="kicker">Requested correction</div>
+                <div class="n" style="font-size: 20px; color: var(--primary)">09:00 AM</div>
+                <div class="tiny" style="color: var(--primary)">On-time adjustment</div>
+              </div>
+            </div>
+            <div class="card card-p-sm" style="margin: 12px 0; background: var(--muted)">
+              Punch missed due to a biometric scanner reboot on Floor 4. In was 09:00.
+            </div>
+            <div class="row" style="justify-content: space-between">
+              <div class="tiny">Manager endorsement · <b style="color: color-mix(in oklch, var(--success) 70%, black)">Verified</b></div>
+              <div class="row">
+                <div class="btn btn-destructive">Reject</div>
+                <div class="btn">Approve</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content: space-between; margin-bottom: 8px">
+            <strong>Recently processed</strong>
+            <div class="btn-link">View all 38 history records</div>
+          </div>
+          <div class="grid-3">
+            <div class="card card-p-sm">
+              <div class="row" style="justify-content: space-between"><strong>Tariq Ahmed</strong><span class="btn-link">Undo</span></div>
+              <div class="tiny">Annual leave · 3 days · Approved</div>
+            </div>
+            <div class="card card-p-sm">
+              <div class="row" style="justify-content: space-between"><strong>Farhana Yasmin</strong><span class="btn-link">Undo</span></div>
+              <div class="tiny">WFH exception · Approved</div>
+            </div>
+            <div class="card card-p-sm">
+              <div class="row" style="justify-content: space-between"><strong>Zubair Malik</strong><span class="btn-link">Undo</span></div>
+              <div class="tiny" style="color: var(--destructive)">Overtime claim · Declined</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("approvals");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>

@@ -1,10 +1,13 @@
 using Cloudesh.Application.Common.Time;
+using Cloudesh.Application.Domain.Approvals;
 using Cloudesh.Application.Domain.Attendance;
 using Cloudesh.Application.Domain.Departments;
 using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Holidays;
 using Cloudesh.Application.Domain.Leave;
+using Cloudesh.Application.Domain.Organization;
 using Cloudesh.Application.Domain.Tenants;
+using Cloudesh.Application.Features.Employees;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -74,9 +77,12 @@ public sealed class DatabaseSeeder
         using (_tenantScopes.BeginScope(tenantId))
         {
             await SeedEmployeeAsync(cancellationToken);
+            await SeedRosterAsync(cancellationToken);
+            await SeedOrganizationAsync(cancellationToken);
 
             Guid? employeeId = await _dbContext.Employees
                 .AsNoTracking()
+                .Where(employee => employee.EmployeeNumber == CurrentEmployee.DemoEmployeeNumber)
                 .Select(employee => (Guid?)employee.Id)
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -84,9 +90,13 @@ public sealed class DatabaseSeeder
             {
                 await SeedHolidaysAsync(cancellationToken);
                 await SeedLeaveAsync(id, cancellationToken);
+                await EnsureAkramPendingLeaveAsync(id, cancellationToken);
                 await SeedAttendanceAsync(id, cancellationToken);
+                await SeedPunchCorrectionAsync(id, cancellationToken);
             }
 
+            await SeedRosterAllowancesAsync(cancellationToken);
+            await SeedRosterTodayAsync(cancellationToken);
             await SeedDepartmentsAsync(cancellationToken);
         }
     }
@@ -119,13 +129,225 @@ public sealed class DatabaseSeeder
             return;
         }
 
-        _dbContext.Employees.Add(Employee.Create(
+        Employee akram = Employee.Create(
             "Akram Hossain",
-            "EMP-1024",
-            "akram.hossain@acmeconsulting.test"));
+            CurrentEmployee.DemoEmployeeNumber,
+            "akram.hossain@acmeconsulting.test");
+        akram.IsAdmin = true;
+        akram.Phone = "+880 1711-102400";
+        akram.DeskLabel = "Floor 4, Desk 4B-12";
+        akram.TeamName = "Platform Team";
+
+        _dbContext.Employees.Add(akram);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Seeded demo employee EMP-1024.");
+    }
+
+    private async Task SeedRosterAsync(CancellationToken cancellationToken)
+    {
+        HashSet<string> existing = [.. await _dbContext.Employees
+            .AsNoTracking()
+            .Select(employee => employee.EmployeeNumber)
+            .ToListAsync(cancellationToken)];
+
+        Employee? akram = await _dbContext.Employees
+            .SingleOrDefaultAsync(
+                employee => employee.EmployeeNumber == CurrentEmployee.DemoEmployeeNumber,
+                cancellationToken);
+
+        if (akram is not null && !akram.IsAdmin)
+        {
+            akram.IsAdmin = true;
+            akram.Phone = string.IsNullOrWhiteSpace(akram.Phone) ? "+880 1711-102400" : akram.Phone;
+            akram.DeskLabel = string.IsNullOrWhiteSpace(akram.DeskLabel) ? "Floor 4, Desk 4B-12" : akram.DeskLabel;
+        }
+
+        List<Employee> extras = [];
+
+        foreach ((string number, Action<Employee> configure) in Roster())
+        {
+            if (existing.Contains(number))
+            {
+                continue;
+            }
+
+            Employee row = Employee.Create("Pending", number, $"{number.ToLowerInvariant()}@acmeconsulting.test");
+            configure(row);
+            extras.Add(row);
+        }
+
+        if (extras.Count > 0)
+        {
+            _dbContext.Employees.AddRange(extras);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        Employee? nadia = await _dbContext.Employees
+            .AsNoTracking()
+            .SingleOrDefaultAsync(employee => employee.EmployeeNumber == "EMP-1001", cancellationToken);
+
+        if (nadia is not null
+            && !await _dbContext.LeaveRequests.AnyAsync(
+                request => request.EmployeeId == nadia.Id,
+                cancellationToken))
+        {
+            _dbContext.LeaveRequests.Add(LeaveRequest.Create(
+                nadia.Id,
+                LeaveTypes.Annual,
+                new DateOnly(2026, 8, 25),
+                new DateOnly(2026, 8, 26),
+                days: 2,
+                LeaveStatuses.Pending,
+                "Akram Hossain",
+                "Family visit.",
+                EmployeeAppClock.UtcFromDhaka(2026, 8, 20, 9, 10)));
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        Employee? farhana = await _dbContext.Employees
+            .AsNoTracking()
+            .SingleOrDefaultAsync(employee => employee.EmployeeNumber == "EMP-1042", cancellationToken);
+
+        if (farhana is not null
+            && !await _dbContext.LeaveRequests.AnyAsync(
+                request => request.EmployeeId == farhana.Id,
+                cancellationToken))
+        {
+            _dbContext.LeaveRequests.Add(LeaveRequest.Create(
+                farhana.Id,
+                LeaveTypes.Sick,
+                EmployeeAppClock.Today,
+                EmployeeAppClock.Today,
+                days: 1,
+                LeaveStatuses.Approved,
+                "Nadia Chowdhury",
+                "Fever.",
+                EmployeeAppClock.UtcFromDhaka(2026, 8, 19, 16, 20),
+                EmployeeAppClock.UtcFromDhaka(2026, 8, 19, 17, 5)));
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        if (extras.Count > 0)
+        {
+            _logger.LogInformation("Seeded {Count} additional employees.", extras.Count);
+        }
+    }
+
+    private static (string Number, Action<Employee> Configure)[] Roster() =>
+    [
+        ("EMP-1001", employee =>
+        {
+            employee.FullName = "Nadia Chowdhury";
+            employee.WorkEmail = "nadia.chowdhury@acmeconsulting.test";
+            employee.Title = "VP of Engineering";
+            employee.DepartmentName = "Engineering";
+            employee.TeamName = "Leadership";
+            employee.Location = "Dhaka HQ";
+            employee.DeskLabel = "Floor 5";
+            employee.ManagerName = string.Empty;
+            employee.Phone = "+880 1711-100100";
+            employee.StartedOn = new DateOnly(2022, 3, 1);
+        }),
+        ("EMP-1031", employee =>
+        {
+            employee.FullName = "Samira Khan";
+            employee.WorkEmail = "samira.khan@acmeconsulting.test";
+            employee.Title = "Workplace Ops";
+            employee.DepartmentName = "Operations";
+            employee.TeamName = "Workplace";
+            employee.Location = "Dhaka HQ";
+            employee.DeskLabel = "Ground";
+            employee.ManagerName = "Nadia Chowdhury";
+            employee.Phone = "+880 1711-103100";
+            employee.Status = EmployeeStatuses.Remote;
+            employee.StartedOn = new DateOnly(2023, 6, 12);
+        }),
+        ("EMP-1038", employee =>
+        {
+            employee.FullName = "Tanvir Ahmed";
+            employee.WorkEmail = "tanvir.ahmed@acmeconsulting.test";
+            employee.Title = "DevOps Specialist";
+            employee.DepartmentName = "Engineering";
+            employee.TeamName = "Platform";
+            employee.Location = "Remote / Hybrid";
+            employee.DeskLabel = "Remote";
+            employee.ManagerName = "Nadia Chowdhury";
+            employee.Phone = "+880 1711-103800";
+            employee.Status = EmployeeStatuses.Probation;
+            employee.StartedOn = new DateOnly(2026, 5, 4);
+        }),
+        ("EMP-1040", employee =>
+        {
+            employee.FullName = "Tariq Ahmed";
+            employee.WorkEmail = "tariq.ahmed@acmeconsulting.test";
+            employee.Title = "Software Engineer";
+            employee.DepartmentName = "Engineering";
+            employee.Location = "Dhaka HQ";
+            employee.DeskLabel = "Floor 4";
+            employee.ManagerName = "Nadia Chowdhury";
+            employee.Phone = "+880 1711-104000";
+            employee.StartedOn = new DateOnly(2024, 8, 1);
+        }),
+        ("EMP-1042", employee =>
+        {
+            employee.FullName = "Farhana Yasmin";
+            employee.WorkEmail = "farhana.yasmin@acmeconsulting.test";
+            employee.Title = "Product Designer";
+            employee.DepartmentName = "Design & Product";
+            employee.TeamName = "Design";
+            employee.Location = "Dhaka HQ";
+            employee.DeskLabel = "Floor 4";
+            employee.ManagerName = "Nadia Chowdhury";
+            employee.Phone = "+880 1711-104200";
+            employee.StartedOn = new DateOnly(2025, 1, 15);
+        }),
+        ("EMP-1044", employee =>
+        {
+            employee.FullName = "Zubair Malik";
+            employee.WorkEmail = "zubair.malik@acmeconsulting.test";
+            employee.Title = "Finance Analyst";
+            employee.DepartmentName = "Operations";
+            employee.TeamName = "Finance";
+            employee.Location = "Dhaka HQ";
+            employee.DeskLabel = "Floor 5";
+            employee.ManagerName = "Nadia Chowdhury";
+            employee.Phone = "+880 1711-104400";
+            employee.StartedOn = new DateOnly(2023, 11, 20);
+        }),
+    ];
+
+    private async Task SeedOrganizationAsync(CancellationToken cancellationToken)
+    {
+        if (await _dbContext.OrganizationProfiles.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        _dbContext.OrganizationProfiles.Add(OrganizationProfile.CreateAcme());
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Seeded organization profile for Acme Consulting.");
+    }
+
+    private async Task SeedPunchCorrectionAsync(Guid employeeId, CancellationToken cancellationToken)
+    {
+        if (await _dbContext.PunchCorrections.AnyAsync(cancellationToken))
+        {
+            return;
+        }
+
+        _dbContext.PunchCorrections.Add(PunchCorrection.Create(
+            employeeId,
+            new DateOnly(2026, 8, 20),
+            new TimeOnly(9, 42),
+            new TimeOnly(9, 0),
+            "Punch missed due to a biometric scanner reboot on Floor 4. In was 09:00.",
+            EmployeeAppClock.UtcFromDhaka(2026, 8, 20, 9, 44),
+            managerVerified: true));
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Seeded demo punch correction.");
     }
 
     private async Task SeedHolidaysAsync(CancellationToken cancellationToken)
@@ -199,6 +421,33 @@ public sealed class DatabaseSeeder
         _logger.LogInformation("Seeded demo leave balances and requests.");
     }
 
+    private async Task EnsureAkramPendingLeaveAsync(Guid employeeId, CancellationToken cancellationToken)
+    {
+        bool exists = await _dbContext.LeaveRequests.AnyAsync(
+            request =>
+                request.EmployeeId == employeeId
+                && request.StartDate == new DateOnly(2026, 8, 25)
+                && request.Status == LeaveStatuses.Pending,
+            cancellationToken);
+
+        if (exists)
+        {
+            return;
+        }
+
+        _dbContext.LeaveRequests.Add(LeaveRequest.Create(
+            employeeId,
+            LeaveTypes.Annual,
+            new DateOnly(2026, 8, 25),
+            new DateOnly(2026, 8, 26),
+            days: 2,
+            LeaveStatuses.Pending,
+            "Nadia Chowdhury",
+            "Family visit.",
+            EmployeeAppClock.UtcFromDhaka(2026, 8, 20, 9, 41)));
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     private async Task SeedAttendanceAsync(Guid employeeId, CancellationToken cancellationToken)
     {
         if (await _dbContext.AttendanceDays.AnyAsync(cancellationToken))
@@ -245,6 +494,128 @@ public sealed class DatabaseSeeder
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Seeded demo attendance stamps.");
     }
+
+    private async Task SeedRosterAllowancesAsync(CancellationToken cancellationToken)
+    {
+        List<Guid> employeeIds = await _dbContext.Employees
+            .AsNoTracking()
+            .Select(employee => employee.Id)
+            .ToListAsync(cancellationToken);
+
+        HashSet<Guid> withAllowances = [.. await _dbContext.LeaveAllowances
+            .AsNoTracking()
+            .Select(allowance => allowance.EmployeeId)
+            .Distinct()
+            .ToListAsync(cancellationToken)];
+
+        List<LeaveAllowance> extras = [];
+
+        foreach (Guid employeeId in employeeIds)
+        {
+            if (withAllowances.Contains(employeeId))
+            {
+                continue;
+            }
+
+            extras.Add(LeaveAllowance.Create(employeeId, LeaveTypes.Annual, totalDays: 20, openingUsedDays: 0));
+            extras.Add(LeaveAllowance.Create(employeeId, LeaveTypes.Casual, totalDays: 10, openingUsedDays: 0));
+            extras.Add(LeaveAllowance.Create(employeeId, LeaveTypes.Sick, totalDays: 10, openingUsedDays: 0));
+        }
+
+        if (extras.Count == 0)
+        {
+            return;
+        }
+
+        _dbContext.LeaveAllowances.AddRange(extras);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedRosterTodayAsync(CancellationToken cancellationToken)
+    {
+        DateOnly today = EmployeeAppClock.Today;
+        List<Employee> employees = await _dbContext.Employees
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        HashSet<Guid> stamped = [.. await _dbContext.AttendanceDays
+            .AsNoTracking()
+            .Where(day => day.Date == today)
+            .Select(day => day.EmployeeId)
+            .ToListAsync(cancellationToken)];
+
+        List<AttendanceDay> extras = [];
+
+        foreach (Employee employee in employees)
+        {
+            if (stamped.Contains(employee.Id))
+            {
+                continue;
+            }
+
+            AttendanceDay? day = TodayStampFor(employee.Id, employee.EmployeeNumber, today);
+            if (day is not null)
+            {
+                extras.Add(day);
+            }
+        }
+
+        if (extras.Count == 0)
+        {
+            return;
+        }
+
+        _dbContext.AttendanceDays.AddRange(extras);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Seeded {Count} roster stamps for today.", extras.Count);
+    }
+
+    private static AttendanceDay? TodayStampFor(Guid employeeId, string employeeNumber, DateOnly today) =>
+        employeeNumber switch
+        {
+            "EMP-1001" => AttendanceDay.Create(
+                employeeId,
+                today,
+                new TimeOnly(8, 58),
+                clockOut: null,
+                new TimeOnly(12, 15),
+                new TimeOnly(13, 5),
+                note: string.Empty),
+            "EMP-1031" => AttendanceDay.Create(
+                employeeId,
+                today,
+                new TimeOnly(9, 0),
+                clockOut: null,
+                new TimeOnly(13, 15),
+                breakEnd: null,
+                note: string.Empty,
+                onBreak: true),
+            "EMP-1038" => AttendanceDay.Create(
+                employeeId,
+                today,
+                new TimeOnly(9, 10),
+                new TimeOnly(17, 30),
+                new TimeOnly(12, 15),
+                new TimeOnly(13, 5),
+                note: string.Empty),
+            "EMP-1040" => AttendanceDay.Create(
+                employeeId,
+                today,
+                new TimeOnly(9, 40),
+                clockOut: null,
+                new TimeOnly(12, 15),
+                new TimeOnly(13, 5),
+                note: string.Empty),
+            "EMP-1044" => AttendanceDay.Create(
+                employeeId,
+                today,
+                new TimeOnly(9, 5),
+                clockOut: null,
+                new TimeOnly(12, 15),
+                new TimeOnly(13, 5),
+                note: string.Empty),
+            _ => null,
+        };
 
     private static AttendanceDay WorkedDay(
         Guid employeeId,
