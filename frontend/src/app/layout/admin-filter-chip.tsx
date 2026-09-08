@@ -6,12 +6,14 @@ export function AdminFilterChip({
   active,
   onClick,
   filled,
+  countTone = 'pill',
 }: {
   label: string;
   count?: number;
   active: boolean;
   onClick: () => void;
   filled?: boolean;
+  countTone?: 'pill' | 'plain';
 }) {
   return (
     <button
@@ -22,18 +24,22 @@ export function AdminFilterChip({
         filled && 'rounded-lg px-3.5',
         filled && active
           ? 'bg-primary text-primary-foreground text-body-sm font-semibold shadow-sm'
-          : active
-            ? 'bg-muted text-foreground font-semibold shadow-sm'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground font-medium',
+          : filled
+            ? 'text-muted-foreground hover:bg-muted hover:text-foreground text-body-sm font-medium'
+            : active
+              ? 'bg-muted text-foreground font-semibold shadow-sm'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground font-medium',
       )}
     >
       {label}
       {count !== undefined ? (
-        filled ? (
+        filled && countTone === 'pill' ? (
           <span
             className={cn(
-              'text-label-xs rounded-full px-1.5 py-0.5 font-semibold',
-              active ? 'bg-card text-primary' : 'text-outline font-normal',
+              'text-label-xs rounded-full px-1.5 py-0.5',
+              active
+                ? 'bg-card text-primary font-bold'
+                : 'bg-surface-high text-muted-foreground font-medium',
             )}
           >
             {count}

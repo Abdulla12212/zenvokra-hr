@@ -81,6 +81,11 @@ export interface EmployeeCalendarCell {
   metaPrimary: string | null;
   metaSecondary: string | null;
   showPlane: boolean;
+  clockIn: string | null;
+  clockOut: string | null;
+  hours: string | null;
+  breakDuration: string | null;
+  note: string | null;
 }
 
 const basePath = '/api/employees';

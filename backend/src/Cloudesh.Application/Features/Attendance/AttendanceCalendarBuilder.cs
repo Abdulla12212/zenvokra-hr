@@ -70,12 +70,14 @@ internal static class AttendanceCalendarBuilder
             }
             else if (late && stamp?.ClockIn is TimeOnly lateIn)
             {
-                metaPrimary = "Late";
+                int lateMinutes = Math.Max(0, (int)(lateIn - EmployeeAppClock.ShiftStart).TotalMinutes);
+                metaPrimary = $"Late · {lateMinutes}m";
                 metaSecondary = DateLabels.Time(lateIn);
             }
             else if (leave)
             {
-                metaSecondary = "Annual Leave";
+                LeaveRequest? covering = Covering(date, context.PendingLeave);
+                metaSecondary = covering is null ? "Leave" : $"{covering.Type} · Pending";
                 showPlane = true;
             }
             else if (holiday)
@@ -95,6 +97,8 @@ internal static class AttendanceCalendarBuilder
                 metaSecondary = "Weekend";
             }
 
+            PunchLabels punch = Punch(stamp, weekend, isToday, clockedIn);
+
             cells.Add(new GetAttendanceCalendar.Cell(
                 dayNumber,
                 weekend,
@@ -104,14 +108,58 @@ internal static class AttendanceCalendarBuilder
                 kind,
                 metaPrimary,
                 metaSecondary,
-                showPlane));
+                showPlane,
+                punch.ClockIn,
+                punch.ClockOut,
+                punch.Hours,
+                punch.BreakDuration,
+                punch.Note));
         }
 
         return cells;
     }
 
     private static GetAttendanceCalendar.Cell Empty() =>
-        new(null, false, false, false, false, "empty", null, null, false);
+        new(null, false, false, false, false, "empty", null, null, false, null, null, null, null, null);
+
+    private sealed record PunchLabels(
+        string? ClockIn,
+        string? ClockOut,
+        string? Hours,
+        string? BreakDuration,
+        string? Note);
+
+    private static PunchLabels Punch(AttendanceDay? stamp, bool weekend, bool today, bool clockedIn)
+    {
+        if (weekend && stamp is null)
+        {
+            return new PunchLabels(null, null, "0h 00m", "0m", null);
+        }
+
+        if (stamp is null)
+        {
+            return new PunchLabels(null, null, null, null, null);
+        }
+
+        string? clockIn = stamp.ClockIn is TimeOnly cin ? DateLabels.Time(cin) : null;
+        string? clockOut = stamp.ClockOut is TimeOnly cout ? DateLabels.Time(cout) : null;
+        string? hours = stamp.ClockIn is null
+            ? null
+            : DateLabels.Duration(AttendanceTimes.Worked(stamp))
+              + (today && clockedIn ? " (In progress)" : string.Empty);
+        TimeSpan pause = AttendanceTimes.BreakLength(stamp.BreakStart, stamp.BreakEnd);
+        string? breakDuration = pause <= TimeSpan.Zero
+            ? null
+            : pause.TotalHours >= 1
+                ? DateLabels.Duration(pause)
+                : $"{pause.Minutes}m";
+        string? note = string.IsNullOrWhiteSpace(stamp.Note) ? null : stamp.Note;
+
+        return new PunchLabels(clockIn, clockOut, hours, breakDuration, note);
+    }
+
+    private static LeaveRequest? Covering(DateOnly date, IEnumerable<LeaveRequest> pending) =>
+        pending.FirstOrDefault(request => request.StartDate <= date && date <= request.EndDate);
 
     private static DateOnly SafeDate(DateOnly monthStart, int day)
     {

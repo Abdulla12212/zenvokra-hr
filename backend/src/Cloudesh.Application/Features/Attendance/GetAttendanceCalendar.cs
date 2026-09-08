@@ -16,7 +16,12 @@ public static class GetAttendanceCalendar
         string Kind,
         string? MetaPrimary,
         string? MetaSecondary,
-        bool ShowPlane);
+        bool ShowPlane,
+        string? ClockIn,
+        string? ClockOut,
+        string? Hours,
+        string? BreakDuration,
+        string? Note);
 
     public static async Task<Results<Ok<List<Cell>>, NotFound>> HandleAsync(
         AppDbContext dbContext,

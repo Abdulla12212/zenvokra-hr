@@ -1,15 +1,23 @@
 import { useState } from 'react';
-import { Calendar, FileDown, Mail, MapPin, Pencil, Phone, Shield } from 'lucide-react';
-import { useParams, useSearchParams } from 'react-router';
+import { ArrowLeft, Calendar, FileDown, Mail, MapPin, Pencil, Phone, Shield } from 'lucide-react';
+import { Link, useParams, useSearchParams } from 'react-router';
 
-import { AdminBreadcrumb } from '@/app/layout/admin-breadcrumb';
-import { ProgressBar } from '@/components/progress-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  expectedOutFromHours,
+  formatClock12,
+} from '@/features/employees/components/employee-calendar-format';
 import { EditEmployeeDialog } from '@/features/employees/components/edit-employee-dialog';
+import { EmployeeLeaveBalances } from '@/features/employees/components/employee-leave-balances';
 import { EmployeeMonthCalendar } from '@/features/employees/components/employee-month-calendar';
-import { useEmployee, useEmployeeLeave } from '@/features/employees/api/employees-queries';
+import {
+  useEmployee,
+  useEmployeeAttendance,
+  useEmployeeLeave,
+} from '@/features/employees/api/employees-queries';
+import { useClosedDays } from '@/features/leave/api/leave-queries';
 import { initials } from '@/lib/initials';
 import { cn } from '@/lib/utils';
 
@@ -18,15 +26,24 @@ type EmployeeTab = 'calendar' | 'leave';
 /** Admin employee detail: attendance calendar and leave balances. */
 export function AdminEmployeePage() {
   const params = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const employeeId = params.employeeId ?? '';
-  const [tab, setTab] = useState<EmployeeTab>(
-    searchParams.get('tab') === 'leave' ? 'leave' : 'calendar',
-  );
+  const tab: EmployeeTab = searchParams.get('tab') === 'leave' ? 'leave' : 'calendar';
   const [editing, setEditing] = useState(false);
   const [day, setDay] = useState(20);
   const employeeQuery = useEmployee(employeeId);
   const leaveQuery = useEmployeeLeave(employeeId);
+  const holidaysQuery = useClosedDays();
+  const attendanceQuery = useEmployeeAttendance(employeeId, 'august', day);
+
+  function selectTab(next: EmployeeTab) {
+    if (next === 'leave') {
+      setSearchParams({ tab: 'leave' }, { replace: true });
+      return;
+    }
+
+    setSearchParams({}, { replace: true });
+  }
 
   if (employeeQuery.isPending) {
     return (
@@ -46,17 +63,27 @@ export function AdminEmployeePage() {
   }
 
   const employee = employeeQuery.data;
+  const todayStamp = attendanceQuery.data?.find((cell) => cell.today);
+  const clockInLabel = formatClock12(todayStamp?.clockIn);
+  const expectedOut = expectedOutFromHours(employee.hoursLabel);
 
   return (
     <div className="flex flex-col gap-6 px-4 py-4 pb-10 md:px-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <AdminBreadcrumb
-          items={[
-            { label: 'Employees', to: '/admin/employees' },
-            { label: employee.fullName },
-            { label: employee.employeeNumber },
-          ]}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/admin/employees"
+            className="text-label-md text-muted-foreground hover:text-primary inline-flex items-center gap-1.5 transition-colors"
+          >
+            <ArrowLeft className="size-[18px]" strokeWidth={1.5} aria-hidden="true" />
+            Employees
+          </Link>
+          <span className="text-outline-variant text-label-md">/</span>
+          <span className="text-title-md font-semibold">{employee.fullName}</span>
+          <span className="bg-surface-high text-muted-foreground text-label-xs rounded-full px-2 py-0.5 font-semibold">
+            {employee.employeeNumber}
+          </span>
+        </div>
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <Button
             type="button"
@@ -111,10 +138,14 @@ export function AdminEmployeePage() {
               ) : (
                 <Badge>{employee.departmentName}</Badge>
               )}
-              <Badge variant="present">
-                {employee.status}
-                {employee.status === 'Active' ? ' · On duty' : ''}
-              </Badge>
+              {employee.status === 'Active' ? (
+                <span className="bg-success-muted text-success text-label-xs inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold">
+                  <span className="bg-success size-1.5 animate-ping rounded-full" />
+                  Active · On Duty
+                </span>
+              ) : (
+                <Badge variant="present">{employee.status}</Badge>
+              )}
             </div>
             <p className="text-muted-foreground text-body-md mb-3">
               {employee.title} · {employee.location}
@@ -141,27 +172,35 @@ export function AdminEmployeePage() {
             </div>
           </div>
         </div>
-        <div className="bg-muted flex min-w-[200px] flex-col justify-center gap-2 rounded-xl p-3.5 sm:flex-col">
+        <div className="bg-muted flex min-w-[200px] flex-col justify-center gap-2 rounded-xl p-3.5">
           <div className="flex items-center justify-between gap-4">
             <span className="text-outline text-label-xs font-semibold tracking-wider uppercase">
-              Current shift
+              Today's Clock In
             </span>
-            <span className="text-title-md font-bold">{employee.hoursLabel}</span>
+            <span className="text-title-md text-success font-bold">{clockInLabel}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-outline text-label-xs font-semibold tracking-wider uppercase">
-              Workstation
+              Expected Out
             </span>
-            <span className="text-body-md font-medium">{employee.location}</span>
+            <span className="text-body-md font-medium">{expectedOut}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-outline text-label-xs font-semibold tracking-wider uppercase">
+              Current Shift
+            </span>
+            <span className="bg-surface-high text-muted-foreground text-label-xs rounded px-2 py-0.5 font-medium">
+              Standard Day
+            </span>
           </div>
         </div>
       </div>
 
       <div className="text-label-md flex items-center gap-1 overflow-x-auto border-b">
-        <TabButton active={tab === 'calendar'} onClick={() => setTab('calendar')}>
+        <TabButton active={tab === 'calendar'} onClick={() => selectTab('calendar')}>
           Attendance Calendar
         </TabButton>
-        <TabButton active={tab === 'leave'} onClick={() => setTab('leave')}>
+        <TabButton active={tab === 'leave'} onClick={() => selectTab('leave')}>
           Leave & Balances
         </TabButton>
       </div>
@@ -175,94 +214,24 @@ export function AdminEmployeePage() {
         />
       ) : null}
 
-      {tab === 'leave' ? <LeaveTab leaveQuery={leaveQuery} /> : null}
+      {tab === 'leave' && leaveQuery.isPending ? <Skeleton className="h-48 w-full" /> : null}
+      {tab === 'leave' && leaveQuery.isError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {leaveQuery.error.message}
+        </p>
+      ) : null}
+      {tab === 'leave' && leaveQuery.data ? (
+        <EmployeeLeaveBalances
+          leave={leaveQuery.data}
+          holidays={holidaysQuery.data ?? []}
+          managerName={employee.managerName}
+          departmentName={employee.departmentName}
+        />
+      ) : null}
 
       {editing ? (
         <EditEmployeeDialog employee={employee} onClose={() => setEditing(false)} />
       ) : null}
-    </div>
-  );
-}
-
-function LeaveTab({ leaveQuery }: { leaveQuery: ReturnType<typeof useEmployeeLeave> }) {
-  if (leaveQuery.isPending) {
-    return <Skeleton className="h-48 w-full" />;
-  }
-
-  if (leaveQuery.isError) {
-    return (
-      <p role="alert" className="text-destructive text-sm">
-        {leaveQuery.error.message}
-      </p>
-    );
-  }
-
-  const leave = leaveQuery.data;
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <strong className="text-title-md">Leave status & allowance (2026)</strong>
-        <p className="text-muted-foreground text-label-xs">Standard entitlement · Resets 31 Dec</p>
-      </div>
-      {leave.balances.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No leave balances recorded for this person.</p>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {leave.balances.map((balance) => {
-            const used = Math.max(0, balance.total - balance.remaining);
-            const percent = balance.total === 0 ? 0 : (used / balance.total) * 100;
-            return (
-              <div key={balance.type} className="bg-card rounded-xl border p-4 shadow-sm">
-                <p className="text-muted-foreground text-label-xs font-medium tracking-wide uppercase">
-                  {balance.type}
-                </p>
-                <p className="text-headline-sm mt-1 font-semibold">
-                  {balance.remaining} / {balance.total}
-                </p>
-                <ProgressBar value={percent} className="my-2" />
-                <p className="text-muted-foreground text-label-xs">
-                  Used {used} · Left {balance.remaining}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <strong className="text-title-md">Leave history</strong>
-        {leave.requests.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No leave requests yet.</p>
-        ) : (
-          leave.requests.map((request) => (
-            <div key={request.id} className="bg-card rounded-xl border px-4 py-3 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <p className="text-body-sm font-medium">
-                    {request.type} · {request.days} day{request.days === 1 ? '' : 's'}
-                  </p>
-                  <p className="text-muted-foreground text-label-xs">{request.datesLabel}</p>
-                  {request.note ? (
-                    <p className="text-muted-foreground text-label-xs mt-1">{request.note}</p>
-                  ) : null}
-                </div>
-                <Badge
-                  variant={
-                    request.status === 'approved'
-                      ? 'present'
-                      : request.status === 'rejected'
-                        ? 'rejected'
-                        : 'pending'
-                  }
-                >
-                  {request.statusLabel}
-                </Badge>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
     </div>
   );
 }

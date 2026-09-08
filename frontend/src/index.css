@@ -39,6 +39,9 @@
   --warning-border: #fde68a;
   --info-muted: #eff6ff;
   --info-border: #bfdbfe;
+  --primary-fixed: #dbe1ff;
+  --secondary-fixed: #dae2fd;
+  --on-secondary-fixed: #131b2e;
   --outline: #737686;
   --outline-variant: #c3c6d7;
   --surface-high: #e6e8ea;
@@ -74,6 +77,9 @@
   --warning-border: oklch(0.5 0.1 70);
   --info-muted: oklch(0.3 0.06 260);
   --info-border: oklch(0.45 0.1 260);
+  --primary-fixed: oklch(0.88 0.05 260);
+  --secondary-fixed: oklch(0.32 0.04 260);
+  --on-secondary-fixed: oklch(0.95 0.02 260);
   --outline: oklch(0.7 0.02 260);
   --outline-variant: oklch(0.55 0.02 260);
   --surface-high: oklch(0.32 0.03 260);
@@ -159,6 +165,9 @@
   --color-warning-border: var(--warning-border);
   --color-info-muted: var(--info-muted);
   --color-info-border: var(--info-border);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
   --color-outline: var(--outline);
   --color-outline-variant: var(--outline-variant);
   --color-surface-high: var(--surface-high);
