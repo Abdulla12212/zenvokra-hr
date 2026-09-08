@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Cloudesh.Application.Domain.Employees;
+using Cloudesh.Application.Domain.Leave;
 using Cloudesh.Application.Infrastructure.Persistence;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.Extensions.DependencyInjection;
@@ -139,6 +140,31 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task List_includes_leave_remaining_and_hides_another_tenants_balances()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        Guid acmeId = await _factory.CreateTenantAsync("acme-leave-list");
+        Guid globexId = await _factory.CreateTenantAsync("globex-leave-list");
+
+        Guid akramId = await AddEmployeeAsync(acmeId, "Akram Hossain", "EMP-1024", "akram@acme-leave.test");
+        Guid otherId = await AddEmployeeAsync(globexId, "Not Yours", "EMP-9999", "nope@globex-leave.test");
+
+        await AddAllowancesAsync(acmeId, akramId, annualUsed: 8);
+        await AddAllowancesAsync(globexId, otherId, annualUsed: 0);
+
+        HttpClient acme = _factory.CreateClientFor(acmeId);
+        RosterPage? page = await acme.GetFromJsonAsync<RosterPage>(
+            new Uri("/api/employees", UriKind.Relative),
+            cancellationToken);
+
+        page.ShouldNotBeNull();
+        RosterItem item = page.Items.ShouldHaveSingleItem();
+        item.EmployeeNumber.ShouldBe("EMP-1024");
+        item.LeaveRemaining.ShouldBe(32);
+        item.LeaveBalances.Count.ShouldBe(3);
+    }
+
+    [Fact]
     public async Task Create_adds_an_employee_to_the_current_tenant()
     {
         CancellationToken cancellationToken = TestContext.Current.CancellationToken;
@@ -172,7 +198,7 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
         page.Items[0].EmployeeNumber.ShouldBe("EMP-1049");
     }
 
-    private async Task AddEmployeeAsync(Guid tenantId, string fullName, string employeeNumber, string workEmail)
+    private async Task<Guid> AddEmployeeAsync(Guid tenantId, string fullName, string employeeNumber, string workEmail)
     {
         using IServiceScope scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -180,7 +206,25 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
 
         using (tenantScopes.BeginScope(tenantId))
         {
-            dbContext.Employees.Add(Employee.Create(fullName, employeeNumber, workEmail));
+            Employee employee = Employee.Create(fullName, employeeNumber, workEmail);
+            dbContext.Employees.Add(employee);
+            await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
+            return employee.Id;
+        }
+    }
+
+    private async Task AddAllowancesAsync(Guid tenantId, Guid employeeId, int annualUsed)
+    {
+        using IServiceScope scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var tenantScopes = scope.ServiceProvider.GetRequiredService<ITenantScopeFactory>();
+
+        using (tenantScopes.BeginScope(tenantId))
+        {
+            dbContext.LeaveAllowances.AddRange(
+                LeaveAllowance.Create(employeeId, LeaveTypes.Annual, 20, annualUsed),
+                LeaveAllowance.Create(employeeId, LeaveTypes.Casual, 10, 0),
+                LeaveAllowance.Create(employeeId, LeaveTypes.Sick, 10, 0));
             await dbContext.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
     }
@@ -206,6 +250,15 @@ public sealed class EmployeesEndpointsTests : IClassFixture<ApiFactory>
         int Page,
         int PageSize,
         int TotalCount);
+
+    private sealed record RosterPage(IReadOnlyList<RosterItem> Items);
+
+    private sealed record RosterItem(
+        string EmployeeNumber,
+        int LeaveRemaining,
+        IReadOnlyList<LeaveBalanceItem> LeaveBalances);
+
+    private sealed record LeaveBalanceItem(string Type, int Remaining, int Total);
 
     private sealed record ProblemResponse(string? Title, string? Detail, int? Status);
 }

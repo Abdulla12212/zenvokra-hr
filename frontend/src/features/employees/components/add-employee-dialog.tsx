@@ -29,7 +29,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const departments = ['Engineering', 'Design & Product', 'Operations', 'People Ops & HR', 'Marketing'];
+const departments = [
+  'Engineering',
+  'Design & Product',
+  'Operations',
+  'People Ops & HR',
+  'Marketing',
+];
 const locations = ['Dhaka HQ', 'Remote / Hybrid'];
 
 export function AddEmployeeDialog({
@@ -103,7 +109,7 @@ export function AddEmployeeDialog({
       <div
         role="dialog"
         aria-labelledby="add-employee-title"
-        className="bg-card w-full max-w-2xl rounded-xl border shadow-lg"
+        className="bg-card max-h-[min(90vh,40rem)] w-full max-w-2xl overflow-y-auto rounded-xl border shadow-lg"
       >
         <div className="flex items-start justify-between border-b px-6 py-4">
           <div>

@@ -12,6 +12,8 @@ describe('AdminDashboardPage', () => {
     expect(screen.getAllByText('Pending approvals').length).toBeGreaterThan(0);
     expect(screen.getByText('Nadia Chowdhury')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Grant' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add Employee' })).toBeInTheDocument();
     expect(screen.getByText('Live punch activity')).toBeInTheDocument();
+    expect(screen.getByText('In')).toBeInTheDocument();
   });
 });

@@ -1,23 +1,50 @@
 import { useMemo, useState } from 'react';
+import {
+  ArrowUpDown,
+  Building2,
+  ChevronDown,
+  Clock,
+  Columns3,
+  Download,
+  Home,
+  MapPin,
+  MoreVertical,
+  Phone,
+  Search,
+  SlidersHorizontal,
+  UserCog,
+} from 'lucide-react';
 import { Link, useSearchParams } from 'react-router';
 
-import { PageTitle } from '@/components/page-title';
-import { Badge } from '@/components/ui/badge';
+import { AdminAddEmployeeButton } from '@/app/layout/admin-add-employee-button';
+import { AdminBreadcrumb } from '@/app/layout/admin-breadcrumb';
+import { AdminFilterChip } from '@/app/layout/admin-filter-chip';
+import { AdminInitials } from '@/app/layout/admin-initials';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useDashboard } from '@/features/dashboard/api/dashboard-queries';
 import type { EmployeeDetail } from '@/features/employees/api/employees-api';
 import { AddEmployeeDialog } from '@/features/employees/components/add-employee-dialog';
+import { EmployeeLeaveCell } from '@/features/employees/components/employee-leave-cell';
+import { EmployeeStatusBadge } from '@/features/employees/components/employee-status-badge';
 import { useEmployees } from '@/features/employees/api/employees-queries';
-import { initials } from '@/lib/initials';
 import { cn } from '@/lib/utils';
 
 export function AdminEmployeesPage() {
   const [params, setParams] = useSearchParams();
   const department = params.get('department') ?? 'All';
   const search = params.get('q') ?? '';
+  const status = params.get('status') ?? 'All';
+  const location = params.get('location') ?? 'All';
   const [adding, setAdding] = useState(false);
   const roster = useEmployees({ pageSize: 100 });
   const dashboard = useDashboard();
@@ -31,11 +58,21 @@ export function AdminEmployeesPage() {
     return [...counts.entries()].sort((left, right) => left[0].localeCompare(right[0]));
   }, [employees]);
 
+  const locations = useMemo(() => {
+    return [...new Set(employees.map((employee) => employee.location))].sort();
+  }, [employees]);
+
+  const statuses = useMemo(() => {
+    return [...new Set(employees.map((employee) => employee.status))].sort();
+  }, [employees]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return employees.filter((employee) => {
       const deptOk = department === 'All' || employee.departmentName === department;
-      if (!deptOk) {
+      const statusOk = status === 'All' || employee.status === status;
+      const locationOk = location === 'All' || employee.location === location;
+      if (!deptOk || !statusOk || !locationOk) {
         return false;
       }
 
@@ -50,7 +87,7 @@ export function AdminEmployeesPage() {
         employee.workEmail.toLowerCase().includes(term)
       );
     });
-  }, [department, employees, search]);
+  }, [department, employees, location, search, status]);
 
   const nextNumber = nextEmployeeNumber(employees);
 
@@ -71,167 +108,273 @@ export function AdminEmployeesPage() {
     );
   }
 
+  function setParam(key: string, value: string, allValue = 'All') {
+    const next = new URLSearchParams(params);
+    if (value === allValue || value.length === 0) {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+    setParams(next);
+  }
+
   return (
-    <div className="space-y-4 p-6">
-      <p className="text-muted-foreground text-xs">Home / Employees / Directory</p>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <PageTitle>Employees</PageTitle>
-          <p className="text-muted-foreground text-sm">
-            Roster for Acme Consulting. Create, view, and update people in this tenant.
-          </p>
+    <div className="flex flex-col gap-4 px-4 py-4 md:px-6">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <AdminBreadcrumb items={[{ label: 'Employees', heading: true }, { label: 'Directory' }]} />
+        <div className="flex items-center gap-2.5">
+          <Button
+            type="button"
+            variant="outline"
+            className="text-body-sm bg-card h-9 rounded-xl border-0 px-3.5 font-medium shadow-sm"
+          >
+            <Download className="text-outline size-[18px]" strokeWidth={1.5} aria-hidden="true" />
+            Export Roster (CSV)
+          </Button>
+          <AdminAddEmployeeButton onClick={() => setAdding(true)} />
         </div>
-        <Button type="button" onClick={() => setAdding(true)}>
-          + Add employee
-        </Button>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1">
-          <FilterChip
-            label={`All (${String(employees.length)})`}
-            active={department === 'All'}
-            onClick={() => {
-              const next = new URLSearchParams(params);
-              next.delete('department');
-              setParams(next);
-            }}
-          />
-          {departments.map(([name, count]) => (
-            <FilterChip
-              key={name}
-              label={`${name} (${String(count)})`}
-              active={department === name}
-              onClick={() => {
-                const next = new URLSearchParams(params);
-                next.set('department', name);
-                setParams(next);
-              }}
+      <div className="bg-card flex flex-col gap-3 rounded-xl p-3 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 overflow-x-auto">
+            <AdminFilterChip
+              label="All"
+              count={employees.length}
+              active={department === 'All'}
+              onClick={() => setParam('department', 'All')}
             />
-          ))}
+            {departments.map(([name, count]) => (
+              <AdminFilterChip
+                key={name}
+                label={name}
+                count={count}
+                active={department === name}
+                onClick={() => setParam('department', name)}
+              />
+            ))}
+          </div>
+          {dashboard.data ? (
+            <span className="bg-muted text-muted-foreground text-label-xs inline-flex items-center gap-1 rounded-full px-2.5 py-1">
+              <span className="bg-success size-2 rounded-full" aria-hidden="true" />
+              {dashboard.data.present} Present
+              <span className="text-outline">·</span>
+              {dashboard.data.lateToday} Late
+              <span className="text-outline">·</span>
+              {dashboard.data.onLeave} Leave
+            </span>
+          ) : null}
         </div>
-        <p className="text-muted-foreground text-xs">
-          {dashboard.data
-            ? `${String(dashboard.data.present)} Present · ${String(dashboard.data.lateToday)} Late · ${String(dashboard.data.onLeave)} Leave`
-            : null}
-        </p>
-      </div>
 
-      <Input
-        value={search}
-        onChange={(event) => {
-          const next = new URLSearchParams(params);
-          if (event.target.value.length === 0) {
-            next.delete('q');
-          } else {
-            next.set('q', event.target.value);
-          }
-          setParams(next);
-        }}
-        placeholder="Search name, EMP-ID, or role…"
-        aria-label="Search employees"
-      />
+        <div className="flex flex-col items-center justify-between gap-3 pt-2 lg:flex-row">
+          <label className="relative w-full lg:w-96">
+            <span className="sr-only">Search employees</span>
+            <Search
+              className="text-outline pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            <Input
+              value={search}
+              onChange={(event) => setParam('q', event.target.value, '')}
+              placeholder="Search employee name, EMP-ID, or role..."
+              aria-label="Search employees"
+              className="bg-muted text-body-sm h-9 rounded-xl border-0 pr-14 pl-9"
+            />
+            <kbd className="bg-secondary text-muted-foreground text-micro pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded px-1.5 py-0.5 leading-none">
+              ⌘K
+            </kbd>
+          </label>
+          <div className="flex w-full items-center gap-2 overflow-x-auto lg:w-auto">
+            <FilterSelect
+              icon={SlidersHorizontal}
+              label="Status"
+              value={status === 'All' ? 'All Live' : status}
+              options={['All', ...statuses]}
+              onChange={(value) => setParam('status', value)}
+            />
+            <FilterSelect
+              icon={MapPin}
+              label="Location"
+              value={location === 'All' ? 'All locations' : location}
+              options={['All', ...locations]}
+              onChange={(value) => setParam('location', value)}
+            />
+            <span className="bg-muted text-foreground text-body-sm inline-flex h-9 items-center gap-2 rounded-xl px-3 font-medium">
+              <Clock className="text-outline size-4" strokeWidth={1.5} aria-hidden="true" />
+              Shift: <strong>Regular (09:00 - 18:00)</strong>
+            </span>
+          </div>
+        </div>
+      </div>
 
       {filtered.length === 0 ? (
         <p className="text-muted-foreground py-10 text-center text-sm">
           No employees match this filter. Add the first person with Add employee.
         </p>
       ) : (
-        <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
+        <div className="bg-card flex flex-col overflow-hidden rounded-xl shadow-sm">
+          <div className="flex items-center justify-between px-4 py-3">
+            <p className="text-outline text-label-xs font-semibold tracking-wider uppercase">
+              All Employees ({employees.length} Active)
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="bg-muted text-muted-foreground text-label-md inline-flex h-8 items-center gap-1.5 rounded-xl px-2.5">
+                <Columns3 className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                Columns
+              </span>
+              <span className="bg-muted text-muted-foreground text-label-md inline-flex h-8 items-center gap-1.5 rounded-xl px-2.5">
+                <ArrowUpDown className="size-4" strokeWidth={1.5} aria-hidden="true" />
+                Sort: Name (A-Z)
+              </span>
+            </div>
+          </div>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>EMP ID</TableHead>
-                <TableHead>Workstation</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact</TableHead>
+              <TableRow className="bg-muted hover:bg-muted">
+                <TableHead className="px-4">Employee</TableHead>
+                <TableHead className="px-4">EMP ID</TableHead>
+                <TableHead className="px-4">Workstation</TableHead>
+                <TableHead className="px-4">Status</TableHead>
+                <TableHead className="px-4">Contact</TableHead>
+                <TableHead className="px-4">Leave</TableHead>
+                <TableHead className="px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((employee) => (
-                <EmployeeRow key={employee.id} employee={employee} />
+              {filtered.map((employee, index) => (
+                <EmployeeRow key={employee.id} employee={employee} striped={index % 2 === 1} />
               ))}
             </TableBody>
           </Table>
-          <p className="text-muted-foreground border-t px-4 py-3 text-xs">
+          <p className="text-muted-foreground text-label-xs border-t px-4 py-3">
             Showing {filtered.length} of {employees.length} employees
           </p>
         </div>
       )}
 
-      {adding ? <AddEmployeeDialog nextNumber={nextNumber} onClose={() => setAdding(false)} /> : null}
+      {adding ? (
+        <AddEmployeeDialog nextNumber={nextNumber} onClose={() => setAdding(false)} />
+      ) : null}
     </div>
   );
 }
 
-function EmployeeRow({ employee }: { employee: EmployeeDetail }) {
+function EmployeeRow({ employee, striped }: { employee: EmployeeDetail; striped: boolean }) {
+  const remote = employee.location.toLowerCase().includes('remote');
+
   return (
-    <TableRow>
-      <TableCell>
-        <Link to={`/admin/employees/${employee.id}`} className="flex items-center gap-2">
-          <div className="bg-muted grid size-8 place-items-center rounded-full text-xs font-semibold">
-            {initials(employee.fullName)}
-          </div>
-          <div>
-            <p className="font-medium">
-              {employee.fullName}
+    <TableRow className={cn('group', striped && 'bg-muted/30')}>
+      <TableCell className="px-4 py-3">
+        <Link to={`/admin/employees/${employee.id}`} className="flex items-center gap-3">
+          <AdminInitials name={employee.fullName} tone={employee.isAdmin ? 'primary' : 'muted'} />
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="group-hover:text-primary text-title-md font-semibold">
+                {employee.fullName}
+              </span>
               {employee.isAdmin ? (
-                <Badge variant="pending" className="ml-1.5">
+                <span className="bg-muted text-muted-foreground text-micro rounded px-1.5 font-semibold">
                   Admin
-                </Badge>
+                </span>
               ) : null}
-            </p>
-            <p className="text-muted-foreground text-xs">
-              {employee.title} · {employee.departmentName}
-              {employee.teamName ? ` · ${employee.teamName}` : ''}
-            </p>
-            <p className="text-muted-foreground text-xs">
-              {employee.managerName ? `${employee.managerName} · ` : ''}
-              {employee.workEmail}
-            </p>
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-muted-foreground text-body-sm truncate font-medium">
+                {employee.title} · {employee.departmentName}
+                {employee.teamName ? ` · ${employee.teamName}` : ''}
+              </span>
+              {employee.managerName ? (
+                <span className="bg-muted text-muted-foreground text-label-xs inline-flex items-center gap-0.5 rounded px-1.5 font-medium">
+                  <UserCog className="text-outline size-3.5" strokeWidth={1.5} aria-hidden="true" />
+                  Mgr: {employee.managerName}
+                </span>
+              ) : null}
+            </div>
+            <p className="text-outline text-label-xs truncate">{employee.workEmail}</p>
           </div>
         </Link>
       </TableCell>
-      <TableCell>{employee.employeeNumber}</TableCell>
-      <TableCell>
-        {employee.location}
-        {employee.deskLabel ? ` · ${employee.deskLabel}` : ''}
+      <TableCell className="px-4 py-3">
+        <span className="bg-surface-high text-muted-foreground text-label-xs inline-flex rounded-md px-2 py-0.5 font-semibold">
+          {employee.employeeNumber}
+        </span>
       </TableCell>
-      <TableCell>
-        <Badge
-          variant={
-            employee.status === 'Remote' ? 'pending' : employee.status === 'Probation' ? 'late' : 'present'
-          }
+      <TableCell className="px-4 py-3">
+        <p className="text-body-sm flex items-center gap-1">
+          {remote ? (
+            <Home className="text-outline size-3.5" strokeWidth={1.5} aria-hidden="true" />
+          ) : (
+            <Building2 className="text-outline size-3.5" strokeWidth={1.5} aria-hidden="true" />
+          )}
+          {employee.location}
+        </p>
+        {employee.deskLabel ? (
+          <p className="text-outline text-label-xs">{employee.deskLabel}</p>
+        ) : null}
+      </TableCell>
+      <TableCell className="px-4 py-3">
+        <EmployeeStatusBadge status={employee.status} />
+      </TableCell>
+      <TableCell className="px-4 py-3">
+        <p className="text-body-sm flex items-center gap-1.5 font-medium">
+          <Phone className="text-outline size-4 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+          {employee.phone || '—'}
+        </p>
+      </TableCell>
+      <TableCell className="px-4 py-3">
+        <EmployeeLeaveCell
+          employeeId={employee.id}
+          remaining={employee.leaveRemaining ?? 0}
+          balances={employee.leaveBalances ?? []}
+        />
+      </TableCell>
+      <TableCell className="px-4 py-3 text-right">
+        <Link
+          to={`/admin/employees/${employee.id}`}
+          className="text-outline hover:bg-muted hover:text-foreground inline-flex rounded-xl p-1.5"
+          aria-label={`Open ${employee.fullName}`}
         >
-          {employee.status}
-        </Badge>
+          <MoreVertical className="size-4" strokeWidth={1.5} aria-hidden="true" />
+        </Link>
       </TableCell>
-      <TableCell>{employee.phone || '—'}</TableCell>
     </TableRow>
   );
 }
 
-function FilterChip({
+function FilterSelect({
+  icon: Icon,
   label,
-  active,
-  onClick,
+  value,
+  options,
+  onChange,
 }: {
+  icon: typeof MapPin;
   label: string;
-  active: boolean;
-  onClick: () => void;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'rounded-md border px-2.5 py-1 text-xs font-medium',
-        active ? 'bg-primary text-primary-foreground border-primary' : 'bg-background text-muted-foreground',
-      )}
-    >
-      {label}
-    </button>
+    <label className="bg-muted text-body-sm relative inline-flex h-9 items-center gap-2 rounded-xl px-3 font-medium">
+      <Icon className="text-outline size-4" strokeWidth={1.5} aria-hidden="true" />
+      <span>
+        {label}: <strong>{value}</strong>
+      </span>
+      <ChevronDown className="text-outline size-4" strokeWidth={1.5} aria-hidden="true" />
+      <select
+        aria-label={label}
+        className="absolute inset-0 cursor-pointer opacity-0"
+        value={value === 'All Live' || value === 'All locations' ? 'All' : value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option === 'All' ? `All ${label.toLowerCase()}` : option}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

@@ -9,16 +9,16 @@ namespace Cloudesh.Application.Features.Employees;
 
 public static class ListEmployees
 {
-    public static async Task<Ok<PagedResult<EmployeeReadModel.Detail>>> HandleAsync(
+    public static async Task<Ok<PagedResult<EmployeeReadModel.RosterItem>>> HandleAsync(
         AppDbContext dbContext,
         CancellationToken cancellationToken,
         string? search = null,
         string? department = null,
         int page = 1,
-        int pageSize = PagedResult<EmployeeReadModel.Detail>.DefaultPageSize)
+        int pageSize = PagedResult<EmployeeReadModel.RosterItem>.DefaultPageSize)
     {
-        int pageNumber = PagedResult<EmployeeReadModel.Detail>.NormalizePage(page);
-        int size = PagedResult<EmployeeReadModel.Detail>.NormalizePageSize(pageSize);
+        int pageNumber = PagedResult<EmployeeReadModel.RosterItem>.NormalizePage(page);
+        int size = PagedResult<EmployeeReadModel.RosterItem>.NormalizePageSize(pageSize);
 
         IQueryable<Employee> query = dbContext.Employees.AsNoTracking();
 
@@ -40,13 +40,16 @@ public static class ListEmployees
 
         int totalCount = await query.CountAsync(cancellationToken);
 
-        List<EmployeeReadModel.Detail> items = await EmployeeReadModel
+        List<EmployeeReadModel.Detail> details = await EmployeeReadModel
             .Project(query.OrderBy(employee => employee.FullName))
             .Skip((pageNumber - 1) * size)
             .Take(size)
             .ToListAsync(cancellationToken);
 
+        IReadOnlyList<EmployeeReadModel.RosterItem> items =
+            await EmployeeReadModel.WithLeaveAsync(dbContext, details, cancellationToken);
+
         return TypedResults.Ok(
-            new PagedResult<EmployeeReadModel.Detail>(items, pageNumber, size, totalCount));
+            new PagedResult<EmployeeReadModel.RosterItem>(items, pageNumber, size, totalCount));
     }
 }

@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Lock } from 'lucide-react';
+import { Building2, Clock, Copy, Loader2, Lock, Mail, Phone, Save } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { AdminBreadcrumb } from '@/app/layout/admin-breadcrumb';
 import { PageTitle } from '@/components/page-title';
 import { ProgressBar } from '@/components/progress-bar';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,10 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { OrganizationProfile } from '@/features/organization/api/organization-api';
-import { useOrganization, useUpdateOrganization } from '@/features/organization/api/organization-queries';
+import {
+  useOrganization,
+  useUpdateOrganization,
+} from '@/features/organization/api/organization-queries';
 import { firstFieldMessage } from '@/lib/form-errors';
 import { initials } from '@/lib/initials';
 import { cn } from '@/lib/utils';
@@ -101,139 +105,247 @@ function OrganizationForm({ profile }: { profile: OrganizationProfile }) {
   const isBusy = form.formState.isSubmitting || update.isPending;
 
   return (
-    <div className="space-y-4 p-6">
-      <p className="text-muted-foreground text-xs">Home / Organization / Organization profile</p>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+    <div className="flex flex-col gap-6 px-4 py-4 pb-8 md:px-6">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+        <div className="space-y-1">
+          <AdminBreadcrumb
+            items={[
+              { label: 'Organization', to: '/admin/organization' },
+              { label: 'Organization Profile' },
+            ]}
+          />
           <PageTitle>Organization profile</PageTitle>
-          <p className="text-muted-foreground text-sm">
-            General organization details, provisioned subscription, and workplace settings.
+          <p className="text-muted-foreground text-body-sm">
+            General organization details, tenant subscription terms, and workplace settings.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 self-start md:self-auto">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
+            className="text-label-md rounded-xl"
             onClick={() => {
               form.reset();
             }}
           >
-            Discard changes
+            Discard Changes
           </Button>
-          <Button type="submit" form="organization-form" disabled={isBusy}>
-            {isBusy ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+          <Button
+            type="submit"
+            form="organization-form"
+            className="text-label-md rounded-xl"
+            disabled={isBusy}
+          >
+            {isBusy ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Save className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            )}
             Save changes
           </Button>
         </div>
       </div>
 
-      <div className="bg-card flex flex-wrap items-start justify-between gap-4 rounded-xl border p-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="bg-primary text-primary-foreground grid size-14 place-items-center rounded-full text-sm font-semibold">
+      <div className="bg-card flex flex-col items-start justify-between gap-6 overflow-hidden rounded-xl border p-6 shadow-sm xl:flex-row xl:items-center">
+        <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
+          <div className="bg-primary/10 text-primary text-headline-lg grid size-16 place-items-center rounded-xl border font-bold">
             {initials(profile.displayName)}
           </div>
-          <div>
-            <p className="text-lg font-semibold">{profile.displayName}</p>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              <Badge>Client tenant</Badge>
-              <Badge variant="present">Active subscription</Badge>
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-headline-sm font-semibold">{profile.displayName}</span>
+              <Badge>Client Tenant</Badge>
+              <Badge variant="present">Active Subscription</Badge>
             </div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {profile.subscriptionTier} · {profile.contractPeriod} · {profile.regionTimeZone}
-            </p>
+            <div className="text-muted-foreground text-body-sm flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>
+                Plan Tier:{' '}
+                <strong className="text-foreground font-medium">{profile.subscriptionTier}</strong>
+              </span>
+              <span className="bg-border inline-block size-1 rounded-full" aria-hidden="true" />
+              <span>
+                Contract Period:{' '}
+                <strong className="text-foreground font-medium">{profile.contractPeriod}</strong>
+              </span>
+            </div>
           </div>
         </div>
-        <div className="w-full max-w-xs">
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">Total seat limit</span>
-            <b>
-              {profile.activeSeats} / {profile.seatLimit}
-            </b>
+        <div className="flex w-full min-w-[210px] flex-col gap-1.5 xl:w-auto xl:border-l xl:pl-6">
+          <div className="text-label-xs flex items-center justify-between">
+            <span className="text-muted-foreground font-medium">Total Seat Limit</span>
+            <span className="text-primary font-bold">
+              {profile.activeSeats} / {profile.seatLimit} Seats
+            </span>
           </div>
-          <ProgressBar value={seatPercent} className="mt-2" />
-          <p className="text-muted-foreground mt-1 text-xs">
-            {profile.activeSeats} active · {Math.max(0, profile.seatLimit - profile.activeSeats)} available
-          </p>
+          <ProgressBar value={seatPercent} className="h-2.5" />
+          <div className="text-outline text-label-xs flex items-center justify-between">
+            <span>{profile.activeSeats} Active</span>
+            <span>{Math.max(0, profile.seatLimit - profile.activeSeats)} Available</span>
+          </div>
         </div>
       </div>
 
-      <section className="bg-card space-y-3 rounded-xl border p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <strong>SaaS plan & provisioned subscription</strong>
-          <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-            <Lock className="size-3.5" aria-hidden="true" />
+      <section className="bg-card overflow-hidden rounded-xl border shadow-sm">
+        <div className="bg-muted/60 flex flex-col justify-between gap-2 border-b p-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2.5">
+            <Lock className="text-outline size-5" strokeWidth={1.5} aria-hidden="true" />
+            <div>
+              <p className="text-title-md font-semibold">SaaS Plan & Provisioned Subscription</p>
+              <p className="text-muted-foreground text-label-xs">
+                Core contracted tenancy specifications verified by Cloudesh operations
+              </p>
+            </div>
+          </div>
+          <span className="bg-muted text-muted-foreground text-label-xs inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-medium">
+            <Lock className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
             Locked · entered by the platform owner
           </span>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ReadOnlyField label="Organization legal name" value={profile.legalName} />
-          <ReadOnlyField label="Tenant ID / client code" value={profile.clientCode} />
-          <ReadOnlyField label="Subscription tier" value={profile.subscriptionTier} />
-          <ReadOnlyField label="Contract period" value={profile.contractPeriod} />
-          <ReadOnlyField label="Employee seat limit" value={String(profile.seatLimit)} />
-          <ReadOnlyField label="Region & timezone" value={profile.regionTimeZone} />
-          <ReadOnlyField label="Platform support / SLA" value={profile.supportSla} />
-          <ReadOnlyField label="Registered office" value={profile.registeredOffice} />
+        <div className="grid gap-4 p-6 md:grid-cols-2 lg:grid-cols-4">
+          <LockedField label="Organization Legal Name" value={profile.legalName} />
+          <LockedField label="Tenant ID / Client Code" value={profile.clientCode} copyable />
+          <LockedField label="Subscription Tier" value={profile.subscriptionTier} />
+          <LockedField label="Contract Active Period" value={profile.contractPeriod} />
+          <LockedField
+            label="Employee Seat Limit"
+            value={`${String(profile.seatLimit)} Active Licenses`}
+            hint={`${String(profile.activeSeats)} used`}
+          />
+          <LockedField label="Region & Timezone" value={profile.regionTimeZone} />
+          <LockedField label="Platform Support / SLA" value={profile.supportSla} />
+          <LockedField label="Registered Permanent Office" value={profile.registeredOffice} />
         </div>
       </section>
 
-      <form id="organization-form" onSubmit={(event) => void onSubmit(event)} className="space-y-4">
-        <section className="bg-card space-y-3 rounded-xl border p-4 shadow-sm">
-          <strong>Organization contact & details</strong>
-          <div className="grid gap-3 sm:grid-cols-2">
+      <form id="organization-form" onSubmit={(event) => void onSubmit(event)} className="space-y-6">
+        <section className="bg-card space-y-6 rounded-xl border p-6 shadow-sm">
+          <div className="border-b pb-1">
+            <div className="flex items-center gap-2">
+              <Building2
+                className="text-primary-deep size-[22px]"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <h2 className="text-title-md font-semibold">Organization Contact & Details</h2>
+            </div>
+            <p className="text-muted-foreground text-body-sm mt-0.5">
+              Update everyday contact and organizational details for company communications and
+              employees.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Field
               id="displayName"
               label="Company display name"
               required
               error={form.formState.errors.displayName?.message}
             >
-              <Input id="displayName" {...form.register('displayName')} />
+              <Input
+                id="displayName"
+                className="bg-muted md:text-body-md rounded-xl"
+                {...form.register('displayName')}
+              />
             </Field>
             <Field
               id="workEmail"
-              label="Official work email"
+              label="Official Work Email"
               required
               error={form.formState.errors.workEmail?.message}
             >
-              <Input id="workEmail" type="email" {...form.register('workEmail')} />
+              <div className="relative">
+                <Mail
+                  className="text-outline pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <Input
+                  id="workEmail"
+                  type="email"
+                  className="bg-muted md:text-body-md rounded-xl pl-9"
+                  {...form.register('workEmail')}
+                />
+              </div>
             </Field>
-            <Field id="supportHotline" label="Support / helpdesk hotline">
-              <Input id="supportHotline" {...form.register('supportHotline')} />
+            <Field id="supportHotline" label="Support / Helpdesk Hotline">
+              <div className="relative">
+                <Phone
+                  className="text-outline pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <Input
+                  id="supportHotline"
+                  className="bg-muted md:text-body-md rounded-xl pl-9"
+                  {...form.register('supportHotline')}
+                />
+              </div>
             </Field>
-            <Field id="officeLandline" label="Office landline">
-              <Input id="officeLandline" {...form.register('officeLandline')} />
+            <Field id="officeLandline" label="Secondary / Office Landline">
+              <div className="relative">
+                <Phone
+                  className="text-outline pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <Input
+                  id="officeLandline"
+                  className="bg-muted md:text-body-md rounded-xl pl-9"
+                  {...form.register('officeLandline')}
+                />
+              </div>
             </Field>
-            <Field id="websiteUrl" label="Website">
-              <Input id="websiteUrl" {...form.register('websiteUrl')} />
+            <Field id="websiteUrl" label="Company Website URL">
+              <Input
+                id="websiteUrl"
+                className="bg-muted md:text-body-md rounded-xl"
+                {...form.register('websiteUrl')}
+              />
             </Field>
-            <Field id="industry" label="Industry">
-              <Input id="industry" {...form.register('industry')} />
+            <Field id="industry" label="Industry & Sector">
+              <Input
+                id="industry"
+                className="bg-muted md:text-body-md rounded-xl"
+                {...form.register('industry')}
+              />
             </Field>
-            <Field id="fiscalYear" label="Fiscal year">
+            <Field id="fiscalYear" label="Fiscal Year / Tax Accounting Cycle">
               <select id="fiscalYear" className={selectClass} {...form.register('fiscalYear')}>
-                <option value="July – June">July – June</option>
-                <option value="January – December">January – December</option>
+                <option value="July – June">July - June (Standard BD Fiscal Cycle)</option>
+                <option value="January – December">January - December (Calendar Year)</option>
               </select>
             </Field>
           </div>
         </section>
 
-        <section className="bg-card space-y-3 rounded-xl border p-4 shadow-sm">
-          <strong>Workplace & operating hours</strong>
+        <section className="bg-card space-y-6 rounded-xl border p-6 shadow-sm">
+          <div className="border-b pb-1">
+            <div className="flex items-center gap-2">
+              <Clock
+                className="text-primary-deep size-[22px]"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <h2 className="text-title-md font-semibold">Workplace & Operating Hours</h2>
+            </div>
+            <p className="text-muted-foreground text-body-sm mt-0.5">
+              Define standard working days, shift timings, and official operating hours for staff.
+            </p>
+          </div>
           <div>
-            <p className="mb-2 text-sm font-medium">Standard operating working days</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="text-label-md mb-2 font-medium">Standard Operating Working Days</p>
+            <div className="flex flex-wrap gap-2">
               {WEEKDAYS.map((day) => {
                 const on = selectedDays.has(day);
+                const weekend = day === 'Sat' || day === 'Sun';
                 return (
                   <button
                     key={day}
                     type="button"
                     className={cn(
-                      'rounded-md border px-2.5 py-1 text-xs font-medium',
+                      'text-label-md rounded-xl border px-3.5 py-1.5 font-semibold',
                       on
                         ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-background text-muted-foreground',
+                        : 'bg-muted text-muted-foreground',
                     )}
                     onClick={() => {
                       const next = new Set(selectedDays);
@@ -249,17 +361,30 @@ function OrganizationForm({ profile }: { profile: OrganizationProfile }) {
                       );
                     }}
                   >
-                    {day}
+                    {weekend ? `${day} (Weekend)` : day}
                   </button>
                 );
               })}
             </div>
+            <p className="text-outline text-label-xs mt-2">
+              Selected days are marked as regular business days in payroll and employee attendance
+              calendars.
+            </p>
           </div>
-          <Field id="shiftTiming" label="Standard shift timing">
-            <Input id="shiftTiming" {...form.register('shiftTiming')} />
+          <Field id="shiftTiming" label="Standard Shift Timing">
+            <Input
+              id="shiftTiming"
+              className="bg-muted md:text-body-md rounded-xl"
+              {...form.register('shiftTiming')}
+            />
           </Field>
-          <Field id="officeFloors" label="Office floor & desk distribution">
-            <Textarea id="officeFloors" rows={3} {...form.register('officeFloors')} />
+          <Field id="officeFloors" label="Office Floor & Desk Distribution">
+            <Textarea
+              id="officeFloors"
+              rows={3}
+              className="bg-muted md:text-body-md rounded-xl"
+              {...form.register('officeFloors')}
+            />
           </Field>
         </section>
       </form>
@@ -267,11 +392,45 @@ function OrganizationForm({ profile }: { profile: OrganizationProfile }) {
   );
 }
 
-function ReadOnlyField({ label, value }: { label: string; value: string }) {
+function LockedField({
+  label,
+  value,
+  hint,
+  copyable,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  copyable?: boolean;
+}) {
   return (
-    <div className="space-y-1">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <div className="bg-muted rounded-md border px-3 py-2 text-sm">{value}</div>
+    <div className="bg-muted/70 flex flex-col gap-1 rounded-xl border p-3">
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground text-label-xs font-semibold tracking-wider uppercase">
+          {label}
+        </p>
+        <Lock className="text-outline size-3.5" strokeWidth={1.5} aria-hidden="true" />
+      </div>
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        <p className={cn('text-body-sm font-medium', copyable && 'text-primary font-semibold')}>
+          {value}
+          {hint ? (
+            <span className="text-success text-label-xs ml-1 font-semibold">({hint})</span>
+          ) : null}
+        </p>
+        {copyable ? (
+          <button
+            type="button"
+            className="text-outline hover:text-foreground p-0.5"
+            title="Copy client code"
+            onClick={() => {
+              void navigator.clipboard.writeText(value);
+            }}
+          >
+            <Copy className="size-4" strokeWidth={1.5} aria-hidden="true" />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -291,13 +450,13 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
+      <Label htmlFor={id} className="text-label-md flex items-center justify-between">
+        <span>{label}</span>
+        {required ? <span className="text-destructive text-label-xs">* Required</span> : null}
       </Label>
       {children}
       {error ? (
-        <p className="text-destructive text-xs" role="alert">
+        <p className="text-destructive text-label-xs" role="alert">
           {error}
         </p>
       ) : null}
@@ -306,4 +465,4 @@ function Field({
 }
 
 const selectClass =
-  'border-input flex h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
+  'border-input bg-muted text-body-md flex h-9 w-full rounded-xl border px-3 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';

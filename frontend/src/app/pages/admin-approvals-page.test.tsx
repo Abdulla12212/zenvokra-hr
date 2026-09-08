@@ -8,7 +8,7 @@ describe('AdminApprovalsPage', () => {
     renderAdminApp('/admin/approvals');
 
     expect(await screen.findByRole('heading', { name: 'Approvals' })).toBeInTheDocument();
-    expect(screen.getByText('Nadia Chowdhury')).toBeInTheDocument();
+    expect(screen.getAllByText('Nadia Chowdhury').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reject' })).toBeInTheDocument();
   });

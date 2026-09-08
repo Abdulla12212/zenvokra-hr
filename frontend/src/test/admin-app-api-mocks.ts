@@ -3,7 +3,11 @@ import type { PagedResult } from '@/lib/paged-result';
 
 import type { ApprovalItem, ApprovalsResponse } from '@/features/approvals/api/approvals-api';
 import type { Dashboard } from '@/features/dashboard/api/dashboard-api';
-import type { Employee, EmployeeDetail, EmployeeLeave } from '@/features/employees/api/employees-api';
+import type {
+  Employee,
+  EmployeeDetail,
+  EmployeeLeave,
+} from '@/features/employees/api/employees-api';
 import type { OrganizationProfile } from '@/features/organization/api/organization-api';
 
 const akram: EmployeeDetail = {
@@ -26,6 +30,12 @@ const akram: EmployeeDetail = {
   deskLabel: 'Floor 4, Desk 4B-12',
   status: 'Active',
   isAdmin: true,
+  leaveRemaining: 25,
+  leaveBalances: [
+    { type: 'Annual', remaining: 12, total: 20 },
+    { type: 'Casual', remaining: 5, total: 10 },
+    { type: 'Sick', remaining: 8, total: 10 },
+  ],
 };
 
 const nadiaLeave: ApprovalItem = {
@@ -121,7 +131,12 @@ export const employeesApiMock = {
   listEmployees: () => Promise.resolve(page([akram])),
   getEmployee: () => Promise.resolve(akram),
   createEmployee: (input: { fullName: string; employeeNumber: string }) =>
-    Promise.resolve({ ...akram, fullName: input.fullName, employeeNumber: input.employeeNumber, id: 'emp-new' }),
+    Promise.resolve({
+      ...akram,
+      fullName: input.fullName,
+      employeeNumber: input.employeeNumber,
+      id: 'emp-new',
+    }),
   updateEmployee: () => Promise.resolve(akram),
   getEmployeeLeave: (): Promise<EmployeeLeave> =>
     Promise.resolve({

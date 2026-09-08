@@ -12,8 +12,15 @@ describe('AdminEmployeesPage', () => {
     expect(await screen.findByRole('heading', { name: 'Employees' })).toBeInTheDocument();
     expect(screen.getAllByText(demoSession.employee.fullName).length).toBeGreaterThan(0);
     expect(screen.getByText('EMP-1024')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Leave' })).toBeInTheDocument();
+    expect(screen.getByLabelText('25 leave days remaining')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: '+ Add employee' }));
+    await userEvent.click(screen.getByLabelText('25 leave days remaining'));
+    expect(screen.getByRole('dialog', { name: 'Leave breakdown' })).toBeInTheDocument();
+    expect(screen.getByText(/Annual Leave/)).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add Employee' }));
 
     expect(await screen.findByRole('dialog', { name: 'Add new employee' })).toBeInTheDocument();
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();

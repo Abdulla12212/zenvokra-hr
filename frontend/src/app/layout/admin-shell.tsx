@@ -1,8 +1,20 @@
-import { Bell, Building2, ClipboardCheck, LayoutGrid, Search, SlidersHorizontal, Users } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Bell,
+  Building2,
+  ChevronsUpDown,
+  ClipboardCheck,
+  LayoutGrid,
+  Menu,
+  Search,
+  SlidersHorizontal,
+  Users,
+  X,
+} from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 
 import mushroomAvatar from '@/assets/mushroom-avatar.svg';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useApprovals } from '@/features/approvals/api/approvals-queries';
 import { useEmployees } from '@/features/employees/api/employees-queries';
 import { demoSession } from '@/lib/demo-session';
@@ -18,10 +30,11 @@ interface NavigationItem {
 }
 
 /**
- * Admin chrome: Dashboard / Employees / Approvals / Organization.
- * Do not mix this nav with the employee shell.
+ * Admin chrome matching the Stitch Cloudesh Admin kit: white rail, MENU kicker,
+ * rounded nav, frozen clock, search, notifications.
  */
 export function AdminShell() {
+  const [navOpen, setNavOpen] = useState(false);
   const employees = useEmployees({ pageSize: 100 });
   const approvals = useApprovals();
   const headcount = employees.data?.totalCount ?? 0;
@@ -42,51 +55,125 @@ export function AdminShell() {
 
   return (
     <div className="bg-background flex min-h-full">
-      <aside className="bg-card flex w-60 shrink-0 flex-col border-r">
+      {navOpen ? (
+        <button
+          type="button"
+          className="bg-foreground/20 fixed inset-0 z-30 lg:hidden"
+          aria-label="Close menu"
+          onClick={() => {
+            setNavOpen(false);
+          }}
+        />
+      ) : null}
+
+      <aside
+        className={cn(
+          'bg-card w-60 shrink-0 flex-col border-r',
+          navOpen ? 'fixed inset-y-0 left-0 z-40 flex lg:static lg:z-auto' : 'hidden lg:flex',
+        )}
+      >
         <div className="flex h-14 items-center gap-2 border-b px-4">
-          <div className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-md text-xs font-bold tracking-tight">
+          <div className="bg-primary text-primary-foreground text-label-md grid size-8 place-items-center rounded-sm font-bold tracking-tight">
             C
           </div>
-          <div className="min-w-0">
-            <p className="text-sm leading-tight font-semibold tracking-tight">Cloudesh Admin</p>
-            <p className="text-muted-foreground truncate text-[11px]">{demoSession.tenantName}</p>
+          <div className="min-w-0 flex-1 leading-none">
+            <p className="text-title-md text-foreground">Cloudesh Admin</p>
+            <p className="text-label-xs text-muted-foreground mt-0.5">{demoSession.tenantName}</p>
           </div>
+          <button
+            type="button"
+            className="text-outline hover:bg-muted rounded-lg p-1 lg:hidden"
+            aria-label="Close menu"
+            onClick={() => {
+              setNavOpen(false);
+            }}
+          >
+            <X className="size-5" strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 p-3">
+        <p className="text-label-xs text-outline px-4 pt-4 pb-1 font-semibold tracking-wider uppercase">
+          Menu
+        </p>
+        <nav aria-label="Admin" className="flex flex-1 flex-col gap-1 px-1">
           {navigation.map((item) => (
-            <AdminNavLink key={item.to} item={item} />
+            <AdminNavLink key={item.to} item={item} onNavigate={() => setNavOpen(false)} />
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5 border-t px-4 py-3">
-          <img src={mushroomAvatar} alt="" className="bg-muted size-8 rounded-full object-cover" />
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-medium">{demoSession.employee.fullName}</p>
-            <p className="text-muted-foreground text-[11px]">Admin · {demoSession.location}</p>
+        <div className="border-t p-2">
+          <div className="bg-muted/80 flex items-center gap-3 rounded-xl border p-2">
+            <img
+              src={mushroomAvatar}
+              alt=""
+              className="bg-muted size-9 rounded-2xl border object-cover"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-body-sm truncate font-semibold">{demoSession.employee.fullName}</p>
+              <p className="text-label-xs text-muted-foreground">Admin · {demoSession.location}</p>
+            </div>
+            <ChevronsUpDown
+              className="text-outline size-[18px] shrink-0"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
           </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="bg-background/80 sticky top-0 z-10 flex h-14 items-center gap-4 border-b px-6">
-          <p className="text-muted-foreground shrink-0 text-[13px] font-medium">
-            {demoSession.adminClockLabel}
-          </p>
-          <div className="text-muted-foreground mx-auto flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border px-3 text-sm">
-            <Search className="size-4" aria-hidden="true" />
-            <span>Quick search or jump…</span>
-            <span className="border-border ml-auto rounded border px-1.5 text-[10px]">⌘K</span>
+        <header className="bg-card/90 sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b px-4 backdrop-blur-md md:gap-4 md:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl p-2 lg:hidden"
+              aria-label="Open menu"
+              onClick={() => {
+                setNavOpen(true);
+              }}
+            >
+              <Menu className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <p className="text-body-sm text-muted-foreground hidden min-w-0 truncate sm:block">
+              <span className="text-foreground font-medium">{demoSession.adminClockLabel}</span>
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" type="button" aria-label="Notifications">
-              <Bell aria-hidden="true" />
-            </Button>
-            <Button variant="outline" size="icon" type="button" aria-label="Settings">
-              <SlidersHorizontal aria-hidden="true" />
-            </Button>
+          <div className="flex items-center gap-2 md:gap-4">
+            <label className="relative hidden lg:block">
+              <span className="sr-only">Quick search or jump</span>
+              <Search
+                className="text-outline pointer-events-none absolute top-1/2 left-2.5 size-[18px] -translate-y-1/2"
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              <Input
+                className="placeholder:text-outline focus-visible:border-primary bg-muted text-body-sm h-9 w-[min(16rem,36vw)] rounded-xl border pr-12 pl-8 shadow-none focus-visible:ring-0"
+                placeholder="Quick search or jump..."
+              />
+              <kbd className="bg-surface-high text-muted-foreground text-micro pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border px-1.5 py-0.5 leading-none">
+                ⌘K
+              </kbd>
+            </label>
+            <span className="bg-border hidden h-5 w-px lg:block" aria-hidden="true" />
+            <button
+              type="button"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground relative rounded-xl p-2"
+              aria-label="Notifications, 3 unread"
+            >
+              <Bell className="size-5" strokeWidth={1.5} aria-hidden="true" />
+              <span className="bg-primary text-primary-foreground text-micro absolute top-1.5 right-1.5 grid size-4 place-items-center rounded-full font-bold">
+                3
+              </span>
+            </button>
+            <button
+              type="button"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground hidden rounded-xl p-2 sm:inline-flex"
+              aria-label="Settings"
+            >
+              <SlidersHorizontal className="size-5" strokeWidth={1.5} aria-hidden="true" />
+            </button>
             <div
-              className="bg-muted grid size-8 place-items-center rounded-full text-xs font-semibold"
+              className="bg-primary-deep text-primary-foreground text-label-md grid size-8 place-items-center rounded-2xl leading-none font-bold"
               aria-hidden="true"
             >
               {initials(demoSession.employee.fullName)}
@@ -102,37 +189,51 @@ export function AdminShell() {
   );
 }
 
-function AdminNavLink({ item }: { item: NavigationItem }) {
+function AdminNavLink({ item, onNavigate }: { item: NavigationItem; onNavigate: () => void }) {
   const Icon = item.icon;
 
   return (
     <NavLink
       to={item.to}
       end={item.to === '/admin'}
+      onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'flex h-9 items-center gap-2.5 rounded-md px-3 text-sm font-medium transition-colors',
+          'group text-body-md flex items-center justify-between rounded-xl px-2 py-2 transition-colors',
           isActive
-            ? 'bg-accent text-accent-foreground'
-            : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+            ? 'bg-muted text-foreground border-border border font-semibold shadow-sm'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
         )
       }
     >
-      <Icon className="size-4" aria-hidden="true" />
-      {item.label}
-      {item.badge ? (
-        <span
-          aria-hidden="true"
-          className={cn(
-            'ml-auto grid min-w-[18px] place-items-center rounded-full px-1.5 text-[11px] font-semibold',
-            item.alert
-              ? 'bg-destructive text-destructive-foreground'
-              : 'bg-primary text-primary-foreground',
-          )}
-        >
-          {item.badge}
-        </span>
-      ) : null}
+      {({ isActive }) => (
+        <>
+          <span className="flex items-center gap-3">
+            <Icon
+              className={cn(
+                'size-5',
+                isActive ? 'text-foreground' : 'text-outline group-hover:text-foreground',
+              )}
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            {item.label}
+          </span>
+          {item.badge ? (
+            <span
+              aria-hidden="true"
+              className={cn(
+                'text-label-xs grid min-w-[18px] place-items-center rounded-full px-2 py-0.5 font-medium',
+                item.alert
+                  ? 'bg-destructive text-primary-foreground'
+                  : 'bg-surface-high text-muted-foreground',
+              )}
+            >
+              {item.badge}
+            </span>
+          ) : null}
+        </>
+      )}
     </NavLink>
   );
 }

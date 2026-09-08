@@ -56,7 +56,10 @@ export function EditEmployeeDialog({
       teamName: employee.teamName,
       deskLabel: employee.deskLabel,
       hoursLabel: employee.hoursLabel,
-      status: employee.status === 'Remote' || employee.status === 'Probation' ? employee.status : 'Active',
+      status:
+        employee.status === 'Remote' || employee.status === 'Probation'
+          ? employee.status
+          : 'Active',
       startedOn: employee.startedOn,
     },
   });
@@ -87,7 +90,7 @@ export function EditEmployeeDialog({
       <div
         role="dialog"
         aria-labelledby="edit-employee-title"
-        className="bg-card w-full max-w-2xl rounded-xl border shadow-lg"
+        className="bg-card max-h-[min(90vh,40rem)] w-full max-w-2xl overflow-y-auto rounded-xl border shadow-lg"
       >
         <div className="flex items-start justify-between border-b px-6 py-4">
           <h2 id="edit-employee-title" className="text-base font-semibold">
@@ -102,7 +105,12 @@ export function EditEmployeeDialog({
             <Field id="edit-fullName" label="Full name" required error={errors.fullName?.message}>
               <Input id="edit-fullName" {...register('fullName')} />
             </Field>
-            <Field id="edit-workEmail" label="Work email" required error={errors.workEmail?.message}>
+            <Field
+              id="edit-workEmail"
+              label="Work email"
+              required
+              error={errors.workEmail?.message}
+            >
               <Input id="edit-workEmail" type="email" {...register('workEmail')} />
             </Field>
             <Field id="edit-title" label="Job title" required>

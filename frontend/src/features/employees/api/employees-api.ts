@@ -25,6 +25,8 @@ export interface EmployeeDetail extends Employee {
   deskLabel: string;
   status: string;
   isAdmin: boolean;
+  leaveRemaining?: number;
+  leaveBalances?: LeaveBalance[];
 }
 
 export interface ListEmployeesParams {

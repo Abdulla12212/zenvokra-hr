@@ -4,19 +4,16 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex h-[22px] w-fit shrink-0 items-center rounded-md border px-2 text-xs font-medium whitespace-nowrap',
+  'inline-flex w-fit shrink-0 items-center rounded-full border px-2.5 py-0.5 text-label-xs font-semibold whitespace-nowrap',
   {
     variants: {
       variant: {
         default: 'border-border bg-background text-foreground',
-        present:
-          'border-transparent bg-[color-mix(in_oklch,var(--success)_12%,var(--background))] text-[color-mix(in_oklch,var(--success)_70%,var(--foreground))]',
-        late: 'border-transparent bg-[color-mix(in_oklch,var(--warning)_16%,var(--background))] text-[color-mix(in_oklch,var(--warning)_55%,var(--foreground))]',
-        pending:
-          'border-transparent bg-[color-mix(in_oklch,var(--primary)_12%,var(--background))] text-primary',
-        rejected:
-          'border-transparent bg-[color-mix(in_oklch,var(--destructive)_12%,var(--background))] text-destructive',
-        off: 'bg-secondary text-secondary-foreground border-transparent',
+        present: 'border-success-border bg-success-muted text-success',
+        late: 'border-warning-border bg-warning-muted text-warning',
+        pending: 'border-info-border bg-info-muted text-primary',
+        rejected: 'border-destructive-border bg-destructive-muted text-destructive',
+        off: 'bg-surface-high text-muted-foreground border-border',
       },
     },
     defaultVariants: {

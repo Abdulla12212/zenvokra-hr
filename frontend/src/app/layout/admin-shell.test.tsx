@@ -18,7 +18,7 @@ describe('AdminShell', () => {
   it('lists Dashboard, Employees, Approvals, and Organization — not employee nav', () => {
     renderAdminApp();
 
-    const nav = screen.getByRole('navigation');
+    const nav = screen.getByRole('navigation', { name: 'Admin' });
     expect(nav).toHaveTextContent('Dashboard');
     expect(nav).toHaveTextContent('Employees');
     expect(nav).toHaveTextContent('Approvals');
@@ -38,6 +38,8 @@ describe('AdminShell', () => {
     expect(await screen.findByRole('heading', { name: 'Approvals' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('link', { name: 'Organization' }));
-    expect(await screen.findByRole('heading', { name: 'Organization profile' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Organization profile' }),
+    ).toBeInTheDocument();
   });
 });
