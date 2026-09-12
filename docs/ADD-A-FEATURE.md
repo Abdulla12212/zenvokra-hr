@@ -1,8 +1,8 @@
 # Adding a feature
 
-One walkthrough, front to back, using a hypothetical `Employees` feature. The shipped
-`Departments` feature is the same shape and is the reference to copy from — every file
-involved is marked `WALKING SKELETON`.
+One walkthrough, front to back, using a hypothetical `Employees` feature. Copy the slice
+shape from `Features/Auth` and `Features/PlatformTenants` (platform work) or from a
+tenant-scoped entity such as `TenantAdmin`.
 
 Read [CODING-CONVENTIONS-DOTNET.md](CODING-CONVENTIONS-DOTNET.md) and
 [CODING-CONVENTIONS-REACT.md](CODING-CONVENTIONS-REACT.md) first; this document is the
@@ -31,7 +31,7 @@ frontend/src/
 ├── features/employees/pages/employees-page.tsx
 ├── features/employees/pages/employees-page.test.tsx
 ├── app/router.tsx                                       (+1 route)
-└── app/layout/app-shell.tsx                             (+1 nav item)
+└── app/layout/mode-shell.tsx                            (+1 nav item)
 ```
 
 Nine new files, three edited. Nothing in `Program.cs`, and nothing in `Common/`.
@@ -253,8 +253,8 @@ public async Task Employees_are_invisible_to_other_tenants()
 ```
 
 Then an integration test over real HTTP and real PostgreSQL, modelled on
-`DepartmentsEndpointsTests` — including the two-tenant test that proves isolation survives
-the whole stack, not just the `DbContext`.
+`PlatformTenantsEndpointsTests` — including the two-tenant test that proves isolation
+survives the whole stack, not just the `DbContext`.
 
 ```bash
 make test-unit
@@ -330,7 +330,7 @@ export function useCreateEmployee() {
 
 ### 11. The page
 
-Own all four states. See `departments-page.tsx`:
+Own all four states. See `companies-page.tsx`:
 
 ```tsx
 const { data, isPending, isError, error } = useEmployees();
@@ -349,7 +349,7 @@ return <EmployeeTable employees={data.items} />;
 ```
 
 ```tsx
-// app/layout/app-shell.tsx
+// app/layout/mode-shell.tsx
 { to: '/employees', label: 'People', icon: Users },
 ```
 
@@ -357,7 +357,7 @@ return <EmployeeTable employees={data.items} />;
 
 Mock `../api/employees-api` — the network boundary — not the query hooks. That way the
 test exercises the real hooks, the real cache invalidation, and the real component tree.
-`departments-page.test.tsx` is the template.
+`companies-page.test.tsx` is the template.
 
 ```bash
 npm run test:run

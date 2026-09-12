@@ -16,9 +16,7 @@ WORKDIR /app
 # than runtime environment variables. An empty base URL means same-origin requests,
 # which is what the nginx proxy below provides.
 ARG VITE_API_BASE_URL=""
-ARG VITE_DEV_TENANT_ID=""
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
-    VITE_DEV_TENANT_ID=$VITE_DEV_TENANT_ID
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 COPY . .
 RUN npm run build

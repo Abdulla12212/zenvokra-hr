@@ -1,15 +1,9 @@
 import { describe, expect, it, vi, type MockedFunction } from 'vitest';
 
-import { ApiError, apiFetch, TENANT_HEADER } from './api-client';
-
-// Mocked so the assertions do not depend on which .env file happens to be present.
-// `vi.hoisted` is required because `vi.mock` runs before module-level constants exist.
-const { devTenantId } = vi.hoisted(() => ({
-  devTenantId: '00000000-0000-0000-0000-000000000001',
-}));
+import { ApiError, apiFetch } from './api-client';
 
 vi.mock('./env', () => ({
-  env: { apiBaseUrl: '', devTenantId, isDevelopment: false },
+  env: { apiBaseUrl: '', isDevelopment: false },
 }));
 
 type FetchMock = MockedFunction<typeof fetch>;
@@ -46,42 +40,40 @@ function jsonResponse(body: unknown, init?: ResponseInit): Response {
 
 describe('apiFetch', () => {
   it('parses a successful JSON response', async () => {
-    stubFetch(jsonResponse({ id: '1', name: 'Engineering' }));
+    stubFetch(jsonResponse({ id: '1', name: 'Acme' }));
 
-    const result = await apiFetch<{ id: string; name: string }>('/api/departments');
+    const result = await apiFetch<{ id: string; name: string }>('/api/platform/tenants');
 
-    expect(result).toEqual({ id: '1', name: 'Engineering' });
+    expect(result).toEqual({ id: '1', name: 'Acme' });
   });
 
-  it('sends the tenant header so the API can scope the request', async () => {
+  it('sends cookies so the signed session reaches the API', async () => {
     const fetchMock = stubFetch(jsonResponse([]));
 
-    await apiFetch('/api/departments');
+    await apiFetch('/api/auth/me');
 
-    const headers = new Headers(firstCall(fetchMock).init?.headers);
-
-    expect(headers.get(TENANT_HEADER)).toBe(devTenantId);
+    expect(firstCall(fetchMock).init?.credentials).toBe('include');
   });
 
   it('appends query parameters and drops empty ones', async () => {
     const fetchMock = stubFetch(jsonResponse([]));
 
-    await apiFetch('/api/departments', {
+    await apiFetch('/api/platform/tenants', {
       query: { page: 2, pageSize: undefined, search: null, active: true },
     });
 
-    expect(firstCall(fetchMock).url).toBe('/api/departments?page=2&active=true');
+    expect(firstCall(fetchMock).url).toBe('/api/platform/tenants?page=2&active=true');
   });
 
   it('serialises the body and sets the content type for writes', async () => {
     const fetchMock = stubFetch(jsonResponse({ id: '1' }, { status: 201 }));
 
-    await apiFetch('/api/departments', { method: 'POST', body: { name: 'Finance' } });
+    await apiFetch('/api/platform/tenants', { method: 'POST', body: { name: 'Acme' } });
 
     const { init } = firstCall(fetchMock);
 
     expect(init?.method).toBe('POST');
-    expect(init?.body).toBe('{"name":"Finance"}');
+    expect(init?.body).toBe('{"name":"Acme"}');
     expect(new Headers(init?.headers).get('content-type')).toBe('application/json');
   });
 
@@ -98,7 +90,7 @@ describe('apiFetch', () => {
       ),
     );
 
-    const error = await apiFetch('/api/departments', { method: 'POST', body: {} }).catch(
+    const error = await apiFetch('/api/platform/tenants', { method: 'POST', body: {} }).catch(
       (caught: unknown) => caught,
     );
 
@@ -113,7 +105,7 @@ describe('apiFetch', () => {
   it('falls back to a readable message when the error body is not JSON', async () => {
     stubFetch(new Response('gateway exploded', { status: 502 }));
 
-    const error = await apiFetch('/api/departments').catch((caught: unknown) => caught);
+    const error = await apiFetch('/api/platform/tenants').catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).message).toBe('The request failed with status 502.');
@@ -125,7 +117,7 @@ describe('apiFetch', () => {
       vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch')),
     );
 
-    const error = await apiFetch('/api/departments').catch((caught: unknown) => caught);
+    const error = await apiFetch('/api/platform/tenants').catch((caught: unknown) => caught);
 
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).isNetworkError).toBe(true);
@@ -134,6 +126,6 @@ describe('apiFetch', () => {
   it('returns nothing for a 204', async () => {
     stubFetch(new Response(null, { status: 204 }));
 
-    await expect(apiFetch('/api/departments/1', { method: 'DELETE' })).resolves.toBeUndefined();
+    await expect(apiFetch('/api/platform/tenants/1', { method: 'DELETE' })).resolves.toBeUndefined();
   });
 });

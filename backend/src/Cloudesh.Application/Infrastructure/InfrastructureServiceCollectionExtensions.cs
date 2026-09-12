@@ -1,6 +1,9 @@
+using Cloudesh.Application.Infrastructure.Auth;
 using Cloudesh.Application.Infrastructure.Persistence;
 using Cloudesh.Application.Infrastructure.Persistence.Interceptors;
 using Cloudesh.Application.Infrastructure.Tenancy;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +13,8 @@ using Microsoft.Extensions.Hosting;
 namespace Cloudesh.Application.Infrastructure;
 
 /// <summary>
-/// Registers persistence and tenancy. The API host calls this once; nothing else
-/// should register these services.
+/// Registers persistence, tenancy, and cookie authentication. The API host calls
+/// this once; nothing else should register these services.
 /// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
@@ -26,16 +29,12 @@ public static class InfrastructureServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
 
-        services.AddOptions<TenancyOptions>()
-            .Bind(configuration.GetSection(TenancyOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         services.AddOptions<DatabaseOptions>()
             .Bind(configuration.GetSection(DatabaseOptions.SectionName))
             .ValidateOnStart();
 
-        GuardAgainstDefaultTenantOutsideDevelopment(configuration, environment);
+        services.AddOptions<PlatformAdminOptions>()
+            .Bind(configuration.GetSection(PlatformAdminOptions.SectionName));
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
@@ -49,6 +48,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<AuditableSaveChangesInterceptor>();
         services.AddScoped<TenantSaveChangesInterceptor>();
 
+        AddCookieAuthentication(services, environment);
         AddDbContext(services, configuration, environment);
 
         services.AddScoped<DatabaseSeeder>();
@@ -57,7 +57,42 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddHealthChecks()
             .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
 
+        // Called here — not from Program.cs — so the validation source generator
+        // discovers request records in this assembly. AddValidation() in the host
+        // project alone never sees those types, and annotations would be ignored.
+        services.AddValidation();
+
         return services;
+    }
+
+    private static void AddCookieAuthentication(IServiceCollection services, IHostEnvironment environment)
+    {
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "cloudesh.session";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = environment.IsProduction()
+                    ? CookieSecurePolicy.Always
+                    : CookieSecurePolicy.SameAsRequest;
+                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromHours(12);
+
+                // APIs must not redirect to a login page.
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
+            });
+
+        services.AddAuthorization();
     }
 
     private static void AddDbContext(
@@ -94,29 +129,5 @@ public static class InfrastructureServiceCollectionExtensions
                 options.EnableSensitiveDataLogging();
             }
         });
-    }
-
-    /// <summary>
-    /// A deployed API that quietly falls back to some default tenant would serve one
-    /// customer's data to anyone who forgets a header. Refuse to start instead.
-    /// </summary>
-    private static void GuardAgainstDefaultTenantOutsideDevelopment(
-        IConfiguration configuration,
-        IHostEnvironment environment)
-    {
-        if (environment.IsDevelopment())
-        {
-            return;
-        }
-
-        var tenancy = configuration.GetSection(TenancyOptions.SectionName).Get<TenancyOptions>();
-
-        if (tenancy?.DefaultTenantId is not null)
-        {
-            throw new InvalidOperationException(
-                $"Tenancy:DefaultTenantId is set in the '{environment.EnvironmentName}' environment. " +
-                "It is a development-only fallback for requests that carry no tenant header and must be " +
-                "removed outside Development.");
-        }
     }
 }

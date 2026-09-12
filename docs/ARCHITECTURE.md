@@ -54,14 +54,13 @@ backend/src/Cloudesh.Application/
 │   └── Pagination/          # PagedResult<T>
 ├── Domain/                  # entities; no EF or HTTP types
 │   ├── Common/              # ITenantScoped, IAuditable
-│   ├── Departments/         # WALKING SKELETON
+│   ├── Identity/            # User (platform admin), TenantAdmin
 │   └── Tenants/
 ├── Features/                # one folder per feature — where new code goes
-│   └── Departments/         # WALKING SKELETON
-│       ├── DepartmentEndpoints.cs
-│       ├── ListDepartments.cs
-│       └── CreateDepartment.cs
+│   ├── Auth/                # login, logout, current session
+│   └── PlatformTenants/     # company + tenant-admin CRUD
 ├── Infrastructure/
+│   ├── Auth/                # cookie session claims, platform-admin options
 │   ├── Persistence/         # AppDbContext, configurations, interceptors, seeding
 │   └── Tenancy/             # ITenantContext and how the tenant is resolved
 └── Migrations/
@@ -83,8 +82,8 @@ sequenceDiagram
     participant D as AppDbContext
     participant P as PostgreSQL
 
-    B->>E: POST /api/departments
-    E->>F: resolve tenant
+    B->>E: POST /api/platform/tenants/{id}/admins
+    E->>F: resolve tenant from session or BeginScope
     F-->>B: 400 if no tenant
     F->>V: validate data annotations
     V-->>B: 400 + field errors if invalid
@@ -110,7 +109,7 @@ isolated automatically; nothing has to be registered or configured per entity.
 
 ```mermaid
 flowchart TD
-    Req["Request with X-Tenant-Id"] --> TC["TenantContext<br/>scoped, one per request"]
+    Req["Signed session cookie"] --> TC["TenantContext<br/>scoped, one per request"]
     TC --> Ctx["AppDbContext"]
 
     Ctx --> Read["Reads"]
@@ -142,19 +141,26 @@ Four rules follow, and all four are covered by tests in
 else. Always name the filter to disable, and treat a bare call as something that needs a
 comment explaining why it is safe.
 
-### Authentication is not implemented
+### Authentication (MVP)
 
-The tenant currently comes from an `X-Tenant-Id` request header, which any client can
-forge. This is acceptable only because nothing is authenticated yet, and the API refuses
-to start with a default tenant configured outside Development.
+A signed HttpOnly cookie is the session. Passwords are stored and compared in plaintext
+for this MVP only.
 
-Everything needed to fix it is in one method:
 `TenantContext.ResolveFromRequest` in
-[backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs](../backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs).
-When authentication lands, it reads a tenant claim off `HttpContext.User` instead, and
-`TenancyOptions.DefaultTenantId` plus the header handling are deleted. Nothing else in
-the codebase knows how the tenant was determined — that is the whole reason the
-interface exists.
+[backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs](../backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs)
+reads the `tenant_id` claim from `HttpContext.User`. Platform admins have no tenant.
+That method is the only place that decides how a request maps onto a company — do not
+add a header or a default tenant.
+
+`IEndpointGroup.Audience` splits routes:
+
+- `Anonymous` — `/api/auth/*`
+- `Platform` — `/api/platform/*`, requires the platform-admin role
+- `Tenant` — `/api/*`, requires a tenant claim
+
+Platform handlers that write `ITenantScoped` rows (tenant admins) wrap the work in
+`ITenantScopeFactory.BeginScope`. That is the documented exception to "handlers do not
+choose their own tenant".
 
 ### Data conventions already in force
 
@@ -203,15 +209,14 @@ prerequisites for most of what follows.
 
 Nothing meaningful can be built for real users first.
 
-- **Authentication.** Start with ASP.NET Core Identity plus short-lived JWTs and rotating
-  refresh tokens; it keeps user records in the same database and avoids a vendor bill at
-  this size. Reach for an external identity provider (Keycloak self-hosted, or Auth0 /
-  Clerk / Entra ID) only when SSO or SCIM becomes a sales requirement — the abstraction to
-  make that swap cheap already exists in `ITenantContext`.
-- **Replace header-based tenancy** with a tenant claim, as described above.
-- **Tenant onboarding.** Sign-up, company creation, and the invitation flow. These
-  endpoints have no tenant, so they must be mapped *outside* the `/api` group that
-  `RequireTenantEndpointFilter` guards.
+- **Authentication.** Cookie sessions and plaintext passwords are the MVP. Replace them
+  with ASP.NET Core Identity plus short-lived JWTs and rotating refresh tokens before
+  any real deployment. Reach for an external identity provider only when SSO or SCIM
+  becomes a sales requirement — the abstraction to make that swap cheap already exists
+  in `ITenantContext`.
+- **Tenant onboarding.** Platform-admin company and tenant-admin CRUD exists. Self-serve
+  sign-up and invitation email are still ahead. Those endpoints have no tenant, so they
+  stay on `EndpointAudience.Anonymous` or `Platform`.
 - **Roles and permissions.** Owner, HR Admin, Manager, Employee. Two questions that are
   distinct and both need answering: does this role have the capability, and is this
   record within the person's scope (their own record, their direct reports, everyone)?

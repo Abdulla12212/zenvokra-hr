@@ -5,14 +5,8 @@ using Cloudesh.Application.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Persistence, tenancy, and health checks.
+// Persistence, tenancy, cookie auth, request validation, and health checks.
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
-
-// Validates request models from their data annotations before handlers run, so no
-// handler starts with a block of null and length checks. Uses source-generated
-// validators where available (see InterceptorsNamespaces in the .csproj files) and
-// falls back to reflection otherwise.
-builder.Services.AddValidation();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -26,7 +20,8 @@ if (allowedOrigins.Length > 0)
     builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
         .WithOrigins(allowedOrigins)
         .AllowAnyHeader()
-        .AllowAnyMethod()));
+        .AllowAnyMethod()
+        .AllowCredentials()));
 }
 
 var app = builder.Build();
@@ -37,6 +32,9 @@ if (allowedOrigins.Length > 0)
 {
     app.UseCors();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 

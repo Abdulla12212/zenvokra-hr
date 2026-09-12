@@ -1,4 +1,4 @@
-using Cloudesh.Application.Domain.Departments;
+using Cloudesh.Application.Domain.Identity;
 using Cloudesh.Application.Infrastructure.Persistence;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +12,8 @@ namespace Cloudesh.UnitTests.Persistence;
 /// customer sees another customer's HR data.
 /// </summary>
 /// <remarks>
-/// These test the tenancy mechanism, not departments — <c>Department</c> is only a
-/// convenient stand-in for "any tenant-scoped entity". When the walking skeleton is
-/// deleted, keep these tests and point them at a real entity.
+/// These test the tenancy mechanism, not tenant admins — <c>TenantAdmin</c> is the
+/// stand-in for "any tenant-scoped entity".
 /// </remarks>
 public sealed class TenantIsolationTests
 {
@@ -26,16 +25,16 @@ public sealed class TenantIsolationTests
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
 
-        await AddDepartmentAsync(fixture, acme, "Engineering");
-        await AddDepartmentAsync(fixture, globex, "Engineering");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, acme, "owner@acme.test");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
+        await AddAdminAsync(fixture, globex, "hr@globex.test");
 
         fixture.TenantContext.TenantId = acme;
 
-        var visible = await fixture.DbContext.Departments.AsNoTracking().ToListAsync();
+        var visible = await fixture.DbContext.TenantAdmins.AsNoTracking().ToListAsync();
 
         visible.Count.ShouldBe(1);
-        visible[0].Name.ShouldBe("Engineering");
+        visible[0].Email.ShouldBe("owner@acme.test");
         visible[0].TenantId.ShouldBe(acme);
     }
 
@@ -45,11 +44,11 @@ public sealed class TenantIsolationTests
         await using var fixture = await SqliteDbContextFixture.CreateAsync();
 
         Guid acme = await fixture.AddTenantAsync("acme");
-        await AddDepartmentAsync(fixture, acme, "Engineering");
+        await AddAdminAsync(fixture, acme, "owner@acme.test");
 
         fixture.TenantContext.TenantId = null;
 
-        var visible = await fixture.DbContext.Departments.AsNoTracking().ToListAsync();
+        var visible = await fixture.DbContext.TenantAdmins.AsNoTracking().ToListAsync();
 
         // Failing closed matters: an unresolved tenant must never mean "all tenants".
         visible.ShouldBeEmpty();
@@ -62,14 +61,14 @@ public sealed class TenantIsolationTests
 
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
-        await AddDepartmentAsync(fixture, acme, "Engineering");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, acme, "owner@acme.test");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
         fixture.TenantContext.TenantId = acme;
 
         // The deliberate, reviewable way to escape isolation: name the filter, so a
         // reader can see exactly which guarantee was given up.
-        var visible = await fixture.DbContext.Departments
+        var visible = await fixture.DbContext.TenantAdmins
             .IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])
             .AsNoTracking()
             .ToListAsync();
@@ -84,12 +83,12 @@ public sealed class TenantIsolationTests
 
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
-        await AddDepartmentAsync(fixture, acme, "Engineering");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, acme, "owner@acme.test");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
         fixture.TenantContext.TenantId = acme;
 
-        var visible = await fixture.DbContext.Departments
+        var visible = await fixture.DbContext.TenantAdmins
             .IgnoreQueryFilters()
             .AsNoTracking()
             .ToListAsync();
@@ -107,13 +106,13 @@ public sealed class TenantIsolationTests
         Guid acme = await fixture.AddTenantAsync("acme");
         fixture.TenantContext.TenantId = acme;
 
-        var department = Department.Create("Engineering");
-        department.TenantId.ShouldBe(Guid.Empty);
+        var admin = TenantAdmin.Create("owner@acme.test", "password1");
+        admin.TenantId.ShouldBe(Guid.Empty);
 
-        fixture.DbContext.Departments.Add(department);
+        fixture.DbContext.TenantAdmins.Add(admin);
         await fixture.DbContext.SaveChangesAsync();
 
-        department.TenantId.ShouldBe(acme);
+        admin.TenantId.ShouldBe(acme);
     }
 
     [Fact]
@@ -123,7 +122,7 @@ public sealed class TenantIsolationTests
         await fixture.AddTenantAsync("acme");
 
         fixture.TenantContext.TenantId = null;
-        fixture.DbContext.Departments.Add(Department.Create("Engineering"));
+        fixture.DbContext.TenantAdmins.Add(TenantAdmin.Create("owner@acme.test", "password1"));
 
         await Should.ThrowAsync<TenantNotResolvedException>(
             () => fixture.DbContext.SaveChangesAsync());
@@ -138,9 +137,9 @@ public sealed class TenantIsolationTests
 
         fixture.TenantContext.TenantId = acme;
 
-        var department = Department.Create("Engineering");
-        department.TenantId = globex;
-        fixture.DbContext.Departments.Add(department);
+        var admin = TenantAdmin.Create("owner@globex.test", "password1");
+        admin.TenantId = globex;
+        fixture.DbContext.TenantAdmins.Add(admin);
 
         await Should.ThrowAsync<CrossTenantOperationException>(
             () => fixture.DbContext.SaveChangesAsync());
@@ -152,15 +151,15 @@ public sealed class TenantIsolationTests
         await using var fixture = await SqliteDbContextFixture.CreateAsync();
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
         // Read as Globex, then act as Acme: this is what a leaked primary key looks
         // like, and the query filter alone would not stop the write.
         fixture.TenantContext.TenantId = globex;
-        Department victim = await fixture.DbContext.Departments.SingleAsync();
+        TenantAdmin victim = await fixture.DbContext.TenantAdmins.SingleAsync();
 
         fixture.TenantContext.TenantId = acme;
-        victim.Name = "Renamed by another tenant";
+        victim.Email = "stolen@acme.test";
 
         await Should.ThrowAsync<CrossTenantOperationException>(
             () => fixture.DbContext.SaveChangesAsync());
@@ -172,14 +171,14 @@ public sealed class TenantIsolationTests
         await using var fixture = await SqliteDbContextFixture.CreateAsync();
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
         fixture.TenantContext.TenantId = acme;
 
         // Rewriting TenantId to the current tenant would pass an ownership check that
         // only compared the new value, so the interceptor also refuses any change to
         // TenantId at all.
-        Department stolen = await fixture.DbContext.Departments.IgnoreQueryFilters().SingleAsync();
+        TenantAdmin stolen = await fixture.DbContext.TenantAdmins.IgnoreQueryFilters().SingleAsync();
         stolen.TenantId = acme;
 
         await Should.ThrowAsync<CrossTenantOperationException>(
@@ -192,37 +191,37 @@ public sealed class TenantIsolationTests
         await using var fixture = await SqliteDbContextFixture.CreateAsync();
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
-        await AddDepartmentAsync(fixture, globex, "Finance");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
         fixture.TenantContext.TenantId = globex;
-        Department victim = await fixture.DbContext.Departments.SingleAsync();
+        TenantAdmin victim = await fixture.DbContext.TenantAdmins.SingleAsync();
 
         fixture.TenantContext.TenantId = acme;
-        fixture.DbContext.Departments.Remove(victim);
+        fixture.DbContext.TenantAdmins.Remove(victim);
 
         await Should.ThrowAsync<CrossTenantOperationException>(
             () => fixture.DbContext.SaveChangesAsync());
     }
 
     [Fact]
-    public async Task The_same_name_is_allowed_in_two_different_tenants()
+    public async Task Two_tenants_can_each_have_an_admin()
     {
         await using var fixture = await SqliteDbContextFixture.CreateAsync();
         Guid acme = await fixture.AddTenantAsync("acme");
         Guid globex = await fixture.AddTenantAsync("globex");
 
-        await AddDepartmentAsync(fixture, acme, "Engineering");
-        await AddDepartmentAsync(fixture, globex, "Engineering");
+        await AddAdminAsync(fixture, acme, "owner@acme.test");
+        await AddAdminAsync(fixture, globex, "owner@globex.test");
 
-        int total = await fixture.DbContext.Departments.IgnoreQueryFilters().CountAsync();
+        int total = await fixture.DbContext.TenantAdmins.IgnoreQueryFilters().CountAsync();
         total.ShouldBe(2);
     }
 
-    private static async Task AddDepartmentAsync(SqliteDbContextFixture fixture, Guid tenantId, string name)
+    private static async Task AddAdminAsync(SqliteDbContextFixture fixture, Guid tenantId, string email)
     {
         using (fixture.TenantContext.BeginScope(tenantId))
         {
-            fixture.DbContext.Departments.Add(Department.Create(name));
+            fixture.DbContext.TenantAdmins.Add(TenantAdmin.Create(email, "password1"));
             await fixture.DbContext.SaveChangesAsync();
         }
 

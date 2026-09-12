@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router';
 
-import { DepartmentsPage } from '@/features/departments/pages/departments-page';
+import { LoginPage } from '@/features/auth/pages/login-page';
+import { CompanyDetailPage } from '@/features/platform-tenants/pages/company-detail-page';
 
-import { AppShell } from './layout/app-shell';
-import { DashboardPage } from './pages/dashboard-page';
+import { HomeRoute, PlatformOnly, SessionLayout } from './layout/session-layout';
 import { NotFoundPage } from './pages/not-found-page';
 import { RouteErrorPage } from './pages/route-error-page';
 
@@ -21,13 +21,20 @@ import { RouteErrorPage } from './pages/route-error-page';
  */
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    Component: LoginPage,
+    ErrorBoundary: RouteErrorPage,
+  },
+  {
     path: '/',
-    Component: AppShell,
+    Component: SessionLayout,
     ErrorBoundary: RouteErrorPage,
     children: [
-      { index: true, Component: DashboardPage },
-      // One route per feature; the page itself lives with its feature.
-      { path: 'departments', Component: DepartmentsPage },
+      { index: true, Component: HomeRoute },
+      {
+        Component: PlatformOnly,
+        children: [{ path: 'tenants/:tenantId', Component: CompanyDetailPage }],
+      },
       { path: '*', Component: NotFoundPage },
     ],
   },

@@ -9,12 +9,5 @@ export const env = {
    */
   apiBaseUrl: (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, ''),
 
-  /**
-   * TODO(auth): the tenant is sent as a plain header because nothing is
-   * authenticated yet. Once tokens exist, the tenant travels inside the token and
-   * this disappears along with the header in `api-client.ts`.
-   */
-  devTenantId: import.meta.env.VITE_DEV_TENANT_ID ?? '',
-
   isDevelopment: import.meta.env.DEV,
 } as const;
