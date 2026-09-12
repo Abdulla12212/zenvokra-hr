@@ -54,20 +54,61 @@ public static class Login
         }
 
         // Login has no tenant. Email is globally unique, so naming the filter here
-        // authenticates one person rather than listing another company's admins.
+        // authenticates one person rather than listing another company's members.
         TenantAdmin? tenantAdmin = await dbContext.TenantAdmins
             .IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])
             .AsNoTracking()
             .SingleOrDefaultAsync(admin => admin.Email == email, cancellationToken);
 
-        if (tenantAdmin is null || tenantAdmin.Password != request.Password)
+        if (tenantAdmin is not null)
+        {
+            if (tenantAdmin.Password != request.Password)
+            {
+                return InvalidCredentials();
+            }
+
+            return await SignInTenantMemberAsync(
+                httpContext,
+                dbContext,
+                tenantAdmin.Id,
+                tenantAdmin.Email,
+                UserRoles.TenantAdmin,
+                tenantAdmin.TenantId,
+                cancellationToken);
+        }
+
+        EmployeeAccount? employeeAccount = await dbContext.EmployeeAccounts
+            .IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])
+            .AsNoTracking()
+            .SingleOrDefaultAsync(account => account.Email == email, cancellationToken);
+
+        if (employeeAccount is null || employeeAccount.Password != request.Password)
         {
             return InvalidCredentials();
         }
 
+        return await SignInTenantMemberAsync(
+            httpContext,
+            dbContext,
+            employeeAccount.Id,
+            employeeAccount.Email,
+            UserRoles.Employee,
+            employeeAccount.TenantId,
+            cancellationToken);
+    }
+
+    private static async Task<Results<Ok<SessionResponse>, ProblemHttpResult>> SignInTenantMemberAsync(
+        HttpContext httpContext,
+        AppDbContext dbContext,
+        Guid userId,
+        string email,
+        string role,
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var tenant = await dbContext.Tenants
             .AsNoTracking()
-            .SingleOrDefaultAsync(item => item.Id == tenantAdmin.TenantId, cancellationToken);
+            .SingleOrDefaultAsync(item => item.Id == tenantId, cancellationToken);
 
         if (tenant is null)
         {
@@ -82,13 +123,8 @@ public static class Login
                 statusCode: StatusCodes.Status403Forbidden);
         }
 
-        await SignInAsync(httpContext, tenantAdmin.Id, tenantAdmin.Email, UserRoles.TenantAdmin, tenant.Id);
-        return TypedResults.Ok(new SessionResponse(
-            tenantAdmin.Id,
-            tenantAdmin.Email,
-            UserRoles.TenantAdmin,
-            tenant.Id,
-            tenant.Name));
+        await SignInAsync(httpContext, userId, email, role, tenant.Id);
+        return TypedResults.Ok(new SessionResponse(userId, email, role, tenant.Id, tenant.Name));
     }
 
     private static ProblemHttpResult InvalidCredentials() =>

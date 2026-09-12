@@ -4,15 +4,23 @@ using Microsoft.EntityFrameworkCore;
 namespace Cloudesh.Application.Features.PlatformTenants;
 
 /// <summary>
-/// Emails are unique across platform admins and tenant admins so login needs no
-/// tenant picker.
+/// Emails are unique across platform admins, tenant admins, and employee
+/// accounts so login needs no tenant picker.
 /// </summary>
 internal static class PlatformEmailUniqueness
 {
+    public static Task<bool> IsTakenAsync(
+        AppDbContext dbContext,
+        string email,
+        Guid? exceptAdminId,
+        CancellationToken cancellationToken) =>
+        IsTakenAsync(dbContext, email, exceptAdminId, exceptEmployeeAccountId: null, cancellationToken);
+
     public static async Task<bool> IsTakenAsync(
         AppDbContext dbContext,
         string email,
         Guid? exceptAdminId,
+        Guid? exceptEmployeeAccountId,
         CancellationToken cancellationToken)
     {
         bool usedByPlatformAdmin = await dbContext.Users
@@ -36,6 +44,21 @@ internal static class PlatformEmailUniqueness
             admins = admins.Where(admin => admin.Id != adminId);
         }
 
-        return await admins.AnyAsync(cancellationToken);
+        if (await admins.AnyAsync(cancellationToken))
+        {
+            return true;
+        }
+
+        var accounts = dbContext.EmployeeAccounts
+            .IgnoreQueryFilters([AppDbContext.TenantIsolationFilter])
+            .AsNoTracking()
+            .Where(account => account.Email == email);
+
+        if (exceptEmployeeAccountId is Guid accountId)
+        {
+            accounts = accounts.Where(account => account.Id != accountId);
+        }
+
+        return await accounts.AnyAsync(cancellationToken);
     }
 }

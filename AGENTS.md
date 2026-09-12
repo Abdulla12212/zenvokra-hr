@@ -1,7 +1,9 @@
 # Cloudesh HR
 
-Multi-tenant HR SaaS for small companies. Platform-admin onboarding is in place;
-tenant-admin and employee HR modules come next.
+Multi-tenant HR SaaS for small companies. Three signed-in roles: platform admin
+(companies), tenant admin (Dashboard / Employees / Approvals / Organization), and
+employee (Home / Time off / Inbox). Attendance, leave, and inbox slices are still
+ahead.
 
 .NET 10 Minimal API (vertical slices) + EF Core 10 + PostgreSQL 18, with a React 19 + Vite
 + Tailwind SPA. Everything runs in Docker Compose.
@@ -43,13 +45,23 @@ feature's key factory.
 ## Authentication and tenancy
 
 The tenant comes from the signed session cookie, in one method:
-`TenantContext.ResolveFromRequest`. Platform admins have no tenant. Tenant admins carry a
-`tenant_id` claim. Do not add a second way to determine the tenant (no `X-Tenant-Id`
-header, no default tenant).
+`TenantContext.ResolveFromRequest`. Platform admins have no tenant. Tenant admins and
+employees carry a `tenant_id` claim. Do not add a second way to determine the tenant (no
+`X-Tenant-Id` header, no default tenant).
+
+Login is email + password. Emails are unique across platform admins, tenant admins, and
+employee accounts. An `Employee` row is the HR record; `EmployeeAccount` is the login.
+`GET /api/employees/me` is the signed-in employee (403 for tenant admins). Roster
+list/create/update is tenant-admin only.
 
 Platform-level and login endpoints declare `EndpointAudience.Platform` or
 `EndpointAudience.Anonymous` so they sit outside the tenant guard. Copy
-`Features/Auth` and `Features/PlatformTenants` for new slices.
+`Features/Auth` and `Features/PlatformTenants` for new slices. Tenant HR endpoints use
+`EndpointAudience.Tenant` plus a role filter when only one of the two tenant roles may
+call them.
+
+Do not mix chrome. Employee nav stays Home / Time off / Inbox. Admin nav is Dashboard /
+Employees / Approvals / Organization. Specs: `docs/ux-employee` and `docs/ux-admin`.
 
 ## Commands
 

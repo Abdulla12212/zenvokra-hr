@@ -5,7 +5,7 @@ namespace Cloudesh.Application.Common.Endpoints;
 /// </summary>
 public enum EndpointAudience
 {
-    /// <summary>Tenant-scoped HR endpoints. Require a signed-in tenant admin.</summary>
+    /// <summary>Tenant-scoped HR endpoints. Require a signed-in tenant member.</summary>
     Tenant = 0,
 
     /// <summary>Platform-admin onboarding. No tenant; require the platform-admin role.</summary>

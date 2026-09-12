@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Employees</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll">
+          <div class="crumbs">Home / Employees / <b>Directory</b></div>
+          <div class="page-head">
+            <div>
+              <div class="page-title"><h1>Employees</h1></div>
+              <p>Roster for Acme Consulting. Create, view, and update people in this tenant.</p>
+            </div>
+            <div class="row">
+              <div class="btn btn-outline">Export roster (CSV)</div>
+              <div class="btn">+ Add employee</div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content: space-between; margin-bottom: 12px">
+            <div class="tabs">
+              <div class="tab is-on">All (48)</div>
+              <div class="tab">Engineering (22)</div>
+              <div class="tab">Design &amp; Product (8)</div>
+              <div class="tab">Operations (10)</div>
+              <div class="tab">People Ops (4)</div>
+              <div class="tab">Marketing (4)</div>
+            </div>
+            <div class="tiny">41 Present · 2 Late · 5 Leave</div>
+          </div>
+
+          <div class="row" style="margin-bottom: 12px">
+            <div class="search" style="flex: 1">Search name, EMP-ID, or role…</div>
+            <div class="control" style="width: 140px">Status: All live</div>
+            <div class="control" style="width: 180px">Dhaka HQ (all floors)</div>
+            <div class="control" style="width: 180px">Regular 09:00–18:00</div>
+          </div>
+
+          <div class="card">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>EMP ID</th>
+                  <th>Workstation</th>
+                  <th>Status</th>
+                  <th>Contact</th>
+                  <th>Leave left</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">AH</div>
+                      <div>
+                        <div style="font-weight: 500">Akram Hossain <span class="badge badge-primary">Admin</span></div>
+                        <div class="tiny">Sr. Software Engineer · Engineering · Platform</div>
+                        <div class="tiny">Nadia Chowdhury · akram.hossain@acmeconsulting.test</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>EMP-1024</td>
+                  <td>Dhaka HQ · Floor 4 · Desk 4B-12</td>
+                  <td><span class="badge badge-ok">Active</span></td>
+                  <td>+880 1711-102400</td>
+                  <td>17d</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">NC</div>
+                      <div>
+                        <div style="font-weight: 500">Nadia Chowdhury</div>
+                        <div class="tiny">VP of Engineering · Engineering</div>
+                        <div class="tiny">nadia.chowdhury@acmeconsulting.test</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>EMP-1001</td>
+                  <td>Dhaka HQ · Floor 5</td>
+                  <td><span class="badge badge-ok">Active</span></td>
+                  <td>+880 1711-100100</td>
+                  <td>12d</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">SK</div>
+                      <div>
+                        <div style="font-weight: 500">Samira Khan</div>
+                        <div class="tiny">Workplace Ops · Operations</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>EMP-1031</td>
+                  <td>Dhaka HQ · Ground</td>
+                  <td><span class="badge badge-primary">Remote</span></td>
+                  <td>+880 1711-103100</td>
+                  <td>9d</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="row">
+                      <div class="avatar-initials">TA</div>
+                      <div>
+                        <div style="font-weight: 500">Tanvir Ahmed</div>
+                        <div class="tiny">DevOps Specialist · Engineering</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>EMP-1038</td>
+                  <td>Remote / Hybrid</td>
+                  <td><span class="badge badge-off">Probation</span></td>
+                  <td>+880 1711-103800</td>
+                  <td>20d</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="card-p-sm tiny" style="border-top: 1px solid var(--border)">Showing 1 to 4 of 48 employees</div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("employees");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>

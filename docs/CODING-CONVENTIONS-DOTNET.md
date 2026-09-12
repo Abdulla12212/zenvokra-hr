@@ -6,6 +6,11 @@ unknown gets worked around rather than followed.
 The compiler and `.editorconfig` already enforce formatting and naming. This document
 covers the decisions they cannot.
 
+**Roles.** `GET /api/employees/me` is the signed-in employee (`EmployeeAccount` →
+`Employee`). List, create, and update employees are tenant-admin slices. Do not prefer a
+demo employee number. Isolation tests still use a second tenant — that tenant is not a
+product surface.
+
 ---
 
 ## Where code goes

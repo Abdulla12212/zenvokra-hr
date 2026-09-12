@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router';
 
 import { useCurrentUser } from '@/features/auth/api/auth-queries';
+import { EmployeeHomePage } from '@/features/employees/pages/employee-home-page';
 import { CompaniesPage } from '@/features/platform-tenants/pages/companies-page';
-import { TenantHomePage } from '@/features/tenant-workspace/pages/tenant-home-page';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import { PlatformShell, TenantShell } from './mode-shell';
+import { EmployeeShell, PlatformShell, TenantShell } from './mode-shell';
 
 export function SessionLayout() {
   const { data, isPending, isError, error } = useCurrentUser();
@@ -34,6 +34,10 @@ export function SessionLayout() {
     return <PlatformShell session={data} />;
   }
 
+  if (data.role === 'Employee') {
+    return <EmployeeShell session={data} />;
+  }
+
   return <TenantShell session={data} />;
 }
 
@@ -41,7 +45,11 @@ export function HomeRoute() {
   const { data } = useCurrentUser();
 
   if (data?.role === 'TenantAdmin') {
-    return <TenantHomePage companyName={data.tenantName ?? 'your company'} />;
+    return <Navigate to="/admin" replace />;
+  }
+
+  if (data?.role === 'Employee') {
+    return <EmployeeHomePage companyName={data.tenantName ?? undefined} />;
   }
 
   return <CompaniesPage />;
@@ -52,6 +60,26 @@ export function PlatformOnly() {
 
   if (data && data.role !== 'PlatformAdmin') {
     return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+export function TenantAdminOnly() {
+  const { data } = useCurrentUser();
+
+  if (data && data.role !== 'TenantAdmin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+export function EmployeeOnly() {
+  const { data } = useCurrentUser();
+
+  if (data && data.role !== 'Employee') {
+    return <Navigate to={data.role === 'TenantAdmin' ? '/admin' : '/'} replace />;
   }
 
   return <Outlet />;
