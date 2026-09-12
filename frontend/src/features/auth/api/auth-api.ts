@@ -1,6 +1,6 @@
 import { ApiError, api } from '@/lib/api-client';
 
-export type SessionRole = 'PlatformAdmin' | 'TenantAdmin';
+export type SessionRole = 'PlatformAdmin' | 'TenantAdmin' | 'Employee';
 
 export interface Session {
   userId: string;

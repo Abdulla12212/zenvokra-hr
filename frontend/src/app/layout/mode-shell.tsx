@@ -1,4 +1,12 @@
-import { Building2, LayoutDashboard, LogOut } from 'lucide-react';
+import {
+  Building2,
+  CalendarDays,
+  Inbox,
+  LayoutDashboard,
+  LogOut,
+  Settings2,
+  Users,
+} from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 
 import type { Session } from '@/features/auth/api/auth-api';
@@ -28,7 +36,27 @@ export function TenantShell({ session }: { session: Session }) {
       session={session}
       badge="Tenant admin"
       contextLabel={session.tenantName ?? undefined}
-      navigation={[{ to: '/', label: 'Home', icon: LayoutDashboard }]}
+      navigation={[
+        { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+        { to: '/admin/employees', label: 'Employees', icon: Users },
+        { to: '/admin/approvals', label: 'Approvals', icon: Inbox },
+        { to: '/admin/organization', label: 'Organization', icon: Settings2 },
+      ]}
+    />
+  );
+}
+
+export function EmployeeShell({ session }: { session: Session }) {
+  return (
+    <ModeShell
+      session={session}
+      badge="Employee"
+      contextLabel={session.tenantName ?? undefined}
+      navigation={[
+        { to: '/', label: 'Home', icon: LayoutDashboard },
+        { to: '/time-off', label: 'Time off', icon: CalendarDays },
+        { to: '/inbox', label: 'Inbox', icon: Inbox },
+      ]}
     />
   );
 }
@@ -109,7 +137,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
   return (
     <NavLink
       to={item.to}
-      end={item.to === '/'}
+      end={item.to === '/' || item.to === '/admin'}
       className={({ isActive }) =>
         cn(
           'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',

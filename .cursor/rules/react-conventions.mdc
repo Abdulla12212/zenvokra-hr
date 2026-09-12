@@ -42,6 +42,8 @@ components / pages               → call hooks only.
   `Features/<Feature>/`.
 - **Never import across features.** Shared things move to `lib/` or `components/`.
 - Files are `kebab-case`; components `PascalCase`; one exported component per file.
+- Employee nav is Home / Time off / Inbox (`useCurrentEmployee`). Admin nav is Dashboard /
+  Employees / Approvals / Organization. Do not mix those shells.
 
 ## Components
 

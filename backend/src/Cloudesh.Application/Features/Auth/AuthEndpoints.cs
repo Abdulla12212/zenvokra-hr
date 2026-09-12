@@ -17,7 +17,7 @@ public sealed class AuthEndpoints : IEndpointGroup
 
         auth.MapPost("/login", Login.HandleAsync)
             .WithName(nameof(Login))
-            .WithSummary("Signs in a platform admin or tenant admin.");
+            .WithSummary("Signs in a platform admin, tenant admin, or employee.");
 
         auth.MapPost("/logout", (Delegate)Logout.HandleAsync)
             .WithName(nameof(Logout))

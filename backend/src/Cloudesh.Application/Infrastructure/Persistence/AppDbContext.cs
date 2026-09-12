@@ -1,5 +1,6 @@
 using System.Reflection;
 using Cloudesh.Application.Domain.Common;
+using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Identity;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
@@ -46,6 +47,10 @@ public sealed class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
 
     public DbSet<TenantAdmin> TenantAdmins => Set<TenantAdmin>();
+
+    public DbSet<Employee> Employees => Set<Employee>();
+
+    public DbSet<EmployeeAccount> EmployeeAccounts => Set<EmployeeAccount>();
 
     /// <summary>
     /// The tenant every query is restricted to, or <see cref="Guid.Empty"/> when none is

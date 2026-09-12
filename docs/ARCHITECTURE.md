@@ -54,10 +54,12 @@ backend/src/Cloudesh.Application/
 │   └── Pagination/          # PagedResult<T>
 ├── Domain/                  # entities; no EF or HTTP types
 │   ├── Common/              # ITenantScoped, IAuditable
-│   ├── Identity/            # User (platform admin), TenantAdmin
+│   ├── Identity/            # User, TenantAdmin, EmployeeAccount
+│   ├── Employees/           # HR person record (no password)
 │   └── Tenants/
 ├── Features/                # one folder per feature — where new code goes
 │   ├── Auth/                # login, logout, current session
+│   ├── Employees/           # /me plus admin list/create/update
 │   └── PlatformTenants/     # company + tenant-admin CRUD
 ├── Infrastructure/
 │   ├── Auth/                # cookie session claims, platform-admin options
@@ -156,7 +158,11 @@ add a header or a default tenant.
 
 - `Anonymous` — `/api/auth/*`
 - `Platform` — `/api/platform/*`, requires the platform-admin role
-- `Tenant` — `/api/*`, requires a tenant claim
+- `Tenant` — `/api/*`, requires a tenant claim (tenant admin or employee)
+
+Role filters on individual routes split tenant-admin roster work from
+`GET /api/employees/me`. The session `NameIdentifier` for an employee is the
+`employee_accounts.id`; `/me` joins to the `employees` row.
 
 Platform handlers that write `ITenantScoped` rows (tenant admins) wrap the work in
 `ITenantScopeFactory.BeginScope`. That is the documented exception to "handlers do not

@@ -111,6 +111,41 @@ public sealed class AuthEndpointsTests
     }
 
     [Fact]
+    public async Task Employee_session_carries_the_company()
+    {
+        HttpClient admin = await _factory.CreateTenantAdminClientAsync(
+            "Worker Co",
+            "hr@worker.test");
+
+        HttpResponseMessage created = await admin.PostAsJsonAsync(
+            new Uri("/api/employees", UriKind.Relative),
+            new
+            {
+                fullName = "Pat Worker",
+                workEmail = "pat@worker.test",
+                password = "employee-pass",
+                employeeNumber = "EMP-10",
+                departmentName = "Ops",
+                title = "Analyst",
+                location = "Dhaka",
+            });
+
+        created.EnsureSuccessStatusCode();
+
+        HttpClient worker = _factory.CreateUnauthenticatedClient();
+        await _factory.LoginAsync(worker, "pat@worker.test", "employee-pass");
+
+        SessionBody? me = await worker.GetFromJsonAsync<SessionBody>(
+            new Uri("/api/auth/me", UriKind.Relative));
+
+        me.ShouldNotBeNull();
+        me.Role.ShouldBe(UserRoles.Employee);
+        me.Email.ShouldBe("pat@worker.test");
+        me.TenantName.ShouldBe("Worker Co");
+        me.TenantId.ShouldNotBeNull();
+    }
+
+    [Fact]
     public async Task Me_without_a_session_is_unauthorized()
     {
         HttpClient client = _factory.CreateUnauthenticatedClient();

@@ -34,6 +34,11 @@ question whether the features are really separate.
 `components/`. Cross-feature imports are how a modular frontend quietly becomes one
 tangled unit.
 
+**Three roles, two HR shells.** Platform admin stays on Companies. Tenant admin chrome is
+Dashboard / Employees / Approvals / Organization. Employee chrome is Home / Time off /
+Inbox — `useCurrentEmployee` (`GET /api/employees/me`), not a roster page. Do not mix
+those shells. Specs: `docs/ux-employee` and `docs/ux-admin`.
+
 ### File and symbol naming
 
 | Thing                    | Convention        | Example                     |

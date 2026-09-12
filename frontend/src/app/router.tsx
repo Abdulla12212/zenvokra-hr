@@ -1,9 +1,23 @@
 import { createBrowserRouter } from 'react-router';
 
 import { LoginPage } from '@/features/auth/pages/login-page';
+import { AdminEmployeesPage } from '@/features/employees/pages/admin-employees-page';
 import { CompanyDetailPage } from '@/features/platform-tenants/pages/company-detail-page';
 
-import { HomeRoute, PlatformOnly, SessionLayout } from './layout/session-layout';
+import {
+  EmployeeOnly,
+  HomeRoute,
+  PlatformOnly,
+  SessionLayout,
+  TenantAdminOnly,
+} from './layout/session-layout';
+import {
+  AdminApprovalsPage,
+  AdminDashboardPage,
+  AdminOrganizationPage,
+  InboxPlaceholderPage,
+  TimeOffPlaceholderPage,
+} from './pages/coming-soon-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { RouteErrorPage } from './pages/route-error-page';
 
@@ -34,6 +48,22 @@ export const router = createBrowserRouter([
       {
         Component: PlatformOnly,
         children: [{ path: 'tenants/:tenantId', Component: CompanyDetailPage }],
+      },
+      {
+        Component: TenantAdminOnly,
+        children: [
+          { path: 'admin', Component: AdminDashboardPage },
+          { path: 'admin/employees', Component: AdminEmployeesPage },
+          { path: 'admin/approvals', Component: AdminApprovalsPage },
+          { path: 'admin/organization', Component: AdminOrganizationPage },
+        ],
+      },
+      {
+        Component: EmployeeOnly,
+        children: [
+          { path: 'time-off', Component: TimeOffPlaceholderPage },
+          { path: 'inbox', Component: InboxPlaceholderPage },
+        ],
       },
       { path: '*', Component: NotFoundPage },
     ],

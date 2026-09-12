@@ -1,8 +1,13 @@
 # Adding a feature
 
-One walkthrough, front to back, using a hypothetical `Employees` feature. Copy the slice
-shape from `Features/Auth` and `Features/PlatformTenants` (platform work) or from a
-tenant-scoped entity such as `TenantAdmin`.
+One walkthrough, front to back, using a hypothetical extra field on `Employees`. Copy the
+slice shape from `Features/Employees` (tenant HR) or `Features/Auth` /
+`Features/PlatformTenants` (platform work).
+
+**Roles and chrome.** Login picks the account. Tenant admin nav is Dashboard / Employees /
+Approvals / Organization. Employee nav is Home / Time off / Inbox. `GET /api/employees/me`
+is the signed-in employee. Creating an employee also creates an `EmployeeAccount` (email +
+password). Emails are unique across platform admins, tenant admins, and employee accounts.
 
 Read [CODING-CONVENTIONS-DOTNET.md](CODING-CONVENTIONS-DOTNET.md) and
 [CODING-CONVENTIONS-REACT.md](CODING-CONVENTIONS-REACT.md) first; this document is the
@@ -344,14 +349,16 @@ return <EmployeeTable employees={data.items} />;
 ### 12. The route and navigation
 
 ```tsx
-// app/router.tsx
-{ path: 'employees', Component: EmployeesPage },
+// app/router.tsx — tenant-admin routes stay under /admin
+{ path: 'admin/employees', Component: AdminEmployeesPage },
 ```
 
 ```tsx
-// app/layout/mode-shell.tsx
-{ to: '/employees', label: 'People', icon: Users },
+// app/layout/mode-shell.tsx — TenantShell, not the employee nav
+{ to: '/admin/employees', label: 'Employees', icon: Users },
 ```
+
+Do not add a People item to the employee shell.
 
 ### 13. Frontend tests
 
@@ -386,3 +393,6 @@ Then check:
 - [ ] Query keys come from the feature's key factory.
 - [ ] Inputs have labels; errors have `role="alert"`.
 - [ ] Nothing was added to `Program.cs`.
+- [ ] The employee shell is still Home / Time off / Inbox — no People item there.
+- [ ] Admin list/create/update does not leak into the employee chrome.
+- [ ] `GET /me` resolves the signed-in `EmployeeAccount`, not a hardcoded employee number.

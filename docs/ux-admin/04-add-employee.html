@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudesh Admin · Add employee</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="stage">
+        <header class="topbar" id="topbar"></header>
+        <main class="main is-scroll" style="filter: blur(2px)">
+          <div class="crumbs">Home / Employees / <b>Directory</b></div>
+          <div class="page-head">
+            <div class="page-title"><h1>Employees</h1></div>
+            <div class="btn">+ Add employee</div>
+          </div>
+          <div class="card card-p-sm" style="height: 420px"></div>
+        </main>
+        <div class="overlay">
+          <div class="modal">
+            <div class="modal-head">
+              <div>
+                <div style="font-size: 16px; font-weight: 600">Add new employee</div>
+                <p class="tiny">Registers a person on the Acme Consulting tenant.</p>
+              </div>
+              <div class="tiny">✕</div>
+            </div>
+            <div class="modal-body">
+              <div class="form-grid">
+                <div class="field"><div class="label">Full name <span class="req">*</span></div><div class="control">e.g. Farhana Ahmed</div></div>
+                <div class="field"><div class="label">Work email <span class="req">*</span></div><div class="control">farhana.a@acmeconsulting.test</div></div>
+                <div class="field"><div class="label">Employee ID <span class="req">*</span></div><div class="control is-focus">EMP-1049</div></div>
+                <div class="field"><div class="label">Department <span class="req">*</span></div><div class="control">Engineering</div></div>
+                <div class="field"><div class="label">Role / job title <span class="req">*</span></div><div class="control">e.g. Software Engineer</div></div>
+                <div class="field"><div class="label">Workstation / location <span class="req">*</span></div><div class="control">Dhaka HQ · Floor 4</div></div>
+                <div class="field"><div class="label">Phone number</div><div class="control">+880 1700-000000</div></div>
+                <div class="field"><div class="label">Work shift</div><div class="control">Regular (09:00–18:00)</div></div>
+                <div class="field"><div class="label">Reporting manager</div><div class="control">Nadia Chowdhury (VP of Eng.)</div></div>
+                <div class="field"><div class="label">Joining date</div><div class="control">dd/mm/yyyy</div></div>
+              </div>
+            </div>
+            <div class="modal-foot">
+              <div class="btn btn-ghost">Cancel</div>
+              <div class="btn">Save employee</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="shell.js"></script>
+    <script>
+      CloudeshAdmin.mount("employees");
+      document.getElementById("topbar").innerHTML = CloudeshAdmin.topbar();
+    </script>
+  </body>
+</html>
