@@ -1,4 +1,4 @@
-using Cloudesh.Application.Domain.Departments;
+using Cloudesh.Application.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using Xunit;
@@ -6,9 +6,8 @@ using Xunit;
 namespace Cloudesh.UnitTests.Persistence;
 
 /// <summary>
-/// Covers <c>AuditableSaveChangesInterceptor</c>. <c>Department</c> is only a stand-in
-/// for "any auditable entity"; when the walking skeleton is deleted, keep these tests and
-/// point them at a real entity.
+/// Covers <c>AuditableSaveChangesInterceptor</c>. <c>TenantAdmin</c> is only a stand-in
+/// for "any auditable entity".
 /// </summary>
 public sealed class AuditingTests
 {
@@ -23,12 +22,12 @@ public sealed class AuditingTests
         Guid tenantId = await fixture.AddTenantAsync("acme");
         fixture.TenantContext.TenantId = tenantId;
 
-        var department = Department.Create("Engineering");
-        fixture.DbContext.Departments.Add(department);
+        var admin = TenantAdmin.Create("owner@acme.test", "password1");
+        fixture.DbContext.TenantAdmins.Add(admin);
         await fixture.DbContext.SaveChangesAsync();
 
-        department.CreatedAtUtc.ShouldBe(Noon);
-        department.UpdatedAtUtc.ShouldBe(Noon);
+        admin.CreatedAtUtc.ShouldBe(Noon);
+        admin.UpdatedAtUtc.ShouldBe(Noon);
     }
 
     [Fact]
@@ -40,16 +39,16 @@ public sealed class AuditingTests
         Guid tenantId = await fixture.AddTenantAsync("acme");
         fixture.TenantContext.TenantId = tenantId;
 
-        var department = Department.Create("Engineering");
-        fixture.DbContext.Departments.Add(department);
+        var admin = TenantAdmin.Create("owner@acme.test", "password1");
+        fixture.DbContext.TenantAdmins.Add(admin);
         await fixture.DbContext.SaveChangesAsync();
 
         clock.Advance(TimeSpan.FromHours(3));
-        department.Name = "Platform Engineering";
+        admin.Email = "renamed@acme.test";
         await fixture.DbContext.SaveChangesAsync();
 
-        department.CreatedAtUtc.ShouldBe(Noon);
-        department.UpdatedAtUtc.ShouldBe(Noon.AddHours(3));
+        admin.CreatedAtUtc.ShouldBe(Noon);
+        admin.UpdatedAtUtc.ShouldBe(Noon.AddHours(3));
     }
 
     [Fact]
@@ -61,18 +60,18 @@ public sealed class AuditingTests
         Guid tenantId = await fixture.AddTenantAsync("acme");
         fixture.TenantContext.TenantId = tenantId;
 
-        var department = Department.Create("Engineering");
-        fixture.DbContext.Departments.Add(department);
+        var admin = TenantAdmin.Create("owner@acme.test", "password1");
+        fixture.DbContext.TenantAdmins.Add(admin);
         await fixture.DbContext.SaveChangesAsync();
 
         clock.Advance(TimeSpan.FromHours(3));
-        department.CreatedAtUtc = Noon.AddYears(-1);
-        department.Name = "Platform Engineering";
+        admin.CreatedAtUtc = Noon.AddYears(-1);
+        admin.Email = "renamed@acme.test";
         await fixture.DbContext.SaveChangesAsync();
 
         fixture.DbContext.ChangeTracker.Clear();
 
-        Department persisted = await fixture.DbContext.Departments.AsNoTracking().SingleAsync();
+        TenantAdmin persisted = await fixture.DbContext.TenantAdmins.AsNoTracking().SingleAsync();
         persisted.CreatedAtUtc.ShouldBe(Noon);
     }
 }

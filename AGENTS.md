@@ -1,7 +1,7 @@
 # Cloudesh HR
 
-Multi-tenant HR SaaS for small companies. This repository is **boilerplate**: the
-infrastructure is in place, no HR features are built yet.
+Multi-tenant HR SaaS for small companies. Platform-admin onboarding is in place;
+tenant-admin and employee HR modules come next.
 
 .NET 10 Minimal API (vertical slices) + EF Core 10 + PostgreSQL 18, with a React 19 + Vite
 + Tailwind SPA. Everything runs in Docker Compose.
@@ -40,19 +40,16 @@ feature's key factory.
 
 **No `any` and no `!` in TypeScript.** Both fail the lint.
 
-## Authentication does not exist yet
+## Authentication and tenancy
 
-The tenant comes from an `X-Tenant-Id` header, which any client could forge. This is a
-development-only affordance and the API refuses to start with a default tenant outside
-Development. All of it changes in one method: `TenantContext.ResolveFromRequest`.
+The tenant comes from the signed session cookie, in one method:
+`TenantContext.ResolveFromRequest`. Platform admins have no tenant. Tenant admins carry a
+`tenant_id` claim. Do not add a second way to determine the tenant (no `X-Tenant-Id`
+header, no default tenant).
 
-Do not build on the header. Do not add a second way to determine the tenant.
-
-## The walking skeleton
-
-The `Departments` feature exists only to prove the plumbing works end to end, and every
-file involved is marked `WALKING SKELETON`. Copy its shape; delete it once real features
-exist (`grep -rl "WALKING SKELETON" backend frontend`).
+Platform-level and login endpoints declare `EndpointAudience.Platform` or
+`EndpointAudience.Anonymous` so they sit outside the tenant guard. Copy
+`Features/Auth` and `Features/PlatformTenants` for new slices.
 
 ## Commands
 

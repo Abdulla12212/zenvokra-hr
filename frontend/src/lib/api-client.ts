@@ -1,8 +1,5 @@
 import { env } from './env';
 
-/** Header the API reads the current tenant from. See `TenancyOptions` on the server. */
-export const TENANT_HEADER = 'X-Tenant-Id';
-
 /**
  * An RFC 9457 problem response. Every non-2xx from the API has this shape, including
  * validation failures, which add a per-field `errors` map.
@@ -73,10 +70,6 @@ export async function apiFetch<TResponse>(
     headers.set('Content-Type', 'application/json');
   }
 
-  if (env.devTenantId) {
-    headers.set(TENANT_HEADER, env.devTenantId);
-  }
-
   let response: Response;
 
   try {
@@ -84,6 +77,7 @@ export async function apiFetch<TResponse>(
       method,
       headers,
       signal,
+      credentials: 'include',
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (cause) {

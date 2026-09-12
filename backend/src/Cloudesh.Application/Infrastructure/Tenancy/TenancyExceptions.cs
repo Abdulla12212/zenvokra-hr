@@ -2,12 +2,12 @@ namespace Cloudesh.Application.Infrastructure.Tenancy;
 
 /// <summary>
 /// Thrown when an operation needs a tenant but none could be determined from the
-/// request. Surfaces as HTTP 400.
+/// session. Surfaces as HTTP 400.
 /// </summary>
 public sealed class TenantNotResolvedException : Exception
 {
     public TenantNotResolvedException()
-        : base("The current tenant could not be resolved.")
+        : base("The current tenant could not be resolved from the signed session.")
     {
     }
 
@@ -20,9 +20,6 @@ public sealed class TenantNotResolvedException : Exception
         : base(message, innerException)
     {
     }
-
-    public static TenantNotResolvedException ForHeader(string headerName) =>
-        new($"The current tenant could not be resolved. Send a valid tenant id in the '{headerName}' header.");
 }
 
 /// <summary>

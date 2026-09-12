@@ -21,7 +21,7 @@ namespace Cloudesh.Application.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Cloudesh.Application.Domain.Departments.Department", b =>
+            modelBuilder.Entity("Cloudesh.Application.Domain.Identity.TenantAdmin", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -31,11 +31,17 @@ namespace Cloudesh.Application.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at_utc");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
-                        .HasColumnName("name");
+                        .HasColumnName("password");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
@@ -46,13 +52,59 @@ namespace Cloudesh.Application.Migrations
                         .HasColumnName("updated_at_utc");
 
                     b.HasKey("Id")
-                        .HasName("pk_departments");
+                        .HasName("pk_tenant_admins");
 
-                    b.HasIndex("TenantId", "Name")
+                    b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_departments_tenant_id_name");
+                        .HasDatabaseName("ix_tenant_admins_email");
 
-                    b.ToTable("departments", (string)null);
+                    b.HasIndex("TenantId", "Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenant_admins_tenant_id_email");
+
+                    b.ToTable("tenant_admins", (string)null);
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Identity.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("password");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email");
+
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("Cloudesh.Application.Domain.Tenants.Tenant", b =>
@@ -95,12 +147,12 @@ namespace Cloudesh.Application.Migrations
                     b.ToTable("tenants", (string)null);
                 });
 
-            modelBuilder.Entity("Cloudesh.Application.Domain.Departments.Department", b =>
+            modelBuilder.Entity("Cloudesh.Application.Domain.Identity.TenantAdmin", b =>
                 {
                     b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
-                        .HasConstraintName("fk_departments_tenants_tenant_id")
+                        .HasConstraintName("fk_tenant_admins_tenants_tenant_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

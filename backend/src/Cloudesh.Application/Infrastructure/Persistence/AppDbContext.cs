@@ -1,6 +1,6 @@
 using System.Reflection;
 using Cloudesh.Application.Domain.Common;
-using Cloudesh.Application.Domain.Departments;
+using Cloudesh.Application.Domain.Identity;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +29,9 @@ public sealed class AppDbContext : DbContext
     /// </remarks>
     public const string TenantIsolationFilter = "TenantIsolation";
 
-    private static readonly MethodInfo ApplyTenantIsolationMethod = typeof(AppDbContext)
-        .GetMethod(nameof(ApplyTenantIsolation), BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo ApplyTenantIsolationMethod =
+        typeof(AppDbContext).GetMethod(nameof(ApplyTenantIsolation), BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("ApplyTenantIsolation could not be found.");
 
     private readonly ITenantContext _tenantContext;
 
@@ -42,8 +43,9 @@ public sealed class AppDbContext : DbContext
 
     public DbSet<Tenant> Tenants => Set<Tenant>();
 
-    // WALKING SKELETON: delete alongside the Departments feature.
-    public DbSet<Department> Departments => Set<Department>();
+    public DbSet<User> Users => Set<User>();
+
+    public DbSet<TenantAdmin> TenantAdmins => Set<TenantAdmin>();
 
     /// <summary>
     /// The tenant every query is restricted to, or <see cref="Guid.Empty"/> when none is

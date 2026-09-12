@@ -9,7 +9,7 @@ namespace Cloudesh.Application.Infrastructure.Tenancy;
 /// </remarks>
 public interface ITenantContext
 {
-    /// <summary>Current tenant, or <see langword="null"/> outside a tenant context (migrations, seeding, background work).</summary>
+    /// <summary>Current tenant, or <see langword="null"/> outside a tenant context (migrations, seeding, background work, platform admin).</summary>
     Guid? TenantId { get; }
 
     /// <summary>Whether a tenant has been resolved.</summary>
@@ -36,9 +36,10 @@ public interface ITenantContext
 /// Runs a block of work as a specific tenant.
 /// </summary>
 /// <remarks>
-/// Intended for code that has no request to resolve a tenant from: database
-/// seeding, migrations, and (later) background jobs and scheduled tasks. Do not
-/// inject this into a feature handler — a handler that chooses its own tenant has
+/// Intended for code that has no request tenant to resolve: database seeding,
+/// background jobs, and platform-level onboarding handlers that create
+/// tenant-owned rows for a company they just chose. Ordinary tenant-facing
+/// handlers must not inject this — a handler that picks its own tenant has
 /// defeated the isolation model.
 /// </remarks>
 public interface ITenantScopeFactory

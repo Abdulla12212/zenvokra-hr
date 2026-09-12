@@ -1,0 +1,24 @@
+using System.Net;
+using Shouldly;
+using Xunit;
+
+namespace Cloudesh.IntegrationTests;
+
+[Collection(SharedApi.Name)]
+public sealed class HealthEndpointsTests
+{
+    private readonly ApiFactory _factory;
+
+    public HealthEndpointsTests(ApiFactory factory) => _factory = factory;
+
+    [Fact]
+    public async Task Health_check_reports_the_database_is_reachable()
+    {
+        HttpClient client = _factory.CreateUnauthenticatedClient();
+
+        HttpResponseMessage response = await client.GetAsync(new Uri("/health", UriKind.Relative));
+
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        (await response.Content.ReadAsStringAsync()).ShouldBe("Healthy");
+    }
+}

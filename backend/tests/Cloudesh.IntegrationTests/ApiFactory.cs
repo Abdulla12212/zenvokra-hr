@@ -1,10 +1,9 @@
+using System.Net.Http.Json;
 using Cloudesh.Api;
-using Cloudesh.Application.Domain.Tenants;
-using Cloudesh.Application.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
 using Xunit;
 
@@ -14,79 +13,135 @@ namespace Cloudesh.IntegrationTests;
 /// Boots the real API against a throwaway PostgreSQL container.
 /// </summary>
 /// <remarks>
-/// Nothing is stubbed: the same DI graph, the same migrations, the same interceptors,
-/// and the same database engine as production. That is the point — an in-memory
-/// provider cannot tell you whether a unique index or a query filter actually works.
-/// <para>Requires a reachable Docker daemon. See the README if these tests fail to start.</para>
+/// Shared by every integration test class via <see cref="SharedApi"/> so we
+/// start one database, not one per fixture. Tests in a collection run sequentially.
 /// </remarks>
 public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyncLifetime
 {
-    public const string TenantHeader = "X-Tenant-Id";
+    public const string PlatformAdminEmail = "owner@cloudesh.test";
+    public const string PlatformAdminPassword = "cloudesh-dev";
 
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:18-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:18-alpine")
         .WithDatabase("cloudesh_hr_tests")
         .WithUsername("cloudesh")
         .WithPassword("cloudesh")
         .Build();
 
+    private string? _previousConnectionString;
+
     public async ValueTask InitializeAsync()
     {
         await _postgres.StartAsync();
 
-        // Touching Services forces the host to build, which applies migrations.
+        // `docker compose exec api` inherits ConnectionStrings__Default for the
+        // compose Postgres. WebApplication.CreateBuilder prefers that env var
+        // over ConfigureAppConfiguration, so tests would otherwise write to the
+        // live database. This process-only override does not affect the API.
+        _previousConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__Default");
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", _postgres.GetConnectionString());
+
         _ = Services;
     }
 
-    /// <summary>Creates a tenant and returns a client that acts on its behalf.</summary>
-    public async Task<HttpClient> CreateClientForNewTenantAsync(string slug)
-    {
-        Guid tenantId = await CreateTenantAsync(slug);
-        return CreateClientFor(tenantId);
-    }
+    public HttpClient CreateUnauthenticatedClient() =>
+        CreateClient(new WebApplicationFactoryClientOptions
+        {
+            HandleCookies = true,
+            AllowAutoRedirect = false,
+        });
 
-    public HttpClient CreateClientFor(Guid tenantId)
+    public async Task<HttpClient> CreatePlatformClientAsync()
     {
-        HttpClient client = CreateClient();
-        client.DefaultRequestHeaders.Add(TenantHeader, tenantId.ToString());
+        HttpClient client = CreateUnauthenticatedClient();
+        await LoginAsync(client, PlatformAdminEmail, PlatformAdminPassword);
         return client;
     }
 
-    public async Task<Guid> CreateTenantAsync(string slug)
+    public async Task LoginAsync(HttpClient client, string email, string password)
     {
-        using IServiceScope scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        HttpResponseMessage response = await client.PostAsJsonAsync(
+            new Uri("/api/auth/login", UriKind.Relative),
+            new { email, password });
 
-        Tenant tenant = Tenant.Create(slug, $"{slug}-{Guid.CreateVersion7():N}");
-        dbContext.Tenants.Add(tenant);
-        await dbContext.SaveChangesAsync();
+        response.EnsureSuccessStatusCode();
+    }
 
-        return tenant.Id;
+    public async Task<(Guid TenantId, Guid AdminId)> CreateTenantWithAdminAsync(
+        HttpClient platformClient,
+        string tenantName,
+        string adminEmail,
+        string adminPassword = "admin-pass")
+    {
+        HttpResponseMessage createdTenant = await platformClient.PostAsJsonAsync(
+            new Uri("/api/platform/tenants", UriKind.Relative),
+            new { name = tenantName });
+
+        createdTenant.EnsureSuccessStatusCode();
+        TenantCreated? tenant = await createdTenant.Content.ReadFromJsonAsync<TenantCreated>();
+        ArgumentNullException.ThrowIfNull(tenant);
+
+        HttpResponseMessage createdAdmin = await platformClient.PostAsJsonAsync(
+            new Uri($"/api/platform/tenants/{tenant.Id}/admins", UriKind.Relative),
+            new { email = adminEmail, password = adminPassword });
+
+        createdAdmin.EnsureSuccessStatusCode();
+        AdminCreated? admin = await createdAdmin.Content.ReadFromJsonAsync<AdminCreated>();
+        ArgumentNullException.ThrowIfNull(admin);
+
+        return (tenant.Id, admin.Id);
+    }
+
+    public async Task<HttpClient> CreateTenantAdminClientAsync(
+        string tenantName,
+        string adminEmail,
+        string adminPassword = "admin-pass")
+    {
+        HttpClient platform = await CreatePlatformClientAsync();
+        await CreateTenantWithAdminAsync(platform, tenantName, adminEmail, adminPassword);
+
+        HttpClient tenantAdmin = CreateUnauthenticatedClient();
+        await LoginAsync(tenantAdmin, adminEmail, adminPassword);
+        return tenantAdmin;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        // Not "Development", so appsettings.Development.json — with its localhost
-        // connection string and default-tenant fallback — is never loaded. Every test
-        // names its own tenant, so a silent fallback would only hide bugs where the
-        // header never reaches the server.
+        // Not "Development", so appsettings.Development.json is never loaded.
         builder.UseEnvironment("IntegrationTests");
-
-        // Added after the host's own sources, so these win over appsettings.json.
-        builder.ConfigureAppConfiguration(configuration => configuration.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Default"] = _postgres.GetConnectionString(),
-                ["Database:MigrateOnStartup"] = "true",
-                ["Database:SeedOnStartup"] = "false",
-            }));
     }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        // Added after the host's default sources, including the api container's
+        // ConnectionStrings__Default. Without this last write, tests hit the
+        // compose Postgres and collide with leftover demo rows.
+        builder.ConfigureAppConfiguration((_, configuration) =>
+            configuration.AddInMemoryCollection(TestSettings()));
+
+        return base.CreateHost(builder);
+    }
+
+    private Dictionary<string, string?> TestSettings() => new()
+    {
+        ["ConnectionStrings:Default"] = _postgres.GetConnectionString(),
+        ["Database:MigrateOnStartup"] = "true",
+        ["Database:SeedOnStartup"] = "true",
+        ["PlatformAdmin:Email"] = PlatformAdminEmail,
+        ["PlatformAdmin:Password"] = PlatformAdminPassword,
+    };
 
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", _previousConnectionString);
         await _postgres.DisposeAsync();
     }
+
+    private sealed record TenantCreated(Guid Id);
+
+    private sealed record AdminCreated(Guid Id);
 }

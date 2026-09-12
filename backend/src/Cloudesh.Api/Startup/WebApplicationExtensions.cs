@@ -5,7 +5,7 @@ namespace Cloudesh.Api.Startup;
 internal static class WebApplicationExtensions
 {
     /// <summary>
-    /// Applies migrations and seeds demo data, if <see cref="DatabaseOptions"/> asks
+    /// Applies migrations and seeds the platform admin, if <see cref="DatabaseOptions"/> asks
     /// for it. Runs before the server accepts traffic so the first request never hits
     /// a half-built schema.
     /// </summary>

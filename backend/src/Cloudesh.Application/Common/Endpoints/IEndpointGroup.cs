@@ -16,5 +16,11 @@ namespace Cloudesh.Application.Common.Endpoints;
 /// </remarks>
 public interface IEndpointGroup
 {
+    /// <summary>
+    /// Which audience this group serves. Defaults to tenant-facing so ordinary HR
+    /// features inherit the tenant guard without opting in.
+    /// </summary>
+    EndpointAudience Audience => EndpointAudience.Tenant;
+
     void MapEndpoints(IEndpointRouteBuilder routes);
 }

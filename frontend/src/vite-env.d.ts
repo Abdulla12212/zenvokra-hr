@@ -11,13 +11,6 @@ interface ImportMetaEnv {
    * Vite dev proxy (or through whatever serves the built assets in production).
    */
   readonly VITE_API_BASE_URL?: string;
-
-  /**
-   * Tenant sent on every request while there is no authentication.
-   *
-   * TODO(auth): delete this once the tenant comes from a signed token.
-   */
-  readonly VITE_DEV_TENANT_ID?: string;
 }
 
 interface ImportMeta {

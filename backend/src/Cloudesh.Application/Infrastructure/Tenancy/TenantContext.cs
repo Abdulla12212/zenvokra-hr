@@ -1,38 +1,30 @@
+using System.Security.Claims;
+using Cloudesh.Application.Infrastructure.Auth;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace Cloudesh.Application.Infrastructure.Tenancy;
 
 /// <summary>
-/// Resolves the current tenant from the incoming request, with an explicit escape
+/// Resolves the current tenant from the signed session, with an explicit escape
 /// hatch for code that runs outside a request.
 /// </summary>
 /// <remarks>
-/// <para>
-/// Resolution order: an active <see cref="BeginScope"/> override, then the tenant
-/// header, then <see cref="TenancyOptions.DefaultTenantId"/>.
-/// </para>
-/// <para>
-/// TODO(auth): a client-supplied header is trivially forgeable and is only
-/// acceptable because nothing is authenticated yet. When authentication lands,
-/// replace <see cref="ResolveFromRequest"/> with a read of the tenant claim on
-/// <c>HttpContext.User</c> and delete <see cref="TenancyOptions.DefaultTenantId"/>.
-/// This method is the only place that needs to change.
-/// </para>
+/// Resolution order: an active <see cref="BeginScope"/> override, then the
+/// <c>tenant_id</c> claim on <c>HttpContext.User</c>. Platform admins and
+/// anonymous callers have no tenant. This method is the only place that decides
+/// how a request maps onto a tenant — do not add a second resolver.
 /// </remarks>
 public sealed class TenantContext : ITenantContext, ITenantScopeFactory
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly TenancyOptions _options;
 
     private Guid? _scopeOverride;
     private Guid? _resolved;
     private bool _hasResolved;
 
-    public TenantContext(IHttpContextAccessor httpContextAccessor, IOptions<TenancyOptions> options)
+    public TenantContext(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
-        _options = options.Value;
     }
 
     public Guid? TenantId => _scopeOverride ?? ResolveOnce();
@@ -45,7 +37,8 @@ public sealed class TenantContext : ITenantContext, ITenantScopeFactory
     public Guid FilterTenantId => TenantId ?? Guid.Empty;
 
     public Guid RequireTenantId() =>
-        TenantId ?? throw TenantNotResolvedException.ForHeader(_options.HeaderName);
+        TenantId ?? throw new TenantNotResolvedException(
+            "The current tenant could not be resolved from the signed session.");
 
     public IDisposable BeginScope(Guid tenantId)
     {
@@ -74,16 +67,21 @@ public sealed class TenantContext : ITenantContext, ITenantScopeFactory
     private Guid? ResolveFromRequest()
     {
         HttpContext? httpContext = _httpContextAccessor.HttpContext;
+        ClaimsPrincipal? user = httpContext?.User;
 
-        if (httpContext is not null
-            && httpContext.Request.Headers.TryGetValue(_options.HeaderName, out var header)
-            && Guid.TryParse(header.ToString(), out Guid fromHeader)
-            && fromHeader != Guid.Empty)
+        if (user?.Identity?.IsAuthenticated != true)
         {
-            return fromHeader;
+            return null;
         }
 
-        return _options.DefaultTenantId;
+        string? tenantClaim = user.FindFirstValue(AuthClaims.TenantId);
+
+        if (Guid.TryParse(tenantClaim, out Guid fromClaim) && fromClaim != Guid.Empty)
+        {
+            return fromClaim;
+        }
+
+        return null;
     }
 
     private sealed class TenantScope : IDisposable

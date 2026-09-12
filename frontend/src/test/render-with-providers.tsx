@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 
 /**
  * Renders a component with the providers it needs in tests.
@@ -10,8 +11,9 @@ import type { ReactElement, ReactNode } from 'react';
  */
 export function renderWithProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
+  options?: Omit<RenderOptions, 'wrapper'> & { route?: string },
 ): RenderResult & { queryClient: QueryClient } {
+  const { route = '/', ...renderOptions } = options ?? {};
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: 0, gcTime: 0 },
@@ -20,11 +22,15 @@ export function renderWithProviders(
   });
 
   function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    );
   }
 
   return {
-    ...render(ui, { wrapper: Wrapper, ...options }),
+    ...render(ui, { wrapper: Wrapper, ...renderOptions }),
     queryClient,
   };
 }

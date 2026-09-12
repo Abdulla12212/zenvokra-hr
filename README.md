@@ -1,9 +1,9 @@
 # Cloudesh HR
 
-Boilerplate for a multi-tenant HR SaaS aimed at small companies (roughly 5–10 employees per
-tenant). This repository contains **no HR features yet** — it is the foundation they will be
-built on: a containerized .NET 10 Minimal API, a React 19 SPA, PostgreSQL with EF Core, and
-tenant isolation wired all the way through the data layer.
+Multi-tenant HR SaaS aimed at small companies (roughly 5–10 employees per tenant). The
+foundation is a containerized .NET 10 Minimal API, a React 19 SPA, PostgreSQL with EF Core,
+and tenant isolation wired through the data layer. Platform admins can already onboard
+companies and tenant admins.
 
 | Layer    | Stack                                                                     |
 | -------- | ------------------------------------------------------------------------- |
@@ -27,10 +27,12 @@ cp .env.example .env
 make up
 ```
 
-The API container restores packages, applies EF Core migrations, seeds a demo tenant, and starts
-`dotnet watch`. The web container installs npm packages and starts Vite. The first run takes a few
-minutes; subsequent runs are fast because both `node_modules` and the NuGet cache live in named
-volumes.
+The API container restores packages, applies EF Core migrations, seeds the platform admin, and
+starts `dotnet watch`. The web container installs npm packages and starts Vite. The first run
+takes a few minutes; subsequent runs are fast because both `node_modules` and the NuGet cache
+live in named volumes.
+
+Sign in at http://localhost:5173 with `owner@cloudesh.test` / `cloudesh-dev` (see `.env.example`).
 
 | Service       | URL                                    |
 | ------------- | -------------------------------------- |
@@ -114,10 +116,9 @@ applies a named query filter called `TenantIsolation` to those entities automati
 never see another tenant's rows, and a `SaveChanges` interceptor stamps `TenantId` on inserts and
 rejects cross-tenant updates and deletes. The current tenant comes from `ITenantContext`.
 
-**Authentication is not implemented yet.** Until it is, `ITenantContext` reads the `X-Tenant-Id`
-request header and falls back to `Tenancy:DefaultTenantId` in Development. This is a development
-affordance and is refused outside Development — see
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the exact swap to a JWT claim.
+The current tenant comes from the signed session cookie via `ITenantContext`. Platform admins
+have no tenant; tenant admins carry a `tenant_id` claim. See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Common tasks
 
@@ -133,21 +134,11 @@ make migrate-add NAME=AddEmployees   # create a migration
 make migrate                         # apply pending migrations
 ```
 
-## The walking skeleton
+## What exists today
 
-To prove the plumbing works end to end, the repository ships one throwaway feature: a
-tenant-scoped `Department` entity with `GET /api/departments` and `POST /api/departments`, plus a
-React page that lists and creates them. It exists purely as a reference for
-[docs/ADD-A-FEATURE.md](docs/ADD-A-FEATURE.md).
-
-Every file involved is marked `WALKING SKELETON`. Delete them once real features exist:
-
-```bash
-grep -rl "WALKING SKELETON" backend frontend
-```
-
-Keep `Tenant`, `ITenantScoped`, `AuditableEntity`, and everything under `Infrastructure/` — those
-are foundation, not demo.
+Platform admins can sign in, create companies, and create tenant admins. Tenant admins can
+sign in to a stub company workspace. Copy `Features/Auth` and `Features/PlatformTenants`
+when adding the next module — see [docs/ADD-A-FEATURE.md](docs/ADD-A-FEATURE.md).
 
 ## Running without Docker
 

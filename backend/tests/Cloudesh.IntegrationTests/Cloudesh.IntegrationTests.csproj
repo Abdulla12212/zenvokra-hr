@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Cloudesh.IntegrationTests</RootNamespace>
     <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
