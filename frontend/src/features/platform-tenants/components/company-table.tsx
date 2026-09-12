@@ -22,6 +22,9 @@ export function CompanyTable({ tenants }: { tenants: Tenant[] }) {
           <TableHead>Status</TableHead>
           <TableHead>Admins</TableHead>
           <TableHead className="w-40">Created</TableHead>
+          <TableHead className="w-28">
+            <span className="sr-only">Actions</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -37,6 +40,14 @@ export function CompanyTable({ tenants }: { tenants: Tenant[] }) {
             <TableCell>{tenant.adminCount}</TableCell>
             <TableCell className="text-muted-foreground">
               {formatDate(tenant.createdAtUtc)}
+            </TableCell>
+            <TableCell>
+              <Link
+                to={`/tenants/${tenant.id}`}
+                className="text-primary text-sm font-medium hover:underline"
+              >
+                Manage admins
+              </Link>
             </TableCell>
           </TableRow>
         ))}

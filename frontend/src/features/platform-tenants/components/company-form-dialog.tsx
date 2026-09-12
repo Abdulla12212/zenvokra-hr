@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -29,6 +30,7 @@ export function CompanyFormDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const navigate = useNavigate();
   const createMutation = useCreateTenant();
 
   const {
@@ -46,8 +48,9 @@ export function CompanyFormDialog({
     try {
       const created = await createMutation.mutateAsync(values);
       reset();
-      toast.success(`Created ${created.name}.`);
+      toast.success(`Created ${created.name}. Add a tenant admin so they can sign in.`);
       onClose();
+      void navigate(`/tenants/${created.id}`);
     } catch (error) {
       const fieldMessage = firstFieldMessage(error, 'name');
 

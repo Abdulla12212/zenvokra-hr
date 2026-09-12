@@ -56,6 +56,10 @@ describe('CompaniesPage', () => {
     renderWithProviders(<CompaniesPage />);
 
     expect(await screen.findByText('Acme Consulting')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /manage admins/i })).toHaveAttribute(
+      'href',
+      `/tenants/${acme.id}`,
+    );
     expect(screen.getByText('1 company')).toBeInTheDocument();
   });
 

@@ -17,7 +17,7 @@ export function CompaniesPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Companies</h1>
           <p className="text-muted-foreground text-sm">
-            Onboard a company, then add the tenant admins who will run it.
+            Create a company, then open it to add tenant admins who can sign in.
           </p>
         </div>
         <Button type="button" onClick={() => setCreateOpen(true)}>
