@@ -22,6 +22,82 @@ namespace Cloudesh.Application.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Cloudesh.Application.Domain.Approvals.PunchCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<DateTimeOffset?>("DecidedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at_utc");
+
+                    b.Property<string>("DecisionNote")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("employee_id");
+
+                    b.Property<bool>("ManagerVerified")
+                        .HasColumnType("boolean")
+                        .HasColumnName("manager_verified");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("note");
+
+                    b.Property<TimeOnly>("RecordedTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("recorded_time");
+
+                    b.Property<TimeOnly>("RequestedTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("requested_time");
+
+                    b.Property<DateTimeOffset>("SentAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at_utc");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.HasKey("Id")
+                        .HasName("pk_punch_corrections");
+
+                    b.HasIndex("EmployeeId")
+                        .HasDatabaseName("ix_punch_corrections_employee_id");
+
+                    b.HasIndex("TenantId", "EmployeeId", "Date")
+                        .HasDatabaseName("ix_punch_corrections_tenant_id_employee_id_date");
+
+                    b.ToTable("punch_corrections", (string)null);
+                });
+
             modelBuilder.Entity("Cloudesh.Application.Domain.Attendance.AttendanceDay", b =>
                 {
                     b.Property<Guid>("Id")
@@ -547,6 +623,140 @@ namespace Cloudesh.Application.Migrations
                     b.ToTable("leave_requests", (string)null);
                 });
 
+            modelBuilder.Entity("Cloudesh.Application.Domain.Organization.OrganizationProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ClientCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("client_code");
+
+                    b.Property<string>("ContractPeriod")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("contract_period");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("display_name");
+
+                    b.Property<string>("FiscalYear")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("fiscal_year");
+
+                    b.Property<string>("Industry")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("industry");
+
+                    b.Property<string>("LegalName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("legal_name");
+
+                    b.Property<string>("OfficeFloors")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("office_floors");
+
+                    b.Property<string>("OfficeLandline")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("office_landline");
+
+                    b.Property<string>("RegionTimeZone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("region_time_zone");
+
+                    b.Property<string>("RegisteredOffice")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("registered_office");
+
+                    b.Property<int>("SeatLimit")
+                        .HasColumnType("integer")
+                        .HasColumnName("seat_limit");
+
+                    b.Property<string>("ShiftTiming")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("shift_timing");
+
+                    b.Property<string>("SubscriptionTier")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("subscription_tier");
+
+                    b.Property<string>("SupportHotline")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("support_hotline");
+
+                    b.Property<string>("SupportSla")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("support_sla");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at_utc");
+
+                    b.Property<string>("WebsiteUrl")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("website_url");
+
+                    b.Property<string>("WorkEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("work_email");
+
+                    b.Property<string>("WorkingDays")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("working_days");
+
+                    b.HasKey("Id")
+                        .HasName("pk_organization_profiles");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_organization_profiles_tenant_id");
+
+                    b.ToTable("organization_profiles", (string)null);
+                });
+
             modelBuilder.Entity("Cloudesh.Application.Domain.Tenants.Tenant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -585,6 +795,23 @@ namespace Cloudesh.Application.Migrations
                         .HasDatabaseName("ix_tenants_slug");
 
                     b.ToTable("tenants", (string)null);
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Approvals.PunchCorrection", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Employees.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_punch_corrections_employees_employee_id");
+
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_punch_corrections_tenants_tenant_id");
                 });
 
             modelBuilder.Entity("Cloudesh.Application.Domain.Attendance.AttendanceDay", b =>
@@ -683,6 +910,16 @@ namespace Cloudesh.Application.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_leave_requests_tenants_tenant_id");
+                });
+
+            modelBuilder.Entity("Cloudesh.Application.Domain.Organization.OrganizationProfile", b =>
+                {
+                    b.HasOne("Cloudesh.Application.Domain.Tenants.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_profiles_tenants_tenant_id");
                 });
 #pragma warning restore 612, 618
         }

@@ -32,11 +32,32 @@ internal static class AttendanceComposer
             dbContext,
             cancellationToken);
 
-        if (employee is null)
-        {
-            return null;
-        }
+        return employee is null
+            ? null
+            : await LoadForEmployeeAsync(dbContext, timeProvider, employee, cancellationToken);
+    }
 
+    public static async Task<Context?> LoadForEmployeeAsync(
+        AppDbContext dbContext,
+        TimeProvider timeProvider,
+        Guid employeeId,
+        CancellationToken cancellationToken)
+    {
+        EmployeeReadModel.Detail? employee = await EmployeeReadModel
+            .Project(dbContext.Employees.AsNoTracking().Where(row => row.Id == employeeId))
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return employee is null
+            ? null
+            : await LoadForEmployeeAsync(dbContext, timeProvider, employee, cancellationToken);
+    }
+
+    private static async Task<Context> LoadForEmployeeAsync(
+        AppDbContext dbContext,
+        TimeProvider timeProvider,
+        EmployeeReadModel.Detail employee,
+        CancellationToken cancellationToken)
+    {
         List<AttendanceDay> days = await dbContext.AttendanceDays
             .AsNoTracking()
             .Where(day => day.EmployeeId == employee.Id)
@@ -46,9 +67,11 @@ internal static class AttendanceComposer
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        List<LeaveRequest> pending = await dbContext.LeaveRequests
+        List<LeaveRequest> leave = await dbContext.LeaveRequests
             .AsNoTracking()
-            .Where(request => request.EmployeeId == employee.Id && request.Status == LeaveStatuses.Pending)
+            .Where(request =>
+                request.EmployeeId == employee.Id
+                && (request.Status == LeaveStatuses.Pending || request.Status == LeaveStatuses.Approved))
             .ToListAsync(cancellationToken);
 
         TimeZoneInfo zone = EmployeeClock.ResolveTimeZone(employee.TimeZone);
@@ -57,7 +80,7 @@ internal static class AttendanceComposer
             employee,
             days,
             holidays,
-            pending,
+            leave,
             EmployeeClock.Today(timeProvider, employee.TimeZone),
             EmployeeClock.NowTime(timeProvider, employee.TimeZone),
             timeProvider.GetUtcNow(),

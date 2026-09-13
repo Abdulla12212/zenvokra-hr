@@ -87,3 +87,52 @@ export function createEmployee(input: CreateEmployeeInput): Promise<Employee> {
 export function updateEmployee(employeeId: string, input: UpdateEmployeeInput): Promise<Employee> {
   return api.patch<Employee>(`${basePath}/${employeeId}`, input);
 }
+
+export interface EmployeeCalendarCell {
+  day: number | null;
+  weekend: boolean;
+  today: boolean;
+  selected: boolean;
+  inRange: boolean;
+  kind: 'empty' | 'weekend' | 'present' | 'late' | 'leave' | 'closed' | 'today' | 'scheduled';
+  metaPrimary?: string | null;
+  metaSecondary?: string | null;
+  showPlane?: boolean;
+}
+
+export interface EmployeeLeaveBalance {
+  type: string;
+  remaining: number;
+  total: number;
+}
+
+export interface EmployeeLeaveRequest {
+  id: string;
+  type: string;
+  datesLabel: string;
+  days: number;
+  status: string;
+  statusLabel: string;
+  note: string;
+  sentLabel: string;
+}
+
+export interface EmployeeLeave {
+  balances: EmployeeLeaveBalance[];
+  requests: EmployeeLeaveRequest[];
+}
+
+export function getEmployeeAttendance(
+  employeeId: string,
+  params: { year?: number; month?: number; day?: number },
+  signal?: AbortSignal,
+): Promise<EmployeeCalendarCell[]> {
+  return api.get<EmployeeCalendarCell[]>(`${basePath}/${employeeId}/attendance`, {
+    query: params,
+    signal,
+  });
+}
+
+export function getEmployeeLeave(employeeId: string, signal?: AbortSignal): Promise<EmployeeLeave> {
+  return api.get<EmployeeLeave>(`${basePath}/${employeeId}/leave`, { signal });
+}

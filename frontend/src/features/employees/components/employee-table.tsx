@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -44,7 +46,10 @@ export function EmployeeTable({
               <EmployeeStatusBadge status={employee.status} />
             </TableCell>
             <TableCell className="text-muted-foreground">{employee.workEmail}</TableCell>
-            <TableCell>
+            <TableCell className="space-x-1">
+              <Button type="button" variant="ghost" size="sm" asChild>
+                <Link to={`/admin/employees/${employee.id}`}>View</Link>
+              </Button>
               <Button type="button" variant="ghost" size="sm" onClick={() => onEdit(employee)}>
                 Edit
               </Button>

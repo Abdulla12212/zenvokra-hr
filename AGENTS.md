@@ -3,7 +3,8 @@
 Multi-tenant HR SaaS for small companies. Three signed-in roles: platform admin
 (companies), tenant admin (Dashboard / Employees / Approvals / Organization), and
 employee (Home / Time off / Inbox). Employees punch, request time off, and read a
-derived inbox. Admin approvals and org profile are still Phase 3.
+derived inbox. Tenant admins review leave and punch corrections on Approvals,
+read a presence Dashboard, and edit a tenant-scoped Organization profile.
 
 .NET 10 Minimal API (vertical slices) + EF Core 10 + PostgreSQL 18, with a React 19 + Vite
 + Tailwind SPA. Everything runs in Docker Compose.
