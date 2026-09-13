@@ -18,8 +18,6 @@ namespace Cloudesh.Application.Infrastructure;
 /// </summary>
 public static class InfrastructureServiceCollectionExtensions
 {
-    public const string ConnectionStringName = "Default";
-
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -48,8 +46,11 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddScoped<AuditableSaveChangesInterceptor>();
         services.AddScoped<TenantSaveChangesInterceptor>();
 
+        DatabaseConnections connections = DatabaseConnections.FromConfiguration(configuration);
+        services.AddSingleton(connections);
+
         AddCookieAuthentication(services, environment);
-        AddDbContext(services, configuration, environment);
+        AddDbContext(services, connections, environment);
 
         services.AddScoped<DatabaseSeeder>();
         services.AddScoped<DatabaseInitializer>();
@@ -97,21 +98,16 @@ public static class InfrastructureServiceCollectionExtensions
 
     private static void AddDbContext(
         IServiceCollection services,
-        IConfiguration configuration,
+        DatabaseConnections connections,
         IHostEnvironment environment)
     {
-        string? connectionString = configuration.GetConnectionString(ConnectionStringName);
-
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException(
-                $"Connection string '{ConnectionStringName}' is missing. Set ConnectionStrings__{ConnectionStringName} " +
-                "in the environment, or add it to appsettings.Development.json.");
-        }
-
         services.AddDbContext<AppDbContext>((provider, options) =>
         {
-            options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(3));
+            options.UseNpgsql(connections.Runtime, npgsql =>
+            {
+                npgsql.EnableRetryOnFailure(3);
+                npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name);
+            });
 
             // Maps PascalCase properties to snake_case columns, so psql sessions and
             // hand-written SQL never need quoted identifiers.

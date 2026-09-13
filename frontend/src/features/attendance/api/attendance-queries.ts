@@ -8,8 +8,8 @@ import {
   clockOut,
   getAttendance,
   getAttendanceCalendar,
+  getPunchLog,
   getStamp,
-  getTimesheet,
   hideLateBanner,
   startOrEndBreak,
   updateStamp,
@@ -24,32 +24,48 @@ export const attendanceKeys = {
   current: () => [...attendanceKeys.all, 'current'] as const,
   log: () => [...attendanceKeys.all, 'log'] as const,
   stamp: (date: string) => [...attendanceKeys.all, 'stamp', date] as const,
-  calendar: (year: number, month: number, day: number) =>
-    [...attendanceKeys.all, 'calendar', year, month, day] as const,
+  calendar: (year: number, month: number) =>
+    [...attendanceKeys.all, 'calendar', year, month] as const,
 };
 
-async function invalidateEmployeeTime(queryClient: ReturnType<typeof useQueryClient>) {
-  await queryClient.invalidateQueries({ queryKey: employeeTimeKeys.all });
+async function applyAttendanceSnapshot(
+  queryClient: ReturnType<typeof useQueryClient>,
+  snapshot: AttendanceSnapshot,
+) {
+  queryClient.setQueryData(attendanceKeys.current(), snapshot);
+  await queryClient.invalidateQueries({
+    queryKey: employeeTimeKeys.all,
+    predicate: (query) => !isCurrentAttendanceQuery(query.queryKey),
+  });
+}
+
+function isCurrentAttendanceQuery(queryKey: readonly unknown[]): boolean {
+  const current = attendanceKeys.current();
+  return (
+    queryKey.length === current.length && current.every((part, index) => queryKey[index] === part)
+  );
 }
 
 export function useAttendance() {
   return useQuery<AttendanceSnapshot, ApiError>({
     queryKey: attendanceKeys.current(),
     queryFn: ({ signal }) => getAttendance(signal),
+    refetchInterval: (query) => (query.state.data?.clockedIn === true ? 60_000 : false),
   });
 }
 
 export function usePunchLog() {
   return useQuery<PunchLogGroup[], ApiError>({
     queryKey: attendanceKeys.log(),
-    queryFn: ({ signal }) => getTimesheet(signal),
+    queryFn: ({ signal }) => getPunchLog(signal),
   });
 }
 
-export function useAttendanceCalendar(year: number, month: number, day: number) {
+export function useAttendanceCalendar(year: number, month: number) {
   return useQuery<CalendarCell[], ApiError>({
-    queryKey: attendanceKeys.calendar(year, month, day),
-    queryFn: ({ signal }) => getAttendanceCalendar(year, month, day, signal),
+    queryKey: attendanceKeys.calendar(year, month),
+    queryFn: ({ signal }) => getAttendanceCalendar(year, month, signal),
+    placeholderData: (previous) => previous,
   });
 }
 
@@ -65,8 +81,8 @@ export function usePunchIn() {
 
   return useMutation<AttendanceSnapshot, ApiError, void>({
     mutationFn: () => clockIn(),
-    onSuccess: async () => {
-      await invalidateEmployeeTime(queryClient);
+    onSuccess: async (snapshot) => {
+      await applyAttendanceSnapshot(queryClient, snapshot);
     },
   });
 }
@@ -76,8 +92,8 @@ export function usePunchOut() {
 
   return useMutation<AttendanceSnapshot, ApiError, void>({
     mutationFn: () => clockOut(),
-    onSuccess: async () => {
-      await invalidateEmployeeTime(queryClient);
+    onSuccess: async (snapshot) => {
+      await applyAttendanceSnapshot(queryClient, snapshot);
     },
   });
 }
@@ -87,8 +103,8 @@ export function useToggleBreak() {
 
   return useMutation<AttendanceSnapshot, ApiError, void>({
     mutationFn: () => startOrEndBreak(),
-    onSuccess: async () => {
-      await invalidateEmployeeTime(queryClient);
+    onSuccess: async (snapshot) => {
+      await applyAttendanceSnapshot(queryClient, snapshot);
     },
   });
 }
@@ -98,8 +114,8 @@ export function useDismissLateBanner() {
 
   return useMutation<AttendanceSnapshot, ApiError, void>({
     mutationFn: () => hideLateBanner(),
-    onSuccess: async () => {
-      await invalidateEmployeeTime(queryClient);
+    onSuccess: async (snapshot) => {
+      await applyAttendanceSnapshot(queryClient, snapshot);
     },
   });
 }
@@ -109,8 +125,8 @@ export function useSaveStamp() {
 
   return useMutation<AttendanceSnapshot, ApiError, { date: string; draft: StampDraft }>({
     mutationFn: (input) => updateStamp(input),
-    onSuccess: async () => {
-      await invalidateEmployeeTime(queryClient);
+    onSuccess: async (snapshot) => {
+      await applyAttendanceSnapshot(queryClient, snapshot);
     },
   });
 }

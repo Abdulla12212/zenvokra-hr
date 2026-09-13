@@ -7,6 +7,17 @@ services:
   api:
     build:
       target: development
+    # Restart on edit. Hot reload has been leaving GetStamp/clock handlers
+    # with BadImageFormatException after source patches.
+    command:
+      [
+        'dotnet',
+        'watch',
+        '--no-hot-reload',
+        '--project',
+        'src/Cloudesh.Api',
+        '--non-interactive',
+      ]
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Database__MigrateOnStartup: ${DATABASE__MIGRATEONSTARTUP:-true}

@@ -42,10 +42,23 @@ public static class GetAttendanceCalendar
             return TypedResults.NotFound();
         }
 
-        int calendarYear = year ?? context.Today.Year;
-        int calendarMonth = month ?? context.Today.Month;
+        int calendarYear;
+        int calendarMonth;
 
-        if (calendarMonth is < 1 or > 12 || calendarYear is < 1 or > 9999)
+        if (year is >= 1 and <= 9999)
+        {
+            calendarYear = year.Value;
+            calendarMonth = month is >= 1 and <= 12 ? month.Value : context.Today.Month;
+        }
+        else
+        {
+            calendarYear = context.Today.Year;
+            calendarMonth = year is null && month is >= 1 and <= 12
+                ? month.Value
+                : context.Today.Month;
+        }
+
+        if (month is < 0 or > 12)
         {
             return TypedResults.Problem(
                 title: "Invalid calendar",
@@ -53,9 +66,18 @@ public static class GetAttendanceCalendar
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
+        if (year is < 0 or > 9999)
+        {
+            return TypedResults.Problem(
+                title: "Invalid calendar",
+                detail: "Year must be between 1 and 9999.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+
         var monthStart = new DateOnly(calendarYear, calendarMonth, 1);
-        int selectedDay = day
-            ?? (calendarYear == context.Today.Year && calendarMonth == context.Today.Month
+        int selectedDay = day is >= 1
+            ? day.Value
+            : (calendarYear == context.Today.Year && calendarMonth == context.Today.Month
                 ? context.Today.Day
                 : 1);
 

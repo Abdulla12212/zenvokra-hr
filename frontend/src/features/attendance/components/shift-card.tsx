@@ -1,130 +1,113 @@
-import { LogOut } from 'lucide-react';
-import { Link } from 'react-router';
-
-import { ProgressBar } from '@/components/progress-bar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { homeHref, type HomeSearch } from '@/lib/home-search';
-import { cn } from '@/lib/utils';
 
 import type { AttendanceSnapshot } from '../api/attendance-api';
-import { usePunchIn, useToggleBreak } from '../api/attendance-queries';
+import { usePunchIn, usePunchOut } from '../api/attendance-queries';
+import {
+  formatStampTime,
+  formatWorkedClock,
+  timerPriorSeconds,
+  useWorkedClock,
+} from '../lib/worked-clock';
 
-export function ShiftCard({
-  attendance,
-  search,
-}: {
-  attendance: AttendanceSnapshot;
-  search: HomeSearch;
-}) {
+export function ShiftCard({ attendance }: { attendance: AttendanceSnapshot }) {
   const punchIn = usePunchIn();
-  const toggleBreak = useToggleBreak();
+  const punchOut = usePunchOut();
+  const clockInLabel = formatStampTime(attendance.clockInAt);
+  const clockOutLabel = attendance.clockedIn ? '—' : formatStampTime(attendance.clockOutAt);
+  const error = punchIn.error ?? punchOut.error;
 
   return (
     <div className="bg-card rounded-xl border p-4 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.06em] uppercase">
-            Today’s shift
+            Today
           </p>
           <p className="text-muted-foreground text-xs">{attendance.todayLabel}</p>
         </div>
         <Badge variant={attendance.clockedIn ? 'present' : 'off'}>
-          {attendance.clockedIn ? 'Active' : 'Out'}
+          {attendance.clockedIn ? 'Clocked in' : attendance.clockInAt ? 'Clocked out' : 'Out'}
         </Badge>
       </div>
 
-      <div className="mb-2 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[28px] leading-none font-bold tracking-tight">
-            {attendance.recordedTimer}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">
-            {attendance.clockedIn
-              ? 'Recorded working time today'
-              : `Not started · stamps ${attendance.currentTime}`}
-          </p>
-        </div>
-        <p className="text-muted-foreground shrink-0 text-right text-xs font-semibold">
-          {attendance.percentOfShift}% of 8h
-        </p>
-      </div>
+      <WorkedTimer
+        todayIso={attendance.todayIso}
+        priorWorkedSeconds={timerPriorSeconds(
+          attendance.clockedIn,
+          attendance.priorWorkedSeconds,
+          attendance.recordedSeconds,
+        )}
+        openSinceAt={attendance.openSinceAt}
+      />
+      <p className="text-muted-foreground mt-1 mb-3.5 text-xs">
+        {attendance.clockedIn
+          ? 'Running'
+          : attendance.clockInAt
+            ? 'Paused'
+            : 'Clock in to start the day'}
+      </p>
 
-      <ProgressBar value={attendance.percentOfShift} className="mb-3.5" />
+      <dl className="mb-3.5 flex flex-col gap-2 text-[13px]">
+        <div className="flex items-start justify-between gap-2.5">
+          <dt className="text-muted-foreground">Clock in</dt>
+          <dd className="font-medium">{clockInLabel}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-2.5">
+          <dt className="text-muted-foreground">Clock out</dt>
+          <dd className="font-medium">{clockOutLabel}</dd>
+        </div>
+      </dl>
+
+      {error ? (
+        <p role="alert" className="text-destructive mb-3 text-sm">
+          {error.message}
+        </p>
+      ) : null}
 
       {attendance.clockedIn ? (
-        <>
-          <Button className="mb-2 w-full" asChild>
-            <Link to={homeHref({ ...search, sheet: 'punch-out' })}>
-              Punch out
-              <LogOut aria-hidden="true" />
-            </Link>
-          </Button>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={toggleBreak.isPending}
-              onClick={() => {
-                toggleBreak.mutate();
-              }}
-            >
-              {attendance.onBreak ? 'End break' : 'Take break'}
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to={homeHref({ ...search, sheet: 'fix-punch' })}>Edit stamp</Link>
-            </Button>
-          </div>
-          <StampList attendance={attendance} />
-        </>
+        <Button
+          type="button"
+          size="lg"
+          className="w-full"
+          disabled={punchOut.isPending}
+          onClick={() => {
+            punchOut.mutate();
+          }}
+        >
+          Clock out
+        </Button>
       ) : (
-        <>
-          <p className="text-muted-foreground mb-3 text-xs">
-            Clock in from here. The stamp uses your workplace location.
-          </p>
-          <Button
-            type="button"
-            size="lg"
-            className="mb-2 w-full"
-            disabled={punchIn.isPending}
-            onClick={() => {
-              punchIn.mutate();
-            }}
-          >
-            Punch in
-          </Button>
-          <dl className="mt-3.5 flex flex-col gap-2 text-[13px]">
-            <StampRow label="Scheduled in" value="09:00" />
-            <StampRow label="Expected out" value="18:00" />
-            <StampRow label="Time now" value={attendance.currentTime} />
-            <StampRow label="Location" value={attendance.locationReadyLabel} />
-          </dl>
-        </>
+        <Button
+          type="button"
+          size="lg"
+          className="w-full"
+          disabled={punchIn.isPending}
+          onClick={() => {
+            punchIn.mutate();
+          }}
+        >
+          Clock in
+        </Button>
       )}
     </div>
   );
 }
 
-function StampList({ attendance }: { attendance: AttendanceSnapshot }) {
-  return (
-    <dl className="mt-3.5 flex flex-col gap-2 text-[13px]">
-      <StampRow label="Clock-in" value={attendance.clockInDetail} ok />
-      <StampRow label="Lunch break" value={attendance.breakDetail} />
-      <StampRow label="Current" value={attendance.currentTime} />
-      <StampRow
-        label="Estimated out"
-        value={`${attendance.estimatedOut} · ${attendance.timeUntilOut}`}
-      />
-      <StampRow label="Location" value={attendance.locationLabel} ok />
-    </dl>
-  );
-}
+function WorkedTimer({
+  todayIso,
+  priorWorkedSeconds,
+  openSinceAt,
+}: {
+  todayIso: string;
+  priorWorkedSeconds: number;
+  openSinceAt: string | null;
+}) {
+  const seconds = useWorkedClock(todayIso, priorWorkedSeconds, openSinceAt);
 
-function StampRow({ label, value, ok = false }: { label: string; value: string; ok?: boolean }) {
   return (
-    <div className="flex items-start justify-between gap-2.5">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={cn('text-right font-medium', ok && 'text-success')}>{value}</dd>
-    </div>
+    <p className="text-[28px] leading-none font-bold tracking-tight tabular-nums">
+      {formatWorkedClock(seconds)}
+    </p>
   );
 }

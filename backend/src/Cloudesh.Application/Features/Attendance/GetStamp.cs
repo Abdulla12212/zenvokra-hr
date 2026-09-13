@@ -45,8 +45,8 @@ public static class GetStamp
         bool suggestFix = AttendanceTimes.IsLate(day?.ClockIn);
         TimeOnly defaultIn = suggestFix ? AttendanceTimes.ShiftStart : day?.ClockIn ?? AttendanceTimes.ShiftStart;
         TimeOnly defaultOut = day?.ClockOut ?? AttendanceTimes.ShiftEnd;
-        TimeOnly defaultBreakStart = day?.BreakStart ?? new TimeOnly(12, 0);
-        TimeOnly defaultBreakEnd = day?.BreakEnd ?? new TimeOnly(13, 0);
+        TimeOnly defaultBreakStart = day?.BreakStart ?? TimeOnly.MinValue;
+        TimeOnly defaultBreakEnd = day?.BreakEnd ?? TimeOnly.MinValue;
 
         return TypedResults.Ok(new Response(
             DateLabels.Time(defaultIn),

@@ -28,9 +28,10 @@ flowchart LR
 ```
 
 The SPA and the API are always served from the same origin — by the Vite dev proxy
-locally, by nginx in the production image. That is a deliberate choice: it removes CORS
-configuration, removes preflight round-trips, and means no absolute API URL is ever
-baked into the JavaScript bundle at build time.
+locally, by nginx in the Compose production image, and by Kestrel (`wwwroot`) on
+Render. That is a deliberate choice: it removes CORS configuration, removes preflight
+round-trips, and means no absolute API URL is ever baked into the JavaScript bundle at
+build time.
 
 ### Why these choices
 
@@ -327,8 +328,9 @@ applies a query filter.
 
 Structured logging (Serilog or `Microsoft.Extensions.Logging` with a JSON formatter) with
 the tenant id and correlation id on every entry, OpenTelemetry traces and metrics, and
-error tracking (Sentry). The `/health` endpoint exists; split it into liveness and
-readiness once there is an orchestrator that treats them differently.
+error tracking (Sentry). `/health` is liveness (process up). `/health/ready` includes the
+database check. Render’s deploy probe uses `/health` so a cold Neon compute
+does not fail the roll-out.
 
 #### API surface
 
@@ -362,18 +364,25 @@ billing concern as well as an HR one.
 
 ### Deployment and operations
 
-- **Migrations as a deploy step.** Turn off `Database:MigrateOnStartup` and run
-  `dotnet ef database update` (or an idempotent SQL script) as its own job before rolling
-  out new instances. Two replicas starting together will otherwise race each other.
+The first production target is **Render + Neon**. See [DEPLOY-RENDER.md](DEPLOY-RENDER.md).
+The root `Dockerfile` publishes the API and copies the SPA into `wwwroot`, so the
+browser talks to one origin. `DATABASE_URL` is the Neon URI; `ConnectionStrings:Default`
+stays the local Compose form.
+
+- **Migrations as a deploy step.** The chiseled image has no shell, so Render cannot run
+  `dotnet ef` as a pre-deploy command. A single Render instance may set
+  `Database:MigrateOnStartup` (and Neon’s pooler host is rewritten to the direct host
+  before `MigrateAsync`). Turn the flag off and run migrations as their own job before
+  adding a second replica — two instances starting together will otherwise race.
 - **CI.** Build, test, lint, and build images on every pull request. Add an
   architecture-fitness test that fails if an entity is added without `ITenantScoped`.
-- **Secrets** from the platform's secret store, never from `.env`, which exists purely
-  for local development.
-- **Backups.** Automated PostgreSQL backups plus point-in-time recovery, and a restore
+- **Secrets** from the platform's secret store (`render.yaml` `sync: false` env vars),
+  never from `.env`, which exists purely for local development.
+- **Backups.** Neon’s automated backups plus point-in-time recovery, and a restore
   that has actually been tested. An untested backup is a hypothesis.
-- **Non-root hardened images.** The API already uses a chiseled base with no shell. The
-  nginx image still runs its master process as root; switch to
-  `nginxinc/nginx-unprivileged` when hardening the production deployment.
+- **Non-root hardened images.** The API and the Render image use a chiseled base with no
+  shell. The Compose nginx image still runs its master process as root; switch to
+  `nginxinc/nginx-unprivileged` when hardening that path.
 
 ---
 

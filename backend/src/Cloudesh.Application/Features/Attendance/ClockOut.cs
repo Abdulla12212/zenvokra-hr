@@ -36,12 +36,11 @@ public static class ClockOut
         {
             return TypedResults.Problem(
                 title: "Not clocked in",
-                detail: "Punch in before punching out.",
+                detail: "Clock in before clocking out.",
                 statusCode: StatusCodes.Status409Conflict);
         }
 
-        day.ClockOut = EmployeeClock.NowTime(timeProvider, employee.TimeZone);
-        day.OnBreak = false;
+        AttendanceTimes.CloseSession(day, EmployeeClock.NowTime(timeProvider, employee.TimeZone));
 
         GetAttendance.Response? snapshot = await AttendanceDayStore.SnapshotAfterSaveAsync(
             httpContext,

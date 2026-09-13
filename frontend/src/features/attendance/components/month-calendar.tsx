@@ -11,6 +11,7 @@ import {
   parseIsoDate,
   type HomeSearch,
 } from '@/lib/home-search';
+import { cn } from '@/lib/utils';
 import { useAttendanceCalendar } from '../api/attendance-queries';
 import { CalendarDayCell } from './calendar-day-cell';
 
@@ -33,14 +34,14 @@ export function MonthCalendar({
 }: MonthCalendarProps) {
   const navigate = useNavigate();
   const { year, month, day } = search;
-  const calendar = useAttendanceCalendar(year, month, day);
+  const calendar = useAttendanceCalendar(year, month);
   const title = monthTitle(year, month);
   const previous = addCalendarMonth(year, month, -1);
   const next = addCalendarMonth(year, month, 1);
   const today = parseIsoDate(todayIso) ?? { year, month, day };
-  const rangeSelected = calendar.data?.some((cell) => cell.inRange) ?? false;
+  const cells = calendar.data;
 
-  if (calendar.isPending) {
+  if (calendar.isPending && cells === undefined) {
     return (
       <div className="bg-card rounded-xl border p-4 shadow-sm">
         <Skeleton className="mb-3 h-8 w-48" />
@@ -49,7 +50,7 @@ export function MonthCalendar({
     );
   }
 
-  if (calendar.isError) {
+  if (calendar.isError && cells === undefined) {
     return (
       <p role="alert" className="text-destructive text-sm">
         {calendar.error.message}
@@ -57,20 +58,22 @@ export function MonthCalendar({
     );
   }
 
-  const cells = calendar.data;
+  if (cells === undefined) {
+    return null;
+  }
 
   return (
     <div className="bg-card rounded-xl border p-4 shadow-sm">
       <div className="mb-2.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
           <Button variant="outline" size="icon" asChild aria-label="Previous month">
-            <Link to={homeHref({ ...search, ...previous, day: 1, sheet: null })}>
+            <Link to={homeHref({ ...search, ...previous, day: 1, sheet: search.sheet })}>
               <ChevronLeft />
             </Link>
           </Button>
           <h2 className="min-w-[140px] text-center text-sm font-semibold">{title}</h2>
           <Button variant="outline" size="icon" asChild aria-label="Next month">
-            <Link to={homeHref({ ...search, ...next, day: 1, sheet: null })}>
+            <Link to={homeHref({ ...search, ...next, day: 1, sheet: search.sheet })}>
               <ChevronRight />
             </Link>
           </Button>
@@ -85,12 +88,17 @@ export function MonthCalendar({
             </div>
           )}
           <Button variant="outline" size="sm" asChild>
-            <Link to={homeHref({ ...today, sheet: null })}>Today</Link>
+            <Link to={homeHref({ ...today, sheet: search.sheet })}>Today</Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
+      <div
+        className={cn(
+          'grid grid-cols-7 gap-1',
+          calendar.isPlaceholderData && 'opacity-60',
+        )}
+      >
         {WEEKDAYS.map((label) => (
           <div
             key={label}
@@ -102,23 +110,20 @@ export function MonthCalendar({
         {cells.map((cell, index) => (
           <CalendarDayCell
             key={cell.day === null ? `empty-${String(index)}` : `day-${String(cell.day)}`}
-            cell={cell}
+            cell={{
+              ...cell,
+              selected: cell.day === day,
+              inRange: false,
+            }}
             onSelect={(nextDay) => {
-              void navigate(homeHref({ ...search, day: nextDay, sheet: null }));
+              void navigate(homeHref({ ...search, day: nextDay }));
             }}
           />
         ))}
       </div>
 
       <div className="mt-2.5 flex items-center justify-between gap-3 border-t pt-2.5 text-xs">
-        {rangeSelected ? (
-          <>
-            <span className="text-muted-foreground">Leave range selected</span>
-            <Button variant="link" className="h-auto p-0 text-sm" asChild>
-              <Link to={homeHref({ ...today, sheet: null })}>Clear</Link>
-            </Button>
-          </>
-        ) : nextHolidayLabel && nextHolidayHref ? (
+        {nextHolidayLabel && nextHolidayHref ? (
           <>
             <span className="text-muted-foreground">
               Next closed day · <b className="text-foreground font-medium">{nextHolidayLabel}</b>
@@ -128,7 +133,9 @@ export function MonthCalendar({
             </Button>
           </>
         ) : (
-          <span className="text-muted-foreground">Selected · {day}</span>
+          <span className="text-muted-foreground">
+            Pick a day to review or edit punches · {day} {title}
+          </span>
         )}
       </div>
     </div>

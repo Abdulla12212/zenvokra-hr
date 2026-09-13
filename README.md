@@ -38,7 +38,7 @@ Sign in at http://localhost:5173 with `owner@cloudesh.test` / `cloudesh-dev` (se
 | ------------- | -------------------------------------- |
 | Web app       | http://localhost:5173                  |
 | API           | http://localhost:8080                  |
-| Health check  | http://localhost:8080/health           |
+| Health check  | http://localhost:8080/health (live), /health/ready (database) |
 
 Both containers hot-reload on file changes. Run `make help` to see every available target.
 
@@ -108,6 +108,7 @@ Read these before writing code — they are also what AI agents load automatical
 | [docs/ADD-A-FEATURE.md](docs/ADD-A-FEATURE.md)                       | Step-by-step recipe for one feature, back to front             |
 | [docs/CODING-CONVENTIONS-DOTNET.md](docs/CODING-CONVENTIONS-DOTNET.md) | Backend standards                                            |
 | [docs/CODING-CONVENTIONS-REACT.md](docs/CODING-CONVENTIONS-REACT.md) | Frontend standards                                             |
+| [docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)                       | Render web service + Neon Postgres                             |
 
 ## Multi-tenancy in one paragraph
 
@@ -174,3 +175,17 @@ API.
 
 **Slow hot reload on macOS.** Bind mounts are slow on Docker Desktop for macOS. Use
 [Running without Docker](#running-without-docker) for a faster loop.
+
+## Deploying to Render + Neon
+
+The production image is one origin: the API serves the built SPA, so cookies stay
+same-site. Postgres lives on Neon. Walkthrough: [docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md).
+
+```bash
+# Preview the image Render will build
+make build-deploy
+```
+
+[`render.yaml`](render.yaml) is the Blueprint. Create a Neon project in the same
+region, paste `DATABASE_URL` plus the platform-admin email and password when Render
+asks, and keep a single instance while `Database__MigrateOnStartup` is on.

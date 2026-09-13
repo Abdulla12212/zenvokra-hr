@@ -19,7 +19,7 @@ export function PunchLogSheet({ search }: { search: HomeSearch }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.06em] uppercase">
-            Timesheet
+            Last 7 days
           </p>
           <h2 className="font-semibold">Punch log</h2>
         </div>
@@ -77,7 +77,7 @@ export function PunchLogSheet({ search }: { search: HomeSearch }) {
                           sheet: 'fix-punch',
                         })}
                       >
-                        {entry.action === 'fix' ? 'Fix' : 'Edit'}
+                        Edit
                       </Link>
                     </Button>
                   ) : null}

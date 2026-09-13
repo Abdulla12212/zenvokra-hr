@@ -146,6 +146,15 @@ namespace Cloudesh.Application.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("on_break");
 
+                    b.Property<TimeOnly?>("OpenSince")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("open_since");
+
+                    b.Property<TimeSpan>("PriorWorked")
+                        .HasColumnType("interval")
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0))
+                        .HasColumnName("prior_worked");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
