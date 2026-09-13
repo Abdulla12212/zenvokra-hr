@@ -73,7 +73,7 @@ public static class GetDashboard
             .Where(day => day.Date == today)
             .ToListAsync(cancellationToken);
 
-        int present = todayDays.Count(day => day.ClockIn is not null && day.ClockOut is null);
+        int present = todayDays.Count(AttendanceTimes.IsClockedIn);
         List<AttendanceDay> lateDays = todayDays.Where(day => AttendanceTimes.IsLate(day.ClockIn)).ToList();
         TimeSpan averageLate = TimeSpan.Zero;
 

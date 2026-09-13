@@ -112,7 +112,16 @@ public static class DecideApproval
 
                 if (day is not null)
                 {
+                    TimeOnly? previousIn = day.ClockIn;
                     day.ClockIn = punch.RequestedTime;
+
+                    // Keep the open session aligned when the correction is the
+                    // first punch of the day. A later re-clock-in leaves OpenSince
+                    // alone so main's multi-session timer stays intact.
+                    if (day.OpenSince is TimeOnly open && (previousIn is null || open == previousIn))
+                    {
+                        day.OpenSince = punch.RequestedTime;
+                    }
                 }
             }
         }
