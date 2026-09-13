@@ -40,7 +40,10 @@ The repo root [`render.yaml`](../render.yaml) is the Blueprint.
    | `PlatformAdmin__Email` | First sign-in email |
    | `PlatformAdmin__Password` | First sign-in password |
 
-4. Deploy. First boot applies EF migrations and upserts that platform admin.
+4. Deploy. An empty Neon has no tables until the API boots. Startup applies
+   pending EF migrations whenever `__EFMigrationsHistory` is missing (even if
+   `Database__MigrateOnStartup` is still the production default of `false`),
+   then upserts the platform admin when those credentials are set.
 
 The image is the root [`Dockerfile`](../Dockerfile): Node builds the SPA, the
 SDK publishes the API, the chiseled runtime copies `dist` into `wwwroot`.
@@ -67,6 +70,20 @@ docker run --rm -p 8080:8080 \
   -e PlatformAdmin__Password=change-me \
   cloudesh-hr:deploy
 ```
+
+## Empty Neon / `relation "users" does not exist`
+
+The production `appsettings.json` leaves `MigrateOnStartup` off so two replicas
+do not race. A Render service that only received `DATABASE_URL` used to boot
+against a blank database and fail login with `42P01`.
+
+Redeploy this revision. First boot on an empty database now migrates and seeds.
+Confirm in the Neon SQL editor that `users` exists, then sign in with
+`PlatformAdmin__Email` / `PlatformAdmin__Password`.
+
+If the table is still missing, the deploy never reached `MigrateAsync` — check
+the Render logs for the “Applying N pending migration(s)” line, and that
+`DATABASE_URL` points at the branch you are inspecting.
 
 ## What this does not do yet
 

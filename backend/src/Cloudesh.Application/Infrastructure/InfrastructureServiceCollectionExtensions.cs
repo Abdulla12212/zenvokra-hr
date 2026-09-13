@@ -103,7 +103,11 @@ public static class InfrastructureServiceCollectionExtensions
     {
         services.AddDbContext<AppDbContext>((provider, options) =>
         {
-            options.UseNpgsql(connections.Runtime, npgsql => npgsql.EnableRetryOnFailure(3));
+            options.UseNpgsql(connections.Runtime, npgsql =>
+            {
+                npgsql.EnableRetryOnFailure(3);
+                npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.GetName().Name);
+            });
 
             // Maps PascalCase properties to snake_case columns, so psql sessions and
             // hand-written SQL never need quoted identifiers.

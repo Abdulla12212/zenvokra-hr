@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
 
 namespace Cloudesh.Application.Infrastructure.Persistence;
 
@@ -32,19 +33,24 @@ public sealed class DatabaseInitializer
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        if (_options.MigrateOnStartup)
+        if (!_dbContext.Database.GetMigrations().Any())
         {
-            if (!_dbContext.Database.GetMigrations().Any())
-            {
-                _logger.LogWarning(
-                    "No migrations were found, so the schema cannot be created. Run " +
-                    "`make migrate-add NAME=InitialCreate` to generate one.");
-                return;
-            }
+            throw new InvalidOperationException(
+                "No EF Core migrations were found in the published assembly, so the " +
+                "schema cannot be created. The image must include Cloudesh.Application.");
+        }
 
-            UseMigrationConnection();
+        UseMigrationConnection();
 
-            try
+        bool databaseWasEmpty;
+        try
+        {
+            databaseWasEmpty = await DatabaseHasNoAppliedMigrationsAsync(cancellationToken);
+
+            // A fresh Neon (or any empty Postgres) has no __EFMigrationsHistory.
+            // Production appsettings leave MigrateOnStartup false so two replicas
+            // do not race; that flag must not skip the first deploy.
+            if (ShouldApplyMigrations(_options.MigrateOnStartup, databaseWasEmpty))
             {
                 string[] pending = [.. await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken)];
 
@@ -56,15 +62,49 @@ public sealed class DatabaseInitializer
                     await _dbContext.Database.MigrateAsync(cancellationToken);
                 }
             }
-            finally
-            {
-                RestoreRuntimeConnection();
-            }
+        }
+        finally
+        {
+            RestoreRuntimeConnection();
         }
 
-        if (_options.SeedOnStartup)
+        if (_options.SeedOnStartup || databaseWasEmpty)
         {
             await _seeder.SeedAsync(cancellationToken);
+        }
+
+        await EnsureUsersTableExistsAsync(cancellationToken);
+    }
+
+    internal static bool ShouldApplyMigrations(bool migrateOnStartup, bool databaseWasEmpty) =>
+        migrateOnStartup || databaseWasEmpty;
+
+    private async Task<bool> DatabaseHasNoAppliedMigrationsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            IReadOnlyList<string> applied =
+                [.. await _dbContext.Database.GetAppliedMigrationsAsync(cancellationToken)];
+            return applied.Count == 0;
+        }
+        catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            return true;
+        }
+    }
+
+    private async Task EnsureUsersTableExistsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await _dbContext.Users.AsNoTracking().AnyAsync(cancellationToken);
+        }
+        catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            throw new InvalidOperationException(
+                "The database has no schema (relation \"users\" does not exist). " +
+                "Startup must apply EF migrations before the API accepts traffic.",
+                exception);
         }
     }
 
