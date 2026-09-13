@@ -13,17 +13,20 @@ public sealed class DatabaseInitializer
     private readonly AppDbContext _dbContext;
     private readonly DatabaseSeeder _seeder;
     private readonly DatabaseOptions _options;
+    private readonly DatabaseConnections _connections;
     private readonly ILogger<DatabaseInitializer> _logger;
 
     public DatabaseInitializer(
         AppDbContext dbContext,
         DatabaseSeeder seeder,
         IOptions<DatabaseOptions> options,
+        DatabaseConnections connections,
         ILogger<DatabaseInitializer> logger)
     {
         _dbContext = dbContext;
         _seeder = seeder;
         _options = options.Value;
+        _connections = connections;
         _logger = logger;
     }
 
@@ -39,20 +42,45 @@ public sealed class DatabaseInitializer
                 return;
             }
 
-            string[] pending = [.. await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken)];
+            UseMigrationConnection();
 
-            if (pending.Length > 0)
+            try
             {
-                _logger.LogInformation("Applying {Count} pending migration(s): {Migrations}.",
-                    pending.Length, string.Join(", ", pending));
+                string[] pending = [.. await _dbContext.Database.GetPendingMigrationsAsync(cancellationToken)];
 
-                await _dbContext.Database.MigrateAsync(cancellationToken);
+                if (pending.Length > 0)
+                {
+                    _logger.LogInformation("Applying {Count} pending migration(s): {Migrations}.",
+                        pending.Length, string.Join(", ", pending));
+
+                    await _dbContext.Database.MigrateAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                RestoreRuntimeConnection();
             }
         }
 
         if (_options.SeedOnStartup)
         {
             await _seeder.SeedAsync(cancellationToken);
+        }
+    }
+
+    private void UseMigrationConnection()
+    {
+        if (!string.Equals(_connections.Runtime, _connections.Migrations, StringComparison.Ordinal))
+        {
+            _dbContext.Database.SetConnectionString(_connections.Migrations);
+        }
+    }
+
+    private void RestoreRuntimeConnection()
+    {
+        if (!string.Equals(_connections.Runtime, _connections.Migrations, StringComparison.Ordinal))
+        {
+            _dbContext.Database.SetConnectionString(_connections.Runtime);
         }
     }
 }

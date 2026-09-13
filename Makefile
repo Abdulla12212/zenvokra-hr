@@ -1,7 +1,8 @@
 .DEFAULT_GOAL := help
 .PHONY: help env up up-build up-prod down clean logs ps psql shell-api shell-web \
         migrate migrate-add migrate-reset test test-unit test-integration \
-        test-backend test-frontend lint lint-backend lint-frontend format build
+        test-backend test-frontend lint lint-backend lint-frontend format build \
+        build-deploy
 
 COMPOSE := docker compose
 APP_PROJECT := src/Cloudesh.Application
@@ -86,3 +87,6 @@ build: ## Build the production images (ignores the development override)
 
 up-prod: env ## Run the production-like stack instead of the development one
 	$(COMPOSE) -f docker-compose.yml up -d --build
+
+build-deploy: ## Build the Render image (SPA + API, no Compose Postgres)
+	docker build -t cloudesh-hr:deploy .

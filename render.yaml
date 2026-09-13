@@ -1,0 +1,36 @@
+# Render Blueprint — SPA + API in one web service, database on Neon.
+# https://render.com/docs/blueprint-spec
+#
+# Neon is not a Render database: create a project at https://console.neon.tech
+# in the same region as this service, then paste the connection string when
+# Render prompts for DATABASE_URL.
+#
+# Prefer Neon's direct (non-pooler) URL. Npgsql already pools, and EF
+# migrations need a real session. If you paste the pooler URL anyway, the app
+# strips `-pooler` from the host before migrating.
+#
+# Keep a single instance while Database__MigrateOnStartup is true. Two
+# replicas racing MigrateAsync is the failure mode the architecture doc warns
+# about; turn the flag off and run migrations as their own job before scaling.
+
+services:
+  - type: web
+    name: cloudesh-hr
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: DATABASE_URL
+        sync: false
+      - key: Database__MigrateOnStartup
+        value: 'true'
+      - key: Database__SeedOnStartup
+        value: 'true'
+      - key: PlatformAdmin__Email
+        sync: false
+      - key: PlatformAdmin__Password
+        sync: false

@@ -16,6 +16,7 @@ derived inbox. Admin approvals and org profile are still Phase 3.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                         | Deciding where something belongs  |
 | [docs/CODING-CONVENTIONS-DOTNET.md](docs/CODING-CONVENTIONS-DOTNET.md) | Touching `backend/`             |
 | [docs/CODING-CONVENTIONS-REACT.md](docs/CODING-CONVENTIONS-REACT.md) | Touching `frontend/`              |
+| [docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)                       | Deploying to Render + Neon        |
 
 ## The rules that matter most
 
