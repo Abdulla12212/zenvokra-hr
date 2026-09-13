@@ -74,16 +74,14 @@ public static class SaveStamp
         DateOnly today = EmployeeClock.Today(timeProvider, employee.TimeZone);
         bool keepOpen = request.Date == today && AttendanceTimes.IsClockedIn(day);
 
-        day.ClockIn = clockIn;
-        day.BreakStart = breakStart;
-        day.BreakEnd = breakEnd;
-        day.Note = request.Note.Trim();
-
-        if (!keepOpen)
-        {
-            day.ClockOut = clockOut;
-            day.OnBreak = false;
-        }
+        AttendanceTimes.ApplyEditedStamp(
+            day,
+            clockIn,
+            clockOut,
+            breakStart,
+            breakEnd,
+            request.Note.Trim(),
+            keepOpen);
 
         if (!AttendanceTimes.IsLate(day.ClockIn))
         {

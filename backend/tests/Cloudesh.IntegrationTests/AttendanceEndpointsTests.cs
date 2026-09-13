@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Cloudesh.Application.Domain.Attendance;
 using Cloudesh.Application.Domain.Holidays;
 using Cloudesh.Application.Infrastructure.Persistence;
@@ -43,6 +44,11 @@ public sealed class AttendanceEndpointsTests
 
         afterOut.ShouldNotBeNull();
         afterOut.ClockedIn.ShouldBeFalse();
+        afterOut.ClockOutTime.ShouldNotBeNullOrWhiteSpace();
+        afterOut.ClockOutAt.ShouldNotBeNull();
+        afterOut.OpenSinceAt.ShouldBeNull();
+        afterOut.RecordedSeconds.ShouldBeGreaterThanOrEqualTo(0);
+        afterOut.PriorWorkedSeconds.ShouldBe(afterOut.RecordedSeconds);
 
         AttendanceResponse? snapshot = await client.GetFromJsonAsync<AttendanceResponse>(
             new Uri("/api/attendance", UriKind.Relative),
@@ -50,6 +56,7 @@ public sealed class AttendanceEndpointsTests
 
         snapshot.ShouldNotBeNull();
         snapshot.ClockedIn.ShouldBeFalse();
+        snapshot.ClockOutTime.ShouldBe(afterOut.ClockOutTime);
     }
 
     [Fact]
@@ -228,6 +235,72 @@ public sealed class AttendanceEndpointsTests
     }
 
     [Fact]
+    public async Task Clock_out_keeps_worked_time_and_the_next_in_resumes()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        (HttpClient client, _, _) = await _factory.CreateEmployeeSessionAsync(
+            "Punch Resume",
+            "hr@punch-resume.test",
+            "ada@punch-resume.test",
+            "EMP-2091");
+
+        AttendanceResponse? afterIn = await (await client.PostAsync(
+            new Uri("/api/attendance/clock-in", UriKind.Relative),
+            content: null,
+            cancellationToken)).Content.ReadFromJsonAsync<AttendanceResponse>(cancellationToken);
+        afterIn.ShouldNotBeNull();
+        afterIn.ClockedIn.ShouldBeTrue();
+        afterIn.OpenSinceAt.ShouldNotBeNull();
+
+        await Task.Delay(1100, cancellationToken);
+
+        AttendanceResponse? afterOut = await (await client.PostAsync(
+            new Uri("/api/attendance/clock-out", UriKind.Relative),
+            content: null,
+            cancellationToken)).Content.ReadFromJsonAsync<AttendanceResponse>(cancellationToken);
+        afterOut.ShouldNotBeNull();
+        afterOut.ClockedIn.ShouldBeFalse();
+        afterOut.OpenSinceAt.ShouldBeNull();
+        afterOut.RecordedSeconds.ShouldBeGreaterThanOrEqualTo(1);
+        afterOut.PriorWorkedSeconds.ShouldBe(afterOut.RecordedSeconds);
+
+        AttendanceResponse? afterResume = await (await client.PostAsync(
+            new Uri("/api/attendance/clock-in", UriKind.Relative),
+            content: null,
+            cancellationToken)).Content.ReadFromJsonAsync<AttendanceResponse>(cancellationToken);
+        afterResume.ShouldNotBeNull();
+        afterResume.ClockedIn.ShouldBeTrue();
+        afterResume.ClockInAt.ShouldBe(afterIn.ClockInAt);
+        afterResume.PriorWorkedSeconds.ShouldBe(afterOut.PriorWorkedSeconds);
+        afterResume.OpenSinceAt.ShouldNotBeNull();
+        afterResume.RecordedSeconds.ShouldBeGreaterThanOrEqualTo(afterOut.RecordedSeconds);
+    }
+
+    [Fact]
+    public async Task Calendar_treats_zero_year_as_today()
+    {
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
+        (HttpClient client, _, _) = await _factory.CreateEmployeeSessionAsync(
+            "Calendar Year",
+            "hr@calendar-year.test",
+            "ada@calendar-year.test",
+            "EMP-2090");
+
+        HttpResponseMessage omitted = await client.GetAsync(
+            new Uri("/api/attendance/calendar", UriKind.Relative),
+            cancellationToken);
+        HttpResponseMessage zeroYear = await client.GetAsync(
+            new Uri("/api/attendance/calendar?year=0&month=1&day=1", UriKind.Relative),
+            cancellationToken);
+
+        omitted.StatusCode.ShouldBe(HttpStatusCode.OK);
+        zeroYear.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        JsonElement omittedBody = await omitted.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
+        omittedBody.GetArrayLength().ShouldBe(42);
+    }
+
+    [Fact]
     public async Task Tenant_admin_cannot_read_employee_time_routes()
     {
         HttpClient admin = await _factory.CreateTenantAdminClientAsync(
@@ -264,6 +337,12 @@ public sealed class AttendanceEndpointsTests
     private sealed record AttendanceResponse(
         bool ClockedIn,
         string ClockInTime,
+        string ClockOutTime,
+        DateTimeOffset? ClockInAt,
+        DateTimeOffset? ClockOutAt,
+        int RecordedSeconds,
+        int PriorWorkedSeconds,
+        DateTimeOffset? OpenSinceAt,
         bool LateBannerVisible,
         bool LateDayFixed);
 

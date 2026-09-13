@@ -38,6 +38,17 @@ public static class EmployeeClock
     public static TimeOnly NowTime(TimeProvider timeProvider, string timeZoneId) =>
         TimeOnly.FromDateTime(LocalNow(timeProvider, timeZoneId).DateTime);
 
+    public static DateTimeOffset? Instant(DateOnly date, TimeOnly? time, TimeZoneInfo zone)
+    {
+        if (time is not TimeOnly value)
+        {
+            return null;
+        }
+
+        DateTime local = date.ToDateTime(value, DateTimeKind.Unspecified);
+        return new DateTimeOffset(local, zone.GetUtcOffset(local));
+    }
+
     public static DateOnly WeekMonday(DateOnly date)
     {
         int offset = ((int)date.DayOfWeek + 6) % 7;

@@ -37,6 +37,12 @@ export interface AttendanceSnapshot {
   punchLogSummaryLabel: string;
   todayIso: string;
   todayLabel: string;
+  clockOutTime: string;
+  clockInAt: string | null;
+  clockOutAt: string | null;
+  recordedSeconds: number;
+  priorWorkedSeconds: number;
+  openSinceAt: string | null;
 }
 
 export interface PunchLogEntry {
@@ -82,18 +88,17 @@ export function getAttendance(signal?: AbortSignal): Promise<AttendanceSnapshot>
   return api.get<AttendanceSnapshot>('/api/attendance', { signal });
 }
 
-export function getTimesheet(signal?: AbortSignal): Promise<PunchLogGroup[]> {
+export function getPunchLog(signal?: AbortSignal): Promise<PunchLogGroup[]> {
   return api.get<PunchLogGroup[]>('/api/attendance/log', { signal });
 }
 
 export function getAttendanceCalendar(
   year: number,
   month: number,
-  day: number,
   signal?: AbortSignal,
 ): Promise<CalendarCell[]> {
   return api.get<CalendarCell[]>('/api/attendance/calendar', {
-    query: { year, month, day },
+    query: { year, month },
     signal,
   });
 }

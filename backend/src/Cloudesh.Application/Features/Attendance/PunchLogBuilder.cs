@@ -5,16 +5,18 @@ namespace Cloudesh.Application.Features.Attendance;
 
 internal static class PunchLogBuilder
 {
+    public const int LookbackDays = 7;
+
     public static List<GetPunchLog.Group> Build(AttendanceComposer.Context context)
     {
-        DateOnly[] dates =
-        [
-            context.Today,
-            context.Today.AddDays(-1),
-            context.Today.AddDays(-2),
-        ];
+        var groups = new List<GetPunchLog.Group>(LookbackDays);
 
-        return dates.Select(date => GroupFor(date, context)).ToList();
+        for (int offset = 0; offset < LookbackDays; offset++)
+        {
+            groups.Add(GroupFor(context.Today.AddDays(-offset), context));
+        }
+
+        return groups;
     }
 
     private static GetPunchLog.Group GroupFor(DateOnly date, AttendanceComposer.Context context)
@@ -24,12 +26,12 @@ internal static class PunchLogBuilder
         bool clockedIn = AttendanceTimes.IsClockedIn(day);
         bool late = AttendanceTimes.IsLate(day?.ClockIn);
         string status = today
-            ? clockedIn ? "Active" : "Out"
+            ? clockedIn ? "Active" : day?.ClockIn is not null ? "Out" : "Not clocked in"
             : late
                 ? "Late"
                 : day?.ClockIn is not null
                     ? "Present"
-                    : "Scheduled";
+                    : "No stamp";
 
         return new GetPunchLog.Group(
             date.ToString("yyyy-MM-dd"),
@@ -46,54 +48,50 @@ internal static class PunchLogBuilder
         AttendanceComposer.Context context)
     {
         string place = AttendanceComposer.Workplace(context);
+        string? action = date > context.Today ? null : "edit";
 
-        if (today && clockedIn && day?.ClockIn is TimeOnly clockIn)
+        if (today && clockedIn && day?.ClockIn is TimeOnly openIn)
         {
             TimeSpan worked = AttendanceTimes.Worked(day, context.Today, context.NowTime);
-            var entries = new List<GetPunchLog.Entry>
+            var open = new List<GetPunchLog.Entry>
             {
                 new(
                     "in",
-                    $"In {DateLabels.Time(clockIn)}",
-                    AttendanceTimes.IsLate(clockIn)
+                    $"In {DateLabels.Time(openIn)}",
+                    AttendanceTimes.IsLate(openIn)
                         ? $"Late · {place}"
                         : $"On-time · {place}",
                     "primary",
-                    "edit"),
+                    action),
             };
 
-            if (day.BreakStart is TimeOnly breakStart && day.BreakEnd is TimeOnly breakEnd)
+            if (day.ClockOut is TimeOnly lastOut)
             {
-                entries.Add(new(
-                    "break",
-                    $"Break {DateLabels.Time(breakStart)}–{DateLabels.Time(breakEnd)}",
-                    AttendanceTimes.BreakDetail(day).Split(" · ").LastOrDefault() ?? "Break",
+                open.Add(new(
+                    "paused",
+                    $"Last out {DateLabels.Time(lastOut)}",
+                    "Paused earlier today",
                     "mute",
                     null));
             }
 
-            entries.Add(new(
+            open.Add(new(
                 "now",
                 $"Now {DateLabels.Time(context.NowTime)}",
                 $"{DateLabels.Duration(worked)} recorded",
                 "primary",
                 null));
 
-            return entries;
+            return open;
         }
 
-        if (today && !clockedIn)
-        {
-            return
-            [
-                new("due", "Due 09:00", "Not clocked in", "mute", null),
-            ];
-        }
-
-        if (day?.ClockIn is TimeOnly inTime && day.ClockOut is TimeOnly outTime)
+        if (day?.ClockIn is TimeOnly inTime)
         {
             TimeSpan worked = AttendanceTimes.Worked(day, context.Today, context.NowTime);
-            string tardy = late && inTime > AttendanceTimes.ShiftStart
+            string outLabel = day.ClockOut is TimeOnly outTime
+                ? DateLabels.Time(outTime)
+                : "—";
+            string tardy = late
                 ? $"{DateLabels.Duration(inTime - AttendanceTimes.ShiftStart)} tardiness"
                 : "on-time";
 
@@ -101,16 +99,21 @@ internal static class PunchLogBuilder
             [
                 new(
                     date.ToString("yyyy-MM-dd"),
-                    $"In {DateLabels.Time(inTime)} · Out {DateLabels.Time(outTime)}",
+                    $"In {DateLabels.Time(inTime)} · Out {outLabel}",
                     $"{DateLabels.Duration(worked)} · {tardy}",
                     late ? "warn" : "ok",
-                    late ? "fix" : null),
+                    action),
             ];
         }
 
         return
         [
-            new("empty", "No stamp", "Scheduled", "mute", null),
+            new(
+                today ? "due" : "empty",
+                today ? "Not clocked in" : "No stamp",
+                today ? "Clock in on Home, or add a stamp" : "Add a missed punch",
+                "mute",
+                action),
         ];
     }
 }

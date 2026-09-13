@@ -15,7 +15,6 @@ internal static class AttendanceCalendarBuilder
         HashSet<DateOnly> holidays = context.Holidays.Select(holiday => holiday.Date).ToHashSet();
         HashSet<DateOnly> leaveDays = LeaveDays(context.PendingLeave);
         DateOnly selected = SafeDate(monthStart, selectedDay);
-        HashSet<DateOnly> selectedRange = RangeFor(selected, context.PendingLeave);
 
         int leading = ((int)monthStart.DayOfWeek + 6) % 7;
         int daysInMonth = DateTime.DaysInMonth(monthStart.Year, monthStart.Month);
@@ -97,8 +96,8 @@ internal static class AttendanceCalendarBuilder
                 dayNumber,
                 weekend,
                 isToday,
-                selectedRange.Contains(date) || date == selected,
-                selectedRange.Contains(date),
+                date == selected,
+                false,
                 kind,
                 metaPrimary,
                 metaSecondary,
@@ -182,23 +181,4 @@ internal static class AttendanceCalendarBuilder
         return dates;
     }
 
-    private static HashSet<DateOnly> RangeFor(DateOnly selected, IEnumerable<LeaveRequest> pending)
-    {
-        LeaveRequest? covering = pending.FirstOrDefault(request =>
-            request.StartDate <= selected && selected <= request.EndDate);
-
-        if (covering is null)
-        {
-            return [];
-        }
-
-        var range = new HashSet<DateOnly>();
-
-        for (DateOnly date = covering.StartDate; date <= covering.EndDate; date = date.AddDays(1))
-        {
-            range.Add(date);
-        }
-
-        return range;
-    }
 }

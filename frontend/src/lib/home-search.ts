@@ -1,4 +1,4 @@
-export const sheetNames = ['punch-out', 'fix-punch', 'request', 'punch-log'] as const;
+export const sheetNames = ['fix-punch', 'request', 'punch-log'] as const;
 
 export type SheetName = (typeof sheetNames)[number];
 
@@ -66,19 +66,37 @@ export function daysInMonth(year: number, month: number): number {
 }
 
 function readInt(value: string | null, fallback: number): number {
+  if (value === null || value.trim() === '') {
+    return fallback;
+  }
+
   const parsed = Number(value);
   return Number.isInteger(parsed) ? parsed : fallback;
 }
 
 export function parseHomeSearch(params: URLSearchParams, today = new Date()): HomeSearch {
-  const year = readInt(params.get('year'), today.getFullYear());
-  const month = Math.min(12, Math.max(1, readInt(params.get('month'), today.getMonth() + 1)));
-  const last = daysInMonth(year, month);
-  const day = Math.min(last, Math.max(1, readInt(params.get('day'), today.getDate())));
+  const yearRaw = readInt(params.get('year'), today.getFullYear());
   const sheetParam = params.get('sheet');
   const sheet = sheetNames.find((name) => name === sheetParam) ?? null;
 
-  return { year, month, day, sheet };
+  // Old Home links wrote year=0&month=1&day=1 when the query was empty. A zero
+  // year means those month/day values were never chosen by the employee.
+  if (yearRaw < 1 || yearRaw > 9999) {
+    return {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: today.getDate(),
+      sheet,
+    };
+  }
+
+  const monthRaw = readInt(params.get('month'), today.getMonth() + 1);
+  const month = monthRaw >= 1 && monthRaw <= 12 ? monthRaw : today.getMonth() + 1;
+  const last = daysInMonth(yearRaw, month);
+  const dayRaw = readInt(params.get('day'), today.getDate());
+  const day = dayRaw >= 1 && dayRaw <= last ? dayRaw : Math.min(last, Math.max(1, today.getDate()));
+
+  return { year: yearRaw, month, day, sheet };
 }
 
 export function homeHref(next: HomeSearch): string {

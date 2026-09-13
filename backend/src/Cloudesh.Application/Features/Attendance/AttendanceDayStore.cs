@@ -35,6 +35,7 @@ internal static class AttendanceDayStore
         CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.ChangeTracker.Clear();
         AttendanceComposer.Context? context = await AttendanceComposer.LoadAsync(
             httpContext,
             dbContext,

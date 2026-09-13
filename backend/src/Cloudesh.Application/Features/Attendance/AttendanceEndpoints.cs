@@ -25,7 +25,7 @@ public sealed class AttendanceEndpoints : IEndpointGroup
 
         attendance.MapGet("/log", GetPunchLog.HandleAsync)
             .WithName(nameof(GetPunchLog))
-            .WithSummary("Returns the last three days of punch log.");
+            .WithSummary("Returns the last seven days of punch log.");
 
         attendance.MapGet("/stamps", GetStamp.HandleAsync)
             .WithName(nameof(GetStamp))

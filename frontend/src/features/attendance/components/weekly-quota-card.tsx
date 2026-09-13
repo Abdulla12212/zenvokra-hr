@@ -1,18 +1,8 @@
-import { Link } from 'react-router';
-
-import { Button } from '@/components/ui/button';
-import { homeHref, type HomeSearch } from '@/lib/home-search';
 import { cn } from '@/lib/utils';
 
 import type { AttendanceSnapshot, WeekBar } from '../api/attendance-api';
 
-export function WeeklyQuotaCard({
-  attendance,
-  search,
-}: {
-  attendance: AttendanceSnapshot;
-  search: HomeSearch;
-}) {
+export function WeeklyQuotaCard({ attendance }: { attendance: AttendanceSnapshot }) {
   return (
     <div className="bg-card rounded-xl border p-4 shadow-sm">
       <div className="mb-3 flex items-start justify-between gap-2">
@@ -37,12 +27,7 @@ export function WeeklyQuotaCard({
           <WeekColumn key={bar.id} bar={bar} />
         ))}
       </div>
-      <div className="text-muted-foreground mt-3 flex items-center justify-between gap-2 border-t pt-2.5 text-xs">
-        <span>{attendance.overtimeLabel}</span>
-        <Button variant="link" className="h-auto p-0 text-sm" asChild>
-          <Link to={homeHref({ ...search, sheet: 'punch-log' })}>Timesheet logs</Link>
-        </Button>
-      </div>
+      <p className="text-muted-foreground mt-3 border-t pt-2.5 text-xs">{attendance.overtimeLabel}</p>
     </div>
   );
 }

@@ -32,7 +32,7 @@ export function CalendarDayCell({
         cell.kind === 'late' && 'bg-warning-muted/40',
         cell.kind === 'leave' && 'bg-primary/5',
         cell.kind === 'closed' && 'bg-destructive-muted/50',
-        (cell.today || cell.selected) && 'border-primary bg-primary/5',
+        cell.selected && 'border-primary bg-primary/5',
         cell.today && 'ring-primary ring-1',
       )}
     >

@@ -11,13 +11,14 @@ import { homeHref, isoDate, parseHomeSearch, parseIsoDate } from '@/lib/home-sea
 
 import { useAttendance } from '../api/attendance-queries';
 import { ClosedDayCard } from '../components/closed-day-card';
+import { DayStampCard } from '../components/day-stamp-card';
 import { FixPunchSheet } from '../components/fix-punch-sheet';
 import { LateBanner } from '../components/late-banner';
 import { MonthCalendar } from '../components/month-calendar';
 import { PunchLogSheet } from '../components/punch-log-sheet';
-import { PunchOutSheet } from '../components/punch-out-sheet';
 import { ShiftCard } from '../components/shift-card';
 import { WeeklyQuotaCard } from '../components/weekly-quota-card';
+import { formatStampTime } from '../lib/worked-clock';
 
 export function EmployeeHomePage() {
   const [params] = useSearchParams();
@@ -61,14 +62,9 @@ export function EmployeeHomePage() {
             <div className="flex flex-wrap items-center gap-2.5">
               <PageTitle>Home</PageTitle>
               <Badge variant={attendance.clockedIn ? 'present' : 'off'}>
-                {attendance.clockedIn
-                  ? `Clocked in at ${attendance.clockInTime}`
-                  : 'Not clocked in'}
+                {homeBadge(attendance.clockedIn, attendance.clockInAt, attendance.clockOutAt)}
               </Badge>
             </div>
-            <p className="text-muted-foreground mt-1.5 text-sm">
-              Regular shift · standard 8h · {attendance.locationReadyLabel}
-            </p>
           </div>
           <Button variant="outline" asChild>
             <Link to={homeHref({ ...search, sheet: 'punch-log' })}>
@@ -101,21 +97,34 @@ export function EmployeeHomePage() {
                   name={selectedHoliday.name}
                   detail={selectedHoliday.detail}
                 />
+              ) : selectedIso === attendance.todayIso ? (
+                <ShiftCard attendance={attendance} />
               ) : (
-                <ShiftCard attendance={attendance} search={search} />
+                <DayStampCard search={search} />
               )}
-              <WeeklyQuotaCard attendance={attendance} search={search} />
+              <WeeklyQuotaCard attendance={attendance} />
             </div>
           </div>
         )}
       </div>
 
-      {search.sheet === 'punch-out' ? (
-        <PunchOutSheet attendance={attendance} search={search} />
-      ) : null}
       {search.sheet === 'fix-punch' ? <FixPunchSheet search={search} /> : null}
       {search.sheet === 'request' ? <RequestTimeOffSheet search={search} /> : null}
       {search.sheet === 'punch-log' ? <PunchLogSheet search={search} /> : null}
     </div>
   );
+}
+
+function homeBadge(clockedIn: boolean, clockInAt: string | null, clockOutAt: string | null): string {
+  if (clockedIn) {
+    const stamp = formatStampTime(clockInAt);
+    return stamp === '—' ? 'Clocked in' : `Clocked in at ${stamp}`;
+  }
+
+  if (clockOutAt) {
+    const stamp = formatStampTime(clockOutAt);
+    return stamp === '—' ? 'Clocked out' : `Clocked out at ${stamp}`;
+  }
+
+  return 'Not clocked in';
 }

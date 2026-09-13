@@ -39,7 +39,9 @@ ENV PATH="$PATH:/root/.dotnet/tools" \
 
 EXPOSE 8080
 
-CMD ["dotnet", "watch", "--project", "src/Cloudesh.Api", "--non-interactive"]
+# Restart on edit. Hot reload has been corrupting Attendance handlers
+# (BadImageFormatException) after in-place IL patches.
+CMD ["dotnet", "watch", "--no-hot-reload", "--project", "src/Cloudesh.Api", "--non-interactive"]
 
 # ------------------------------- production --------------------------------
 # Chiseled: no shell, no package manager, and a non-root user by default, which

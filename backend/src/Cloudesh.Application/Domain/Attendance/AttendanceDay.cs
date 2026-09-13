@@ -20,6 +20,15 @@ public sealed class AttendanceDay : ITenantScoped, IAuditable
 
     public TimeOnly? ClockOut { get; set; }
 
+    /// <summary>
+    /// Work already banked from earlier in/out pairs today. The open session
+    /// starts at <see cref="OpenSince"/> and is not included here.
+    /// </summary>
+    public TimeSpan PriorWorked { get; set; }
+
+    /// <summary>Start of the current open session, or null when the timer is paused.</summary>
+    public TimeOnly? OpenSince { get; set; }
+
     public TimeOnly? BreakStart { get; set; }
 
     public TimeOnly? BreakEnd { get; set; }

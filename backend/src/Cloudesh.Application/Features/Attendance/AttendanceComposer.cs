@@ -100,7 +100,7 @@ internal static class AttendanceComposer
         DateOnly monday = EmployeeClock.WeekMonday(context.Today);
         List<GetAttendance.WeekBar> weekDays = WeekBars(context, monday, clockedIn);
         TimeSpan weekTotal = WeekWorked(context, monday);
-        TimeSpan overtime = Overtime(context, monday);
+        TimeSpan overtime = AttendanceTimes.OvertimeInWeek(weekTotal);
         int shifts = context.Days.Count(day =>
             day.Date >= monday && day.Date < monday.AddDays(5) && day.ClockIn is not null);
         TimeOnly? clockIn = today?.ClockIn;
@@ -133,7 +133,13 @@ internal static class AttendanceComposer
             AttendanceTimes.BreakDetail(today),
             $"{monday.Day}–{context.Today.Day} {DateLabels.MonthName(context.Today)} · {DateLabels.Duration(weekTotal)} so far",
             context.Today.ToString("yyyy-MM-dd"),
-            DateLabels.LongDate(context.Today));
+            DateLabels.LongDate(context.Today),
+            today?.ClockOut is TimeOnly clockOut ? DateLabels.Time(clockOut) : string.Empty,
+            EmployeeClock.Instant(context.Today, clockIn, context.TimeZone),
+            EmployeeClock.Instant(context.Today, today?.ClockOut, context.TimeZone),
+            (int)Math.Floor(worked.TotalSeconds),
+            (int)Math.Floor((today?.PriorWorked ?? TimeSpan.Zero).TotalSeconds),
+            EmployeeClock.Instant(context.Today, today?.OpenSince, context.TimeZone));
     }
 
     public static string Workplace(Context context) =>
@@ -186,13 +192,6 @@ internal static class AttendanceComposer
         context.Days
             .Where(day => day.Date >= monday && day.Date < monday.AddDays(5))
             .Select(day => AttendanceTimes.Worked(day, context.Today, context.NowTime))
-            .Aggregate(TimeSpan.Zero, (sum, part) => sum + part);
-
-    private static TimeSpan Overtime(Context context, DateOnly monday) =>
-        context.Days
-            .Where(day => day.Date >= monday && day.Date < monday.AddDays(5))
-            .Select(day => AttendanceTimes.Worked(day, context.Today, context.NowTime))
-            .Select(worked => worked > AttendanceTimes.StandardDay ? worked - AttendanceTimes.StandardDay : TimeSpan.Zero)
             .Aggregate(TimeSpan.Zero, (sum, part) => sum + part);
 
     private static int PercentOfShift(TimeSpan worked)

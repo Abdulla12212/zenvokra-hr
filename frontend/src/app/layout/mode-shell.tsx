@@ -7,7 +7,7 @@ import {
   Settings2,
   Users,
 } from 'lucide-react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useSearchParams } from 'react-router';
 
 import type { Session } from '@/features/auth/api/auth-api';
 import { useLogout } from '@/features/auth/api/auth-queries';
@@ -52,7 +52,8 @@ export function TenantShell({ session }: { session: Session }) {
 export function EmployeeShell({ session }: { session: Session }) {
   const inbox = useInbox();
   const unread = inbox.isSuccess ? inbox.data.filter((item) => item.unread).length : 0;
-  const requestHref = homeHref({ ...parseHomeSearch(new URLSearchParams()), sheet: 'request' });
+  const [params] = useSearchParams();
+  const requestHref = homeHref({ ...parseHomeSearch(params), sheet: 'request' });
 
   return (
     <ModeShell

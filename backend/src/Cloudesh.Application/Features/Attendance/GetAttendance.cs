@@ -34,7 +34,13 @@ public static class GetAttendance
         string BreakDetail,
         string PunchLogSummaryLabel,
         string TodayIso,
-        string TodayLabel);
+        string TodayLabel,
+        string ClockOutTime,
+        DateTimeOffset? ClockInAt,
+        DateTimeOffset? ClockOutAt,
+        int RecordedSeconds,
+        int PriorWorkedSeconds,
+        DateTimeOffset? OpenSinceAt);
 
     public static async Task<Results<Ok<Response>, NotFound>> HandleAsync(
         HttpContext httpContext,

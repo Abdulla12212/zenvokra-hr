@@ -32,17 +32,7 @@ public static class ClockIn
             today,
             cancellationToken);
 
-        if (day.ClockIn is null)
-        {
-            day.ClockIn = EmployeeClock.NowTime(timeProvider, employee.TimeZone);
-        }
-        else
-        {
-            // Resume the same day rather than overwriting the morning stamp.
-            day.ClockOut = null;
-        }
-
-        day.OnBreak = false;
+        AttendanceTimes.StartSession(day, EmployeeClock.NowTime(timeProvider, employee.TimeZone));
 
         GetAttendance.Response? snapshot = await AttendanceDayStore.SnapshotAfterSaveAsync(
             httpContext,

@@ -14,6 +14,9 @@ internal sealed class AttendanceDayConfiguration : IEntityTypeConfiguration<Atte
         builder.Property(day => day.Id).ValueGeneratedNever();
 
         builder.Property(day => day.Note).HasMaxLength(400).IsRequired();
+        builder.Property(day => day.PriorWorked)
+            .HasDefaultValue(TimeSpan.Zero)
+            .ValueGeneratedNever();
 
         builder.HasIndex(day => new { day.TenantId, day.EmployeeId, day.Date }).IsUnique();
 
