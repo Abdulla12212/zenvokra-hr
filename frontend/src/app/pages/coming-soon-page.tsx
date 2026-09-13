@@ -33,21 +33,3 @@ export function AdminOrganizationPage() {
     />
   );
 }
-
-export function TimeOffPlaceholderPage() {
-  return (
-    <ComingSoonPage
-      title="Time off"
-      description="Balances and requests will land here after the leave slice is ported."
-    />
-  );
-}
-
-export function InboxPlaceholderPage() {
-  return (
-    <ComingSoonPage
-      title="Inbox"
-      description="Notifications will land here after the inbox slice is ported."
-    />
-  );
-}

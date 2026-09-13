@@ -1,7 +1,10 @@
 using System.Reflection;
+using Cloudesh.Application.Domain.Attendance;
 using Cloudesh.Application.Domain.Common;
 using Cloudesh.Application.Domain.Employees;
+using Cloudesh.Application.Domain.Holidays;
 using Cloudesh.Application.Domain.Identity;
+using Cloudesh.Application.Domain.Leave;
 using Cloudesh.Application.Domain.Tenants;
 using Cloudesh.Application.Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +54,14 @@ public sealed class AppDbContext : DbContext
     public DbSet<Employee> Employees => Set<Employee>();
 
     public DbSet<EmployeeAccount> EmployeeAccounts => Set<EmployeeAccount>();
+
+    public DbSet<LeaveRequest> LeaveRequests => Set<LeaveRequest>();
+
+    public DbSet<LeaveAllowance> LeaveAllowances => Set<LeaveAllowance>();
+
+    public DbSet<AttendanceDay> AttendanceDays => Set<AttendanceDay>();
+
+    public DbSet<CompanyHoliday> CompanyHolidays => Set<CompanyHoliday>();
 
     /// <summary>
     /// The tenant every query is restricted to, or <see cref="Guid.Empty"/> when none is

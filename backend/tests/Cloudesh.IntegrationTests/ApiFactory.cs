@@ -104,6 +104,47 @@ public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyn
         return tenantAdmin;
     }
 
+    public async Task<(HttpClient Worker, Guid TenantId, Guid EmployeeId)> CreateEmployeeSessionAsync(
+        string tenantName,
+        string adminEmail,
+        string workerEmail,
+        string employeeNumber,
+        string adminPassword = "admin-pass",
+        string workerPassword = "employee-pass")
+    {
+        HttpClient platform = await CreatePlatformClientAsync();
+        (Guid tenantId, _) = await CreateTenantWithAdminAsync(
+            platform,
+            tenantName,
+            adminEmail,
+            adminPassword);
+
+        HttpClient admin = CreateUnauthenticatedClient();
+        await LoginAsync(admin, adminEmail, adminPassword);
+
+        HttpResponseMessage created = await admin.PostAsJsonAsync(
+            new Uri("/api/employees", UriKind.Relative),
+            new
+            {
+                fullName = "Phase Two Worker",
+                workEmail = workerEmail,
+                password = workerPassword,
+                employeeNumber,
+                departmentName = "Engineering",
+                title = "Engineer",
+                location = "Dhaka",
+                managerName = "Nadia Khan",
+            });
+
+        created.EnsureSuccessStatusCode();
+        EmployeeCreated? employee = await created.Content.ReadFromJsonAsync<EmployeeCreated>();
+        ArgumentNullException.ThrowIfNull(employee);
+
+        HttpClient worker = CreateUnauthenticatedClient();
+        await LoginAsync(worker, workerEmail, workerPassword);
+        return (worker, tenantId, employee.Id);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -144,4 +185,6 @@ public sealed class ApiFactory : WebApplicationFactory<ApiAssemblyMarker>, IAsyn
     private sealed record TenantCreated(Guid Id);
 
     private sealed record AdminCreated(Guid Id);
+
+    private sealed record EmployeeCreated(Guid Id);
 }

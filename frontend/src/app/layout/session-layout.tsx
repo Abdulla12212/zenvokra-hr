@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router';
 
 import { useCurrentUser } from '@/features/auth/api/auth-queries';
-import { EmployeeHomePage } from '@/features/employees/pages/employee-home-page';
+import { EmployeeHomePage } from '@/features/attendance/pages/employee-home-page';
 import { CompaniesPage } from '@/features/platform-tenants/pages/companies-page';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,7 +49,7 @@ export function HomeRoute() {
   }
 
   if (data?.role === 'Employee') {
-    return <EmployeeHomePage companyName={data.tenantName ?? undefined} />;
+    return <EmployeeHomePage />;
   }
 
   return <CompaniesPage />;

@@ -51,15 +51,23 @@ backend/src/Cloudesh.Application/
 ├── Common/                  # cross-cutting primitives, kept small on purpose
 │   ├── Endpoints/           # IEndpointGroup, auto-registration, tenant guard
 │   ├── Errors/              # exception to ProblemDetails mapping
-│   └── Pagination/          # PagedResult<T>
+│   ├── Pagination/          # PagedResult<T>
+│   └── Time/                # employee timezone clock, working-day labels
 ├── Domain/                  # entities; no EF or HTTP types
 │   ├── Common/              # ITenantScoped, IAuditable
-│   ├── Identity/            # User, TenantAdmin, EmployeeAccount
+│   ├── Attendance/
 │   ├── Employees/           # HR person record (no password)
+│   ├── Holidays/
+│   ├── Identity/            # User, TenantAdmin, EmployeeAccount
+│   ├── Leave/
 │   └── Tenants/
 ├── Features/                # one folder per feature — where new code goes
 │   ├── Auth/                # login, logout, current session
+│   ├── Attendance/          # employee punch, calendar, stamps
 │   ├── Employees/           # /me plus admin list/create/update
+│   ├── Holidays/            # tenant closed days
+│   ├── Inbox/               # derived employee feed
+│   ├── Leave/               # balances and requests
 │   └── PlatformTenants/     # company + tenant-admin CRUD
 ├── Infrastructure/
 │   ├── Auth/                # cookie session claims, platform-admin options

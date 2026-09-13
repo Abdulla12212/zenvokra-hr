@@ -7,7 +7,10 @@ slice shape from `Features/Employees` (tenant HR) or `Features/Auth` /
 **Roles and chrome.** Login picks the account. Tenant admin nav is Dashboard / Employees /
 Approvals / Organization. Employee nav is Home / Time off / Inbox. `GET /api/employees/me`
 is the signed-in employee. Creating an employee also creates an `EmployeeAccount` (email +
-password). Emails are unique across platform admins, tenant admins, and employee accounts.
+password) and default leave allowances. Emails are unique across platform admins, tenant
+admins, and employee accounts. Employee time slices live in `Features/Attendance`,
+`Leave`, `Holidays`, and `Inbox` — they resolve the person through `CurrentEmployee` and
+`TimeProvider`, not a frozen clock.
 
 Read [CODING-CONVENTIONS-DOTNET.md](CODING-CONVENTIONS-DOTNET.md) and
 [CODING-CONVENTIONS-REACT.md](CODING-CONVENTIONS-REACT.md) first; this document is the

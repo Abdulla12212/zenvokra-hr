@@ -35,7 +35,9 @@ export function TenantAdminTable({
         {admins.map((admin) => (
           <TableRow key={admin.id}>
             <TableCell className="font-medium">{admin.email}</TableCell>
-            <TableCell className="text-muted-foreground">{formatDate(admin.createdAtUtc)}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {formatDate(admin.createdAtUtc)}
+            </TableCell>
             <TableCell>
               <Button
                 type="button"

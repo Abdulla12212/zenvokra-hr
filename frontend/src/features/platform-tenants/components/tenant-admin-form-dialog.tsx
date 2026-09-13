@@ -14,10 +14,7 @@ import { useCreateTenantAdmin } from '../api/tenants-queries';
 
 const schema = z.object({
   email: z.string().trim().email('Enter a valid email address.').max(320),
-  password: z
-    .string()
-    .min(8, 'Use at least 8 characters.')
-    .max(200, 'Use at most 200 characters.'),
+  password: z.string().min(8, 'Use at least 8 characters.').max(200, 'Use at most 200 characters.'),
 });
 
 type FormValues = z.infer<typeof schema>;

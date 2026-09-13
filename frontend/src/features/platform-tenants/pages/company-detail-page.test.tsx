@@ -7,12 +7,7 @@ import { renderWithProviders } from '@/test/render-with-providers';
 
 import { CompanyDetailPage } from './company-detail-page';
 
-const {
-  getTenant,
-  listTenantAdmins,
-  createTenantAdmin,
-  deleteTenantAdmin,
-} = vi.hoisted(() => ({
+const { getTenant, listTenantAdmins, createTenantAdmin, deleteTenantAdmin } = vi.hoisted(() => ({
   getTenant: vi.fn(),
   listTenantAdmins: vi.fn(),
   createTenantAdmin: vi.fn(),

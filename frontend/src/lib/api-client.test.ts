@@ -126,6 +126,8 @@ describe('apiFetch', () => {
   it('returns nothing for a 204', async () => {
     stubFetch(new Response(null, { status: 204 }));
 
-    await expect(apiFetch('/api/platform/tenants/1', { method: 'DELETE' })).resolves.toBeUndefined();
+    await expect(
+      apiFetch('/api/platform/tenants/1', { method: 'DELETE' }),
+    ).resolves.toBeUndefined();
   });
 });
