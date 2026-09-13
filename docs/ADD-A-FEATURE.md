@@ -10,7 +10,9 @@ is the signed-in employee. Creating an employee also creates an `EmployeeAccount
 password) and default leave allowances. Emails are unique across platform admins, tenant
 admins, and employee accounts. Employee time slices live in `Features/Attendance`,
 `Leave`, `Holidays`, and `Inbox` — they resolve the person through `CurrentEmployee` and
-`TimeProvider`, not a frozen clock.
+`TimeProvider`, not a frozen clock. Tenant-admin operations live in `Features/Dashboard`,
+`Approvals`, and `Organization`. Employee detail calendar and leave tabs are
+`GET /employees/{id}/attendance` and `GET /employees/{id}/leave`.
 
 Read [CODING-CONVENTIONS-DOTNET.md](CODING-CONVENTIONS-DOTNET.md) and
 [CODING-CONVENTIONS-REACT.md](CODING-CONVENTIONS-REACT.md) first; this document is the

@@ -68,6 +68,9 @@ backend/src/Cloudesh.Application/
 │   ├── Holidays/            # tenant closed days
 │   ├── Inbox/               # derived employee feed
 │   ├── Leave/               # balances and requests
+│   ├── Dashboard/           # tenant-admin presence totals
+│   ├── Approvals/           # leave + punch-correction decisions
+│   ├── Organization/        # tenant-scoped workplace profile
 │   └── PlatformTenants/     # company + tenant-admin CRUD
 ├── Infrastructure/
 │   ├── Auth/                # cookie session claims, platform-admin options

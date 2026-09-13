@@ -71,7 +71,11 @@ internal static class AttendanceCalendarBuilder
             else if (leave)
             {
                 LeaveRequest? covering = Covering(date, context.PendingLeave);
-                metaSecondary = covering is null ? "Leave" : $"{covering.Type} · Pending";
+                metaSecondary = covering is null
+                    ? "Leave"
+                    : covering.Status == LeaveStatuses.Pending
+                        ? $"{covering.Type} · Pending"
+                        : covering.Type;
                 showPlane = true;
             }
             else if (holiday)

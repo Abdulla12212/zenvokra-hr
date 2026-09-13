@@ -50,5 +50,9 @@ public sealed class AttendanceEndpoints : IEndpointGroup
         attendance.MapPost("/late-banner/dismiss", DismissLateBanner.HandleAsync)
             .WithName(nameof(DismissLateBanner))
             .WithSummary("Hides the late-day banner.");
+
+        attendance.MapPost("/corrections", CreatePunchCorrection.HandleAsync)
+            .WithName(nameof(CreatePunchCorrection))
+            .WithSummary("Requests a punch correction for admin approval.");
     }
 }

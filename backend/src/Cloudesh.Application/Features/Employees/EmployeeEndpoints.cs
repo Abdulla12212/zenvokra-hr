@@ -37,5 +37,15 @@ public sealed class EmployeeEndpoints : IEndpointGroup
             .AddEndpointFilter<RequireTenantAdminEndpointFilter>()
             .WithName(nameof(UpdateEmployee))
             .WithSummary("Updates one employee.");
+
+        employees.MapGet("/{employeeId:guid}/attendance", GetEmployeeAttendance.HandleAsync)
+            .AddEndpointFilter<RequireTenantAdminEndpointFilter>()
+            .WithName(nameof(GetEmployeeAttendance))
+            .WithSummary("Returns one employee's attendance calendar.");
+
+        employees.MapGet("/{employeeId:guid}/leave", GetEmployeeLeave.HandleAsync)
+            .AddEndpointFilter<RequireTenantAdminEndpointFilter>()
+            .WithName(nameof(GetEmployeeLeave))
+            .WithSummary("Returns one employee's leave balances and requests.");
     }
 }

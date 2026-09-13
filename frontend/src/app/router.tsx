@@ -1,11 +1,15 @@
 import { createBrowserRouter } from 'react-router';
 
+import { AdminApprovalsPage } from '@/features/approvals/pages/admin-approvals-page';
 import { LoginPage } from '@/features/auth/pages/login-page';
+import { AdminDashboardPage } from '@/features/dashboard/pages/admin-dashboard-page';
+import { AdminEmployeeDetailPage } from '@/features/employees/pages/admin-employee-detail-page';
 import { AdminEmployeesPage } from '@/features/employees/pages/admin-employees-page';
 import { EmployeeProfilePage } from '@/features/employees/pages/employee-profile-page';
 import { InboxPage } from '@/features/inbox/pages/inbox-page';
 import { RequestDetailPage } from '@/features/leave/pages/request-detail-page';
 import { TimeOffPage } from '@/features/leave/pages/time-off-page';
+import { AdminOrganizationPage } from '@/features/organization/pages/admin-organization-page';
 import { CompanyDetailPage } from '@/features/platform-tenants/pages/company-detail-page';
 
 import {
@@ -15,11 +19,6 @@ import {
   SessionLayout,
   TenantAdminOnly,
 } from './layout/session-layout';
-import {
-  AdminApprovalsPage,
-  AdminDashboardPage,
-  AdminOrganizationPage,
-} from './pages/coming-soon-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { RouteErrorPage } from './pages/route-error-page';
 
@@ -56,6 +55,7 @@ export const router = createBrowserRouter([
         children: [
           { path: 'admin', Component: AdminDashboardPage },
           { path: 'admin/employees', Component: AdminEmployeesPage },
+          { path: 'admin/employees/:employeeId', Component: AdminEmployeeDetailPage },
           { path: 'admin/approvals', Component: AdminApprovalsPage },
           { path: 'admin/organization', Component: AdminOrganizationPage },
         ],
