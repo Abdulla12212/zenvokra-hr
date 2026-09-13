@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: phase2-employee-time
     content: "Phase 2: port Leave, Attendance, Holidays, Inbox onto session CurrentEmployee + TimeProvider; employee Home / Time off / Inbox UI"
-    status: pending
+    status: completed
   - id: phase3-admin-ops
     content: "Phase 3: port Dashboard, Approvals, Organization, employee detail calendar/leave; tenant-scoped org profile defaults from company name"
     status: pending

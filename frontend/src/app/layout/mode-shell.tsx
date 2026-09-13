@@ -7,17 +7,20 @@ import {
   Settings2,
   Users,
 } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 
 import type { Session } from '@/features/auth/api/auth-api';
 import { useLogout } from '@/features/auth/api/auth-queries';
+import { useInbox } from '@/features/inbox/api/inbox-queries';
 import { Button } from '@/components/ui/button';
+import { homeHref, parseHomeSearch } from '@/lib/home-search';
 import { cn } from '@/lib/utils';
 
 interface NavigationItem {
   to: string;
   label: string;
   icon: typeof LayoutDashboard;
+  badge?: number;
 }
 
 export function PlatformShell({ session }: { session: Session }) {
@@ -47,15 +50,21 @@ export function TenantShell({ session }: { session: Session }) {
 }
 
 export function EmployeeShell({ session }: { session: Session }) {
+  const inbox = useInbox();
+  const unread = inbox.isSuccess ? inbox.data.filter((item) => item.unread).length : 0;
+  const requestHref = homeHref({ ...parseHomeSearch(new URLSearchParams()), sheet: 'request' });
+
   return (
     <ModeShell
       session={session}
       badge="Employee"
       contextLabel={session.tenantName ?? undefined}
+      profileTo="/profile"
+      headerAction={{ to: requestHref, label: 'Request time off' }}
       navigation={[
         { to: '/', label: 'Home', icon: LayoutDashboard },
         { to: '/time-off', label: 'Time off', icon: CalendarDays },
-        { to: '/inbox', label: 'Inbox', icon: Inbox },
+        { to: '/inbox', label: 'Inbox', icon: Inbox, badge: unread },
       ]}
     />
   );
@@ -66,11 +75,15 @@ function ModeShell({
   badge,
   contextLabel,
   navigation,
+  profileTo,
+  headerAction,
 }: {
   session: Session;
   badge: string;
   contextLabel?: string;
   navigation: NavigationItem[];
+  profileTo?: string;
+  headerAction?: { to: string; label: string };
 }) {
   const logout = useLogout();
 
@@ -89,6 +102,23 @@ function ModeShell({
             <NavigationLink key={item.to} item={item} />
           ))}
         </nav>
+        {profileTo ? (
+          <div className="border-t p-3">
+            <NavLink
+              to={profileTo}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+                  isActive
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                )
+              }
+            >
+              Profile
+            </NavLink>
+          </div>
+        ) : null}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -102,6 +132,11 @@ function ModeShell({
             ) : null}
           </div>
           <div className="ml-auto flex items-center gap-3">
+            {headerAction ? (
+              <Button variant="outline" size="sm" asChild>
+                <Link to={headerAction.to}>{headerAction.label}</Link>
+              </Button>
+            ) : null}
             <span className="text-muted-foreground rounded-full border px-2.5 py-0.5 text-xs">
               {badge}
             </span>
@@ -148,7 +183,12 @@ function NavigationLink({ item }: { item: NavigationItem }) {
       }
     >
       <Icon className="size-4" aria-hidden="true" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {item.badge && item.badge > 0 ? (
+        <span className="bg-primary text-primary-foreground min-w-[18px] rounded-full px-1.5 text-center text-[11px] leading-[18px] font-semibold">
+          {item.badge}
+        </span>
+      ) : null}
     </NavLink>
   );
 }

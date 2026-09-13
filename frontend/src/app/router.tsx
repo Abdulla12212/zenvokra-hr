@@ -2,6 +2,10 @@ import { createBrowserRouter } from 'react-router';
 
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { AdminEmployeesPage } from '@/features/employees/pages/admin-employees-page';
+import { EmployeeProfilePage } from '@/features/employees/pages/employee-profile-page';
+import { InboxPage } from '@/features/inbox/pages/inbox-page';
+import { RequestDetailPage } from '@/features/leave/pages/request-detail-page';
+import { TimeOffPage } from '@/features/leave/pages/time-off-page';
 import { CompanyDetailPage } from '@/features/platform-tenants/pages/company-detail-page';
 
 import {
@@ -15,8 +19,6 @@ import {
   AdminApprovalsPage,
   AdminDashboardPage,
   AdminOrganizationPage,
-  InboxPlaceholderPage,
-  TimeOffPlaceholderPage,
 } from './pages/coming-soon-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { RouteErrorPage } from './pages/route-error-page';
@@ -61,8 +63,10 @@ export const router = createBrowserRouter([
       {
         Component: EmployeeOnly,
         children: [
-          { path: 'time-off', Component: TimeOffPlaceholderPage },
-          { path: 'inbox', Component: InboxPlaceholderPage },
+          { path: 'time-off', Component: TimeOffPage },
+          { path: 'time-off/:requestId', Component: RequestDetailPage },
+          { path: 'inbox', Component: InboxPage },
+          { path: 'profile', Component: EmployeeProfilePage },
         ],
       },
       { path: '*', Component: NotFoundPage },

@@ -171,7 +171,10 @@ function CompanyDetail({ tenantId }: { tenantId: string }) {
           <CardDescription>The slug stays the same when you rename a company.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={(event) => void onSave(event)} className="flex flex-col gap-3 sm:flex-row">
+          <form
+            onSubmit={(event) => void onSave(event)}
+            className="flex flex-col gap-3 sm:flex-row"
+          >
             <div className="flex-1 space-y-1.5">
               <Label htmlFor="edit-company-name">Name</Label>
               <Input
@@ -220,7 +223,9 @@ function CompanyDetail({ tenantId }: { tenantId: string }) {
             <TenantAdminTable
               admins={adminsQuery.data.items}
               onRemove={(admin) => void removeAdmin(admin)}
-              busyAdminId={deleteAdminMutation.isPending ? deleteAdminMutation.variables : undefined}
+              busyAdminId={
+                deleteAdminMutation.isPending ? deleteAdminMutation.variables : undefined
+              }
             />
           ) : (
             <p className="text-muted-foreground py-6 text-sm">
@@ -266,7 +271,9 @@ function CompanyDetail({ tenantId }: { tenantId: string }) {
             disabled={confirmName.trim() !== tenant.name || deleteMutation.isPending}
             onClick={() => void confirmDelete()}
           >
-            {deleteMutation.isPending ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
+            {deleteMutation.isPending ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : null}
             Delete company
           </Button>
         </div>

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Cloudesh.Application.Common.Endpoints;
 using Cloudesh.Application.Domain.Employees;
 using Cloudesh.Application.Domain.Identity;
+using Cloudesh.Application.Domain.Leave;
 using Cloudesh.Application.Features.PlatformTenants;
 using Cloudesh.Application.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
@@ -109,6 +110,7 @@ public static class CreateEmployee
 
         dbContext.Employees.Add(employee);
         dbContext.EmployeeAccounts.Add(EmployeeAccount.Create(employee.Id, email, request.Password));
+        dbContext.LeaveAllowances.AddRange(LeaveAllowance.DefaultSet(employee.Id));
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return TypedResults.Created(

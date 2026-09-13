@@ -23,13 +23,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function CompanyFormDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function CompanyFormDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const createMutation = useCreateTenant();
 
