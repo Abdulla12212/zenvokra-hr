@@ -17,13 +17,13 @@ const NAV = [
   { id: "inbox", label: "Inbox", icon: "bell", badge: 2 },
 ];
 
-window.Cloudesh = {
+window.Zenvokra = {
   svg,
   mount(active) {
     document.getElementById("sidebar").innerHTML = `
       <div class="brand">
-        <div class="brand-mark">C</div>
-        <div class="brand-name">Cloudesh</div>
+        <div class="brand-mark">Z</div>
+        <div class="brand-name">Zenvokra</div>
       </div>
       <nav class="nav">
         ${NAV.map((item) => navItem(item, active)).join("")}

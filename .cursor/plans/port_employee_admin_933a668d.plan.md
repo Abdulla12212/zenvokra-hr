@@ -76,7 +76,7 @@ erDiagram
   }
 ```
 
-- `users` — platform owner only (`Role = PlatformAdmin`). **Not** tenant-scoped. Seeded `owner@cloudesh.test`.
+- `users` — platform owner only (`Role = PlatformAdmin`). **Not** tenant-scoped. Seeded `owner@zenvokra.test`.
 - `tenants` — company registry. **Not** `ITenantScoped`. Created by the platform admin. Must not be exposed as a tenant-facing HR endpoint.
 - `tenant_admins` — org admin login. **Is** `ITenantScoped`. Email + password on the **same row**. Email unique platform-wide so login needs no tenant picker.
 
@@ -167,7 +167,7 @@ The first draft picked B because the architecture note says “records must outl
 These are the remaining product calls. The plan assumes them unless you say otherwise.
 
 1. **Employee login is Option B.** New `employee_accounts` (email, password, `employee_id`). `employees` stays an HR row with no password. Drop `Employee.IsAdmin`. Session `NameIdentifier` = `employee_accounts.id`.
-2. **Create employee creates a login.** Tenant admin supplies work email + password (same shape as [CreateTenantAdmin](backend/src/Cloudesh.Application/Features/PlatformTenants/CreateTenantAdmin.cs)). Insert `employees` then `employee_accounts` (account email = work email unless we later split them). Extend [PlatformEmailUniqueness](backend/src/Cloudesh.Application/Features/PlatformTenants/PlatformEmailUniqueness.cs) so emails stay unique across platform admins, tenant admins, **and** employee accounts. Same human as admin + employee ⇒ two emails.
+2. **Create employee creates a login.** Tenant admin supplies work email + password (same shape as [CreateTenantAdmin](backend/src/Zenvokra.Application/Features/PlatformTenants/CreateTenantAdmin.cs)). Insert `employees` then `employee_accounts` (account email = work email unless we later split them). Extend [PlatformEmailUniqueness](backend/src/Zenvokra.Application/Features/PlatformTenants/PlatformEmailUniqueness.cs) so emails stay unique across platform admins, tenant admins, **and** employee accounts. Same human as admin + employee ⇒ two emails.
 3. **No hardcoded Acme tenant.** Platform still creates companies. Do not restore `DefaultTenantId` or auto-seed an August 2026 roster into every tenant. Tests build their own employees. A later optional `make seed-demo` can exist; it is out of scope for the first three PRs.
 4. **Drop the frozen clock.** Delete `EmployeeAppClock` and `demo-session.ts`. Use `TimeProvider` and real “today”. UX HTML kits stay design reference, not live fixtures.
 5. **`GET /api/employees/me` is the signed-in employee.** Look up `employee_accounts` by session id, then the linked `employees` row. Never prefer `EMP-1024`. Tenant admin calling `/me` is 403.
@@ -221,7 +221,7 @@ flowchart TD
 
 ## Authorization on the existing pipeline
 
-[EndpointAudience.Tenant](backend/src/Cloudesh.Application/Common/Endpoints/EndpointAudience.cs) today means “signed-in **tenant admin**.” Widen it to “authenticated + `tenant_id` claim” so employees share the tenant filter.
+[EndpointAudience.Tenant](backend/src/Zenvokra.Application/Common/Endpoints/EndpointAudience.cs) today means “signed-in **tenant admin**.” Widen it to “authenticated + `tenant_id` claim” so employees share the tenant filter.
 
 Add role filters (do not add a second tenant resolver):
 
@@ -229,9 +229,9 @@ Add role filters (do not add a second tenant resolver):
 - `RequireEmployeeEndpointFilter` — `/employees/me`, own attendance, own leave, inbox
 - Mixed groups (`EmployeeEndpoints`) apply filters **per route**, not on the whole group
 
-[Login](backend/src/Cloudesh.Application/Features/Auth/Login.cs) grows a third lookup after `User` and `TenantAdmin`: `EmployeeAccount` with `IgnoreQueryFilters([TenantIsolationFilter])`, then sign in with `UserRoles.Employee` + `tenant_id`. Inactive company still 403.
+[Login](backend/src/Zenvokra.Application/Features/Auth/Login.cs) grows a third lookup after `User` and `TenantAdmin`: `EmployeeAccount` with `IgnoreQueryFilters([TenantIsolationFilter])`, then sign in with `UserRoles.Employee` + `tenant_id`. Inactive company still 403.
 
-[GetCurrentUser](backend/src/Cloudesh.Application/Features/Auth/GetCurrentUser.cs) already returns `role`; frontend routes on that.
+[GetCurrentUser](backend/src/Zenvokra.Application/Features/Auth/GetCurrentUser.cs) already returns `role`; frontend routes on that.
 
 ## Frontend shells
 

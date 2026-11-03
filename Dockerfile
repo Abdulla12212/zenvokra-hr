@@ -19,16 +19,16 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS restore
 WORKDIR /src
 
 COPY backend/Directory.Build.props backend/Directory.Packages.props ./
-COPY backend/src/Cloudesh.Api/Cloudesh.Api.csproj src/Cloudesh.Api/
-COPY backend/src/Cloudesh.Application/Cloudesh.Application.csproj src/Cloudesh.Application/
+COPY backend/src/Zenvokra.Api/Zenvokra.Api.csproj src/Zenvokra.Api/
+COPY backend/src/Zenvokra.Application/Zenvokra.Application.csproj src/Zenvokra.Application/
 
-RUN dotnet restore src/Cloudesh.Api/Cloudesh.Api.csproj
+RUN dotnet restore src/Zenvokra.Api/Zenvokra.Api.csproj
 
 # ---------------------------------- build ----------------------------------
 FROM restore AS build
 COPY backend/src/ src/
 
-RUN dotnet publish src/Cloudesh.Api/Cloudesh.Api.csproj \
+RUN dotnet publish src/Zenvokra.Api/Zenvokra.Api.csproj \
     --no-restore \
     --configuration Release \
     --output /app
@@ -48,4 +48,4 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
 EXPOSE 8080
 USER $APP_UID
 
-ENTRYPOINT ["dotnet", "Cloudesh.Api.dll"]
+ENTRYPOINT ["dotnet", "Zenvokra.Api.dll"]

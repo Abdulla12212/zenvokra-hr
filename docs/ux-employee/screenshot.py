@@ -8,11 +8,11 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-OUT = Path("/Users/abdulla/Documents/Cloudesh_HR/docs/ux-employee/export")
+OUT = ROOT / "export"
 BRAVE = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
 
 PAGES = [
-    ("00-design-system.html", "00-cloudesh-design-system.png"),
+    ("00-design-system.html", "00-zenvokra-design-system.png"),
     ("01-welcome.html", "01-welcome.png"),
     ("02-home.html", "02-home.png"),
     ("03-punch-in.html", "03-punch-in.png"),

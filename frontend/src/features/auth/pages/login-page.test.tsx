@@ -16,7 +16,7 @@ vi.mock('../api/auth-api', () => ({ getCurrentUser, login, logout: vi.fn() }));
 
 const platformSession = {
   userId: '01936f7a-0000-7000-8000-000000000001',
-  email: 'owner@cloudesh.test',
+  email: 'owner@zenvokra.test',
   role: 'PlatformAdmin' as const,
   tenantId: null,
   tenantName: null,
@@ -45,7 +45,7 @@ describe('LoginPage', () => {
 
     renderWithProviders(<LoginPage />);
 
-    await userEvent.type(await screen.findByLabelText(/email/i), 'owner@cloudesh.test');
+    await userEvent.type(await screen.findByLabelText(/email/i), 'owner@zenvokra.test');
     await userEvent.type(screen.getByLabelText(/password/i), 'wrong');
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
@@ -57,14 +57,14 @@ describe('LoginPage', () => {
 
     renderWithProviders(<LoginPage />);
 
-    await userEvent.type(await screen.findByLabelText(/email/i), 'owner@cloudesh.test');
-    await userEvent.type(screen.getByLabelText(/password/i), 'cloudesh-dev');
+    await userEvent.type(await screen.findByLabelText(/email/i), 'owner@zenvokra.test');
+    await userEvent.type(screen.getByLabelText(/password/i), 'zenvokra-dev');
     await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(login).toHaveBeenCalledWith({
-        email: 'owner@cloudesh.test',
-        password: 'cloudesh-dev',
+        email: 'owner@zenvokra.test',
+        password: 'zenvokra-dev',
       });
     });
   });

@@ -21,7 +21,7 @@ sequence, not the rules.
 ## The files a feature touches
 
 ```
-backend/src/Cloudesh.Application/
+backend/src/Zenvokra.Application/
 ├── Domain/Employees/Employee.cs
 ├── Infrastructure/Persistence/Configurations/EmployeeConfiguration.cs
 ├── Infrastructure/Persistence/AppDbContext.cs          (+1 DbSet)
@@ -31,8 +31,8 @@ backend/src/Cloudesh.Application/
 └── Migrations/                                          (generated)
 
 backend/tests/
-├── Cloudesh.UnitTests/Persistence/EmployeeTenantIsolationTests.cs
-└── Cloudesh.IntegrationTests/EmployeesEndpointsTests.cs
+├── Zenvokra.UnitTests/Persistence/EmployeeTenantIsolationTests.cs
+└── Zenvokra.IntegrationTests/EmployeesEndpointsTests.cs
 
 frontend/src/
 ├── features/employees/api/employees-api.ts
@@ -54,9 +54,9 @@ Nine new files, three edited. Nothing in `Program.cs`, and nothing in `Common/`.
 
 ```csharp
 // Domain/Employees/Employee.cs
-using Cloudesh.Application.Domain.Common;
+using Zenvokra.Application.Domain.Common;
 
-namespace Cloudesh.Application.Domain.Employees;
+namespace Zenvokra.Application.Domain.Employees;
 
 public sealed class Employee : ITenantScoped, IAuditable
 {

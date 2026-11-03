@@ -66,9 +66,9 @@ docker run --rm -p 8080:8080 \
   -e DATABASE_URL='postgresql://…' \
   -e Database__MigrateOnStartup=true \
   -e Database__SeedOnStartup=true \
-  -e PlatformAdmin__Email=owner@cloudesh.test \
+  -e PlatformAdmin__Email=owner@zenvokra.test \
   -e PlatformAdmin__Password=change-me \
-  cloudesh-hr:deploy
+  zenvokra-hr:deploy
 ```
 
 ## Empty Neon / `relation "users" does not exist`

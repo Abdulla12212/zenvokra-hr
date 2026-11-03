@@ -1,4 +1,4 @@
-# Cloudesh HR
+# Zenvokra HR
 
 Multi-tenant HR SaaS aimed at small companies (roughly 5–10 employees per tenant). The
 foundation is a containerized .NET 10 Minimal API, a React 19 SPA, PostgreSQL with EF Core,
@@ -32,7 +32,7 @@ starts `dotnet watch`. The web container installs npm packages and starts Vite. 
 takes a few minutes; subsequent runs are fast because both `node_modules` and the NuGet cache
 live in named volumes.
 
-Sign in at http://localhost:5173 with `owner@cloudesh.test` / `cloudesh-dev` (see `.env.example`).
+Sign in at http://localhost:5173 with `owner@zenvokra.test` / `zenvokra-dev` (see `.env.example`).
 
 | Service       | URL                                    |
 | ------------- | -------------------------------------- |
@@ -54,7 +54,7 @@ Once the stack is up, confirm the migration matches the model:
 ```bash
 make up
 docker compose exec api dotnet ef migrations has-pending-model-changes \
-  -p src/Cloudesh.Application -s src/Cloudesh.Api
+  -p src/Zenvokra.Application -s src/Zenvokra.Api
 ```
 
 If that reports pending changes, regenerate it from scratch — the model is the source of truth and
@@ -70,19 +70,19 @@ make up
 
 ```
 ├── backend/
-│   ├── Cloudesh.slnx
+│   ├── Zenvokra.slnx
 │   ├── Directory.Build.props        # shared compiler settings for every project
 │   ├── Directory.Packages.props     # every NuGet version, pinned in one place
 │   ├── src/
-│   │   ├── Cloudesh.Api/            # host: Program.cs, config, Dockerfile
-│   │   └── Cloudesh.Application/    # features, domain, infrastructure
+│   │   ├── Zenvokra.Api/            # host: Program.cs, config, Dockerfile
+│   │   └── Zenvokra.Application/    # features, domain, infrastructure
 │   │       ├── Common/              # cross-cutting primitives
 │   │       ├── Domain/              # entities
 │   │       ├── Features/            # one folder per feature (vertical slices)
 │   │       └── Infrastructure/      # persistence + tenancy
 │   └── tests/
-│       ├── Cloudesh.UnitTests/
-│       └── Cloudesh.IntegrationTests/
+│       ├── Zenvokra.UnitTests/
+│       └── Zenvokra.IntegrationTests/
 ├── frontend/
 │   └── src/
 │       ├── app/                     # providers, router, layout
@@ -94,7 +94,7 @@ make up
 ```
 
 `frontend/src/features/<name>/` intentionally mirrors
-`backend/src/Cloudesh.Application/Features/<Name>/`, so a single feature maps to two predictable
+`backend/src/Zenvokra.Application/Features/<Name>/`, so a single feature maps to two predictable
 folders on both sides of the wire.
 
 ## Documentation
@@ -150,8 +150,8 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) an
 docker compose up -d postgres
 
 # Backend, from ./backend
-export ConnectionStrings__Default="Host=localhost;Port=5432;Database=cloudesh_hr;Username=cloudesh;Password=cloudesh_dev_password"
-dotnet watch --project src/Cloudesh.Api
+export ConnectionStrings__Default="Host=localhost;Port=5432;Database=zenvokra_hr;Username=zenvokra;Password=zenvokra_dev_password"
+dotnet watch --project src/Zenvokra.Api
 
 # Frontend, from ./frontend
 npm install

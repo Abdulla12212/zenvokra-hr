@@ -1,4 +1,4 @@
-# Cloudesh HR
+# Zenvokra HR
 
 Multi-tenant HR SaaS for small companies. Three signed-in roles: platform admin
 (companies), tenant admin (Dashboard / Employees / Approvals / Organization), and

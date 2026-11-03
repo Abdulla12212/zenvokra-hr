@@ -93,9 +93,9 @@ function ModeShell({
       <aside className="bg-card hidden w-60 shrink-0 flex-col border-r md:flex">
         <div className="flex h-14 items-center gap-2 border-b px-5">
           <div className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-md text-xs font-bold">
-            C
+            Z
           </div>
-          <span className="font-semibold tracking-tight">Cloudesh HR</span>
+          <span className="font-semibold tracking-tight">Zenvokra HR</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-3">
@@ -125,7 +125,7 @@ function ModeShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="bg-background/80 sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b px-6 backdrop-blur">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="text-sm font-medium md:hidden">Cloudesh HR</span>
+            <span className="text-sm font-medium md:hidden">Zenvokra HR</span>
             {contextLabel ? (
               <span className="text-muted-foreground hidden truncate text-sm sm:inline">
                 {contextLabel}

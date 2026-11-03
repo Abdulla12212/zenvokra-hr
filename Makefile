@@ -5,8 +5,8 @@
         build-deploy
 
 COMPOSE := docker compose
-APP_PROJECT := src/Cloudesh.Application
-API_PROJECT := src/Cloudesh.Api
+APP_PROJECT := src/Zenvokra.Application
+API_PROJECT := src/Zenvokra.Api
 
 help: ## Show available targets
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -37,7 +37,7 @@ ps: ## Show container status
 	$(COMPOSE) ps
 
 psql: ## Open a psql shell on the database
-	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-cloudesh} -d $${POSTGRES_DB:-cloudesh_hr}
+	$(COMPOSE) exec postgres psql -U $${POSTGRES_USER:-zenvokra} -d $${POSTGRES_DB:-zenvokra_hr}
 
 shell-api: ## Open a shell in the api container
 	$(COMPOSE) exec api bash
@@ -59,10 +59,10 @@ migrate-reset: ## Delete and regenerate the initial migration from the current m
 test: test-unit test-frontend ## Run the tests that need no extra services
 
 test-unit: ## Run backend unit tests
-	$(COMPOSE) exec api dotnet test tests/Cloudesh.UnitTests
+	$(COMPOSE) exec api dotnet test tests/Zenvokra.UnitTests
 
 test-integration: ## Run backend integration tests (starts a PostgreSQL container)
-	$(COMPOSE) exec api dotnet test tests/Cloudesh.IntegrationTests
+	$(COMPOSE) exec api dotnet test tests/Zenvokra.IntegrationTests
 
 test-backend: test-unit test-integration ## Run all backend tests
 
@@ -89,4 +89,4 @@ up-prod: env ## Run the production-like stack instead of the development one
 	$(COMPOSE) -f docker-compose.yml up -d --build
 
 build-deploy: ## Build the Render image (SPA + API, no Compose Postgres)
-	docker build -t cloudesh-hr:deploy .
+	docker build -t zenvokra-hr:deploy .

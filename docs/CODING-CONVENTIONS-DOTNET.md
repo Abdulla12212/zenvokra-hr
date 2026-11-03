@@ -22,7 +22,7 @@ product surface.
 | An entity                                   | `Domain/<Feature>/<Entity>.cs`                             |
 | EF mapping for an entity                    | `Infrastructure/Persistence/Configurations/<Entity>Configuration.cs` |
 | Something three or more features need       | `Common/`                                                  |
-| Host wiring                                 | `Cloudesh.Api/` — and almost never                         |
+| Host wiring                                 | `Zenvokra.Api/` — and almost never                         |
 
 **One slice per use case, one file per slice.** `ListDepartments` and `CreateDepartment`
 are separate files even though both are about departments. They change for different
@@ -204,8 +204,8 @@ make migrate                          # apply
 
 ## Tests
 
-Unit tests in `Cloudesh.UnitTests` (SQLite, milliseconds, no Docker); integration tests in
-`Cloudesh.IntegrationTests` (real PostgreSQL via Testcontainers, real DI graph, real HTTP).
+Unit tests in `Zenvokra.UnitTests` (SQLite, milliseconds, no Docker); integration tests in
+`Zenvokra.IntegrationTests` (real PostgreSQL via Testcontainers, real DI graph, real HTTP).
 
 - **Name tests as sentences:** `Insert_is_refused_when_no_tenant_is_resolved`. A failing
   test name should describe the broken behaviour without opening the file.

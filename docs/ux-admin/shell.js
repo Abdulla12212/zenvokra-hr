@@ -31,14 +31,14 @@ function navItem(item, active) {
   return `<div class="nav-item${on}">${svg(item.icon)} ${item.label}${badge}</div>`;
 }
 
-window.CloudeshAdmin = {
+window.ZenvokraAdmin = {
   svg,
   mount(active) {
     document.getElementById("sidebar").innerHTML = `
       <div class="brand">
-        <div class="brand-mark">C</div>
+        <div class="brand-mark">Z</div>
         <div class="brand-stack">
-          <div class="brand-name">Cloudesh Admin</div>
+          <div class="brand-name">Zenvokra Admin</div>
           <div class="brand-sub">Acme Consulting</div>
         </div>
       </div>

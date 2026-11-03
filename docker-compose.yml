@@ -5,16 +5,16 @@
 #
 #   docker compose -f docker-compose.yml up --build
 
-name: cloudesh-hr
+name: zenvokra-hr
 
 services:
   postgres:
     image: postgres:18-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-cloudesh}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudesh_dev_password}
-      POSTGRES_DB: ${POSTGRES_DB:-cloudesh_hr}
+      POSTGRES_USER: ${POSTGRES_USER:-zenvokra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zenvokra_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-zenvokra_hr}
     ports:
       - '${POSTGRES_PORT:-5432}:5432'
     volumes:
@@ -26,7 +26,7 @@ services:
       # Everything else waits on this, so it has to mean "accepting queries", not
       # merely "process started".
       test:
-        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cloudesh} -d ${POSTGRES_DB:-cloudesh_hr}']
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-zenvokra} -d ${POSTGRES_DB:-zenvokra_hr}']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -40,7 +40,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ConnectionStrings__Default: >-
-        Host=postgres;Port=5432;Database=${POSTGRES_DB:-cloudesh_hr};Username=${POSTGRES_USER:-cloudesh};Password=${POSTGRES_PASSWORD:-cloudesh_dev_password}
+        Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenvokra_hr};Username=${POSTGRES_USER:-zenvokra};Password=${POSTGRES_PASSWORD:-zenvokra_dev_password}
       # Deliberately off here: migrations belong in a deploy step, not in an app that
       # might be starting several replicas at once.
       Database__MigrateOnStartup: 'false'

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/solution items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Zenvokra.Api/Zenvokra.Api.csproj" />
+    <Project Path="src/Zenvokra.Application/Zenvokra.Application.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Zenvokra.UnitTests/Zenvokra.UnitTests.csproj" />
+    <Project Path="tests/Zenvokra.IntegrationTests/Zenvokra.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

@@ -12,16 +12,16 @@ WORKDIR /src
 # Copying only the project files first means a source-only change reuses the cached
 # restore layer instead of downloading every package again.
 COPY Directory.Build.props Directory.Packages.props ./
-COPY src/Cloudesh.Api/Cloudesh.Api.csproj src/Cloudesh.Api/
-COPY src/Cloudesh.Application/Cloudesh.Application.csproj src/Cloudesh.Application/
+COPY src/Zenvokra.Api/Zenvokra.Api.csproj src/Zenvokra.Api/
+COPY src/Zenvokra.Application/Zenvokra.Application.csproj src/Zenvokra.Application/
 
-RUN dotnet restore src/Cloudesh.Api/Cloudesh.Api.csproj
+RUN dotnet restore src/Zenvokra.Api/Zenvokra.Api.csproj
 
 # ---------------------------------- build ----------------------------------
 FROM restore AS build
 COPY src/ src/
 
-RUN dotnet publish src/Cloudesh.Api/Cloudesh.Api.csproj \
+RUN dotnet publish src/Zenvokra.Api/Zenvokra.Api.csproj \
     --no-restore \
     --configuration Release \
     --output /app
@@ -41,7 +41,7 @@ EXPOSE 8080
 
 # Restart on edit. Hot reload has been corrupting Attendance handlers
 # (BadImageFormatException) after in-place IL patches.
-CMD ["dotnet", "watch", "--no-hot-reload", "--project", "src/Cloudesh.Api", "--non-interactive"]
+CMD ["dotnet", "watch", "--no-hot-reload", "--project", "src/Zenvokra.Api", "--non-interactive"]
 
 # ------------------------------- production --------------------------------
 # Chiseled: no shell, no package manager, and a non-root user by default, which
@@ -57,4 +57,4 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
 EXPOSE 8080
 USER $APP_UID
 
-ENTRYPOINT ["dotnet", "Cloudesh.Api.dll"]
+ENTRYPOINT ["dotnet", "Zenvokra.Api.dll"]

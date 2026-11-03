@@ -15,7 +15,7 @@
 
 services:
   - type: web
-    name: cloudesh-hr
+    name: zenvokra-hr
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .

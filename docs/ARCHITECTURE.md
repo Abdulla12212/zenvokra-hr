@@ -17,8 +17,8 @@ code goes.
 flowchart LR
     Browser["Browser<br/>React 19 SPA"]
     Proxy["Vite dev server / nginx<br/>serves assets, proxies /api"]
-    Api["Cloudesh.Api<br/>.NET 10 Minimal API"]
-    App["Cloudesh.Application<br/>features + domain + infrastructure"]
+    Api["Zenvokra.Api<br/>.NET 10 Minimal API"]
+    App["Zenvokra.Application<br/>features + domain + infrastructure"]
     Db[("PostgreSQL 18")]
 
     Browser --> Proxy
@@ -48,7 +48,7 @@ build time.
 ### Backend structure
 
 ```
-backend/src/Cloudesh.Application/
+backend/src/Zenvokra.Application/
 ├── Common/                  # cross-cutting primitives, kept small on purpose
 │   ├── Endpoints/           # IEndpointGroup, auto-registration, tenant guard
 │   ├── Errors/              # exception to ProblemDetails mapping
@@ -141,7 +141,7 @@ writes**. Without the interceptor, a caller who obtained another tenant's primar
 could update or delete that row even though they could never read it.
 
 Four rules follow, and all four are covered by tests in
-`backend/tests/Cloudesh.UnitTests/Persistence/TenantIsolationTests.cs`:
+`backend/tests/Zenvokra.UnitTests/Persistence/TenantIsolationTests.cs`:
 
 1. An unresolved tenant matches zero rows, never all rows. The filter compares against
    `Guid.Empty` rather than `NULL` so this holds without relying on SQL null semantics.
@@ -161,7 +161,7 @@ A signed HttpOnly cookie is the session. Passwords are stored and compared in pl
 for this MVP only.
 
 `TenantContext.ResolveFromRequest` in
-[backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs](../backend/src/Cloudesh.Application/Infrastructure/Tenancy/TenantContext.cs)
+[backend/src/Zenvokra.Application/Infrastructure/Tenancy/TenantContext.cs](../backend/src/Zenvokra.Application/Infrastructure/Tenancy/TenantContext.cs)
 reads the `tenant_id` claim from `HttpContext.User`. Platform admins have no tenant.
 That method is the only place that decides how a request maps onto a company — do not
 add a header or a default tenant.

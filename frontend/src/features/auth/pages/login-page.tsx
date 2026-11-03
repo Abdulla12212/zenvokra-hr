@@ -64,7 +64,7 @@ export function LoginPage() {
           <div className="bg-primary text-primary-foreground mb-2 grid size-9 place-items-center rounded-md text-sm font-bold">
             C
           </div>
-          <CardTitle className="text-xl">Sign in to Cloudesh HR</CardTitle>
+          <CardTitle className="text-xl">Sign in to Zenvokra HR</CardTitle>
           <CardDescription>Use the email and password you were given.</CardDescription>
         </CardHeader>
         <CardContent>
